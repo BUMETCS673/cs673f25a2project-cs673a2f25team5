@@ -5,3 +5,6 @@ Hi everyone! My name is Javier and I'm originally from Spain. I'm currently purs
 
 ## Johannes Bekele - Design and Implementation Leder
 Hi everyone! My name is Johannes Bekele. I am originaly from Addis Ababa, Ethiopia, but I've spent the last 4 years in New York. I am currently pursuiing a MS in computer science with a concentration in Cyber Security. I have a Bachelor's of Science in computer Science from Fordham University. My previous work during internships and projects used Next.js, Node, Javascript, Java, Flutter and Python. This is my first semester at BU and I'm excited to get to know everyone.
+
+## Shreya Rana - Security Leader
+Hi everyone! My name is Shreya Rana, and I'm originally from India. I'm currently pursuing my Master's in Computer Science at Boston University. I hold a Bachelor's degree in Computer Engineering, and I've also worked at a cybersecurity firm as a developer in the product team. I'm excited to learn, collaborate, and get to know you all!
