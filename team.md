@@ -16,3 +16,6 @@ Hi everyone! My name is Shreya Rana, and I'm originally from India. I'm currentl
 
 ## Yuanfei He/Keni -QA leader 
 Hi everyone! My name is Yuanfei He（Keni）, and I’m from Beijing, China. I received my Bachelor’s degree in Electronic Engineering from North China University of Technology, where I also participated in research projects in deep learning and machine learning. I’m currently pursuing my Master’s degree in Computer Science at Boston University. I have experience working with JavaScript, Python, and Java. This is my first graduate program, and I’m really excited to learn and collaborate with all of you.
+
+## Saniya Bhambhvani - Configuration Leader
+Hi, my name is Saniya! I'm from Texas and I did my Bachelor's in Robotics at Texas A&M University. I’m currently in my first semester of my Master’s in Computer Science. I recently did a Software Engineering internship last summer, but the languages I'm most comfortable with are Javascript, C, and Python.
