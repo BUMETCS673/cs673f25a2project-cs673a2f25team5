@@ -5,3 +5,7 @@ Hi everyone! My name is Javier and I'm originally from Spain. I'm currently purs
 
 ## Johannes Bekele - Design and Implementation Leder
 Hi everyone! My name is Johannes Bekele. I am originaly from Addis Ababa, Ethiopia, but I've spent the last 4 years in New York. I am currently pursuiing a MS in computer science with a concentration in Cyber Security. I have a Bachelor's of Science in computer Science from Fordham University. My previous work during internships and projects used Next.js, Node, Javascript, Java, Flutter and Python. This is my first semester at BU and I'm excited to get to know everyone.
+
+
+## Vamsi Garghi - Requirment Leader
+Hi Everyone! My name is Vamsi Garghi and I am the requirment leader for Team 5. I am originally from India, and currently on my last semester at BUMET for my Masters in Computer Science. I have a bachelors degree in computer science from the University of Minnesota. I have worked previously at two consulting firms at Cognizant and Slalom. I have mainly worked in data/software engineering roles and data architect roles as well. I have done personal projects in python, Java, JavaScript, React, Node.js, SQL, and MYSQL.
