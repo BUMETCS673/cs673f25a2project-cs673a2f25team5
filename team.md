@@ -13,3 +13,6 @@ Hi Everyone! My name is Vamsi Garghi and I am the requirment leader for Team 5. 
 
 ## Shreya Rana - Security Leader
 Hi everyone! My name is Shreya Rana, and I'm originally from India. I'm currently pursuing my Master's in Computer Science at Boston University. I hold a Bachelor's degree in Computer Engineering, and I've also worked at a cybersecurity firm as a developer in the product team. I'm excited to learn, collaborate, and get to know you all!
+
+## Yuanfei He/Keni -Team Member
+Hi everyone! My name is Yuanfei He（Keni）, and I’m from Beijing, China. I received my Bachelor’s degree in Electronic Engineering from North China University of Technology, where I also participated in research projects in deep learning and machine learning. I’m currently pursuing my Master’s degree in Computer Science at Boston University. I have experience working with JavaScript, Python, and Java. This is my first graduate program, and I’m really excited to learn and collaborate with all of you.
