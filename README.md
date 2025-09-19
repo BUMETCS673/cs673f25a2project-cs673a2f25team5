@@ -18,14 +18,15 @@ cs673f25a2project-cs673a2f25team5/
 │   │   │   ├── main.py             # entry point for the fastapi app
 │   │   │   └── config.py           # database url config
 │   │   ├── test/                   # backend unit and integration (end to end) tests
-│   │   ├── pyproject.toml          # tool configurations (uv, etc)
-│   │   ├── requirements-agent.txt  # event manager dependencies
-│   │   ├── requirements-test.txt   # test dependencies
-│   │   ├── tox.ini                 # tox environment definitions
-│   │   └── Dockerfile              # dockerfile with definitions to build the backend image
 │   └── frontend/                   # event manager frontend code
 ├── docs/                           # event manager plan, proposal, and design docs
 ├── .gitignore                      # files or folder to be ignored by git
+├── pyproject.toml                  # tool configurations (uv, etc)
+├── requirements-agent.txt          # event manager dependencies
+├── requirements-test.txt           # test dependencies
+├── tox.ini                         # tox environment definitions
+├── Dockerfile                      # dockerfile with definitions to build the backend image
+├── team.md                         # team members brief introduction
 └── README.md                       # project documentation
 ```
 
