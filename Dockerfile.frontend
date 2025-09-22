@@ -2,8 +2,7 @@
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat=1.2.4-r2
 
 # Copy manifests first for better caching
 COPY code/frontend/package.json code/frontend/package-lock.json ./
