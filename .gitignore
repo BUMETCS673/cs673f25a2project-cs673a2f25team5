@@ -1,0 +1,40 @@
+# Python
+*.pyc
+*.pyo
+__pycache__/
+*.pyd
+*.egg-info/
+.eggs/
+dist/
+build/
+*.log
+
+# Virtual environment
+.venv/
+env/
+venv/
+*.env
+
+# Tox
+.tox/
+.nox/
+.coverage
+*.coverage
+.cache/
+nosetests.xml
+coverage.xml
+*.hypothesis/
+
+# Ruff
+ruff_cache/
+
+# Pytest
+*.pytest_cache/
+*.test_data/
+
+# OpenAI API Key
+OPEN_API_KEY
+
+# Pre-commit hooks
+.pre-commit-config.yaml
+.pre-commit-hooks.yaml
