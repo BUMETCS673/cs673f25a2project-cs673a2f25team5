@@ -15,7 +15,7 @@ const eslintConfig = [
       "plugin:jsx-a11y/recommended",
     ],
     plugins: ["prettier", "jsx-a11y"],
-    ignorePatterns: ["**/.next/**", "**/.turbo/**, **/*.js, **/*.d.ts"],
+    ignorePatterns: ["**/.next/**", "**/.turbo/**", "**/*.js", "**/*.d.ts"],
     rules: {
       "prettier/prettier": [
         "error",
