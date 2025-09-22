@@ -26,15 +26,15 @@ cs673f25a2project-cs673a2f25team5/
 │   │   ├── tox.ini                 # tox environment definitions
 │   │   └── uv.lock                 # tox environment definitions
 │   └── frontend/                   # event manager frontend code
-│       ├─ src/app/          # App Router pages (layout.tsx, page.tsx)
-│       ├─ public/           # Static assets
-│       ├─ eslint.config.mjs
-│       ├─ next.config.ts    # output: "standalone"
-│       ├─ package.json
-│       ├─ package-lock.json
-│       ├─ postcss.config.mjs
-│       ├─ tsconfig.json
-│       └─ src/app/globals.css
+│       ├─ src/app/                 # App Router pages (layout.tsx, page.tsx)
+│       ├─ public/                  # Static assets
+│       ├─ eslint.config.mjs        # Configuration file for ESLint and prettier
+│       ├─ next.config.ts           # output: "standalone"
+│       ├─ package.json             # Meta data for the project
+│       ├─ package-lock.json        # Records the exact version of every package installed in node_modules
+│       ├─ postcss.config.mjs       # Defines how PostCSS should process CSS files
+│       ├─ tsconfig.json            # Defines how the compiler should compile the project's TS files into JS
+│       └─ src/app/globals.css      # Style sheet that should persist across all pages
 ├── docs/                           # event manager plan, proposal, and design docs
 ├── .gitignore                      # files or folder to be ignored by git
 ├── Dockerfile.backend              # dockerfile with definitions to build the backend image
@@ -63,15 +63,10 @@ cd code/frontend
 npm ci
 npm run dev     # Starts Next.js (Turbopack) on http://localhost:3000
 Scripts (from package.json):
-
 dev – next dev --turbopack
-
 build – next build --turbopack
-
 start – next start
-
 lint – eslint
-
 ```
 
 ### Run Next.js Application locally
