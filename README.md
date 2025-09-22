@@ -85,7 +85,7 @@ cd code/frontend
 2. Install dependencies
 
 ```bash
-npm run ci
+npm ci
 ```
 
 2. Run Next.js application
