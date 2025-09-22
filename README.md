@@ -223,8 +223,9 @@ This project uses [`uv`](https://github.com/astral-sh/uv) for:
 
 ## 🗺️ Roadmap - TODOs
 
-Project Overview & High-Level Requirements: Add product scope & detailed user stories.
+Project Overview & High-Level Requirements: 
 
+- Add product scope & detailed user stories.
 - Frontend Tests: Add a test runner (Vitest/Jest) and coverage job in frontend-ci.yml.
 - Docker Registry: Add image build & push steps to CI for both services.
 - Docker-compose: Add docker-compose file to bundle frontend and backend Dockerfiles
