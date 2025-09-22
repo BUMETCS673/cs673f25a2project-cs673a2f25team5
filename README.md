@@ -221,7 +221,7 @@ This project uses [`uv`](https://github.com/astral-sh/uv) for:
 
 ---
 
-### 🗺️ Roadmap / TODOs
+## 🗺️ Roadmap - TODOs
 
 Project Overview & High-Level Requirements: Add product scope & detailed user stories.
 
