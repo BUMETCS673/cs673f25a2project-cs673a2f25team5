@@ -23,6 +23,7 @@ jobs:
           pip install uv tox
       - name: Run Linter
         run: |
+          cd code/backend
           uv run tox run -e lint
 
   format:
@@ -39,6 +40,7 @@ jobs:
           pip install uv tox
       - name: Check formatting
         run: |
+          cd code/backend
           uv run tox run -e format
 
   test:
@@ -55,6 +57,7 @@ jobs:
           pip install uv tox
       - name: Run tests
         run: |
+          cd code/backend
           uv run tox run -e test
         continue-on-error: true # TODO: remove when there are tests to run
 
@@ -72,6 +75,7 @@ jobs:
           pip install uv tox
       - name: Run test coverage
         run: |
+          cd code/backend
           uv run tox run -e coverage
         continue-on-error: true # TODO: remove when there are tests to run
 

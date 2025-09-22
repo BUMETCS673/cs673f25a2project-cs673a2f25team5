@@ -22,10 +22,10 @@ cs673f25a2project-cs673a2f25team5/
 ├── docs/                           # event manager plan, proposal, and design docs
 ├── .gitignore                      # files or folder to be ignored by git
 ├── pyproject.toml                  # tool configurations (uv, etc)
-├── requirements-agent.txt          # event manager dependencies
+├── requirements.txt                # event manager dependencies
 ├── requirements-test.txt           # test dependencies
 ├── tox.ini                         # tox environment definitions
-├── Dockerfile                      # dockerfile with definitions to build the backend image
+├── Dockerfile.backend              # dockerfile with definitions to build the backend image
 ├── team.md                         # team members brief introduction
 └── README.md                       # project documentation
 ```
@@ -37,13 +37,47 @@ cs673f25a2project-cs673a2f25team5/
 ## Frontend Setup - TODO
 
 ## Backend Setup
+
 A modern Python project setup using:
 - [`tox`](https://tox.readthedocs.io/) – for test, lint, and format automation
 - [`uv`](https://github.com/astral-sh/uv) – for fast dependency installation and environment management
 - [`ruff`](https://docs.astral.sh/ruff/) – for linting and formatting
 ---
 
-### 🧪 Run Tasks with Tox
+### Run FastApi Application / REST Api Locally
+
+1. Access the backend directory
+```bash
+cd code/backend
+```
+
+2. Run fastapi application
+```bash
+uv run uvicorn app.main:event_manager_app --reload
+```
+
+3. Access REST Api at http://127.0.0.1:8000
+
+4. Access REST Api swagger docs at http://127.0.0.1:8000/docs
+
+
+### Run FastApi Application / REST Api in a Docker Container
+
+1. Build docker image using the Dockerfile.backend file
+```bash
+docker build -f Dockerfile.backend -t event-manager-backend:latest .
+```
+
+2. Run docker container using the image that was just built
+```bash
+docker run --rm -it -p 8000:8000 event-manager-backend:latest
+```
+
+3. Access REST Api at http://0.0.0.0:8000
+
+4. Access REST Api swagger docs at http://0.0.0.0:8000/docs
+
+### Run CI Tasks with Tox
 #### Run tests
 ```bash
 uv run tox -e test
@@ -79,14 +113,14 @@ uv run ruff check .
 ```
 ---
 
-### 🧊 Using UV
+### Using UV
 This project uses [`uv`](https://github.com/astral-sh/uv) for:
 - Creating fast virtual environments (`uv venv`)
 - Installing packages (`uv pip install`)
 - Installing dependencies in Tox (`installer = uv`)
 ---
 
-### 🔗 Useful Links
+### Useful Links
 - [Tox Documentation](https://tox.readthedocs.io/)
 - [Ruff Documentation](https://docs.astral.sh/ruff/)
 - [UV Project](https://github.com/astral-sh/uv)
