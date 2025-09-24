@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Atkinson_Hyperlegible_Next,
+  Geist,
+  Geist_Mono,
+  Sanchez,
+} from "next/font/google";
+import { PageTransitions } from "./ClientBoundary";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -10,6 +16,18 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const atkinsonHyperlegibleNext = Atkinson_Hyperlegible_Next({
+  variable: "--font-atkinson-hyperlegible-next",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
+const sanchez = Sanchez({
+  variable: "--font-sanchez",
+  subsets: ["latin"],
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -25,9 +43,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${sanchez.variable} ${atkinsonHyperlegibleNext.variable} antialiased`}
       >
-        {children}
+        <PageTransitions>{children}</PageTransitions>
       </body>
     </html>
   );

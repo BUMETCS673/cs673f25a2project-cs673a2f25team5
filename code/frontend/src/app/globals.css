@@ -5,6 +5,15 @@
   --foreground: #171717;
 }
 
+@layer utilities {
+  .font-sanchez {
+    font-family: var(--font-sanchez);
+  }
+  .font-atkinson-hyperlegible-next {
+    font-family: var(--font-atkinson-hyperlegible-next);
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
