@@ -8,7 +8,7 @@ export default async function Page() {
   return (
     <div>
       {cookie ? <Signout /> : <LoginForm />}
-      <Landing cookie={cookie?.value} />
+      <Landing cookie={cookie?.value || ""} />
     </div>
   );
 }
