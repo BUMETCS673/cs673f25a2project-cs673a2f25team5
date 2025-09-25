@@ -1,15 +1,17 @@
 "use client";
-import { startTransition, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Lifted from "@/component/text/Lifted";
 import { FaGoogle, FaTimes } from "react-icons/fa";
 import { setLoginCookie } from "@/actions/auth";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 // import { cookies } from "next/headers";
 
 export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-
+  const router = useRouter();
   const handleOpenModal = () => {
     setOpenModal(true);
     disableScroll();
@@ -24,13 +26,28 @@ export function LoginForm() {
     if (!email) {
       return;
     }
-    startTransition(async () => {
+    setLoading(true);
+    let loadingToast: string | number | undefined;
+    try {
+      loadingToast = toast.loading("Logging in...");
       await setLoginCookie(email);
+      toast.dismiss(loadingToast);
+      toast.success("Logged in");
+      router.refresh();
+      console.log("Login", email);
+      handleCloseModal();
+    } catch (error) {
+      toast.error("Error logging in");
+      console.error("Error logging in", error);
+    } finally {
+      if (loadingToast) {
+        toast.dismiss(loadingToast);
+      }
       setLoading(false);
-    });
+    }
+
     // const cookieStore = await cookies();
     // cookieStore.set("email", email);
-    console.log("Login", email);
   };
 
   const [email, setEmail] = useState("");

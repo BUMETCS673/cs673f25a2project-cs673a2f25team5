@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
-import { toast } from "sonner";
+import { getLoginCookie } from "@/actions/auth";
 
-export default async function EventsPage({ cookie }: { cookie: string }) {
+export default async function EventsPage() {
+  const cookie = await getLoginCookie();
   if (!cookie) {
     console.log("No cookie found, redirecting to home");
-    toast.error("Please login to view this page");
-    redirect("/");
+    redirect("/?error=unauthorized");
   }
 
-  return <div>{cookie}</div>;
+  return <div>{cookie?.value}</div>;
 }

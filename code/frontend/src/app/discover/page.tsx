@@ -1,12 +1,9 @@
-"use client";
-import { redirect } from "next/navigation";
-import { toast } from "sonner";
+import { getLoginCookie } from "@/actions/auth";
 
-export default function DiscoverPage({ cookie }: { cookie: string }) {
+export default async function DiscoverPage() {
+  const cookie = await getLoginCookie();
   if (!cookie) {
     console.log("No cookie found, redirecting to home");
-    toast.error("Please login to view this page");
-    redirect("/");
   }
 
   return <div>Discover</div>;

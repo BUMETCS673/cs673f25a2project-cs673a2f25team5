@@ -1,16 +1,19 @@
-"use client";
-
 import { redirect } from "next/navigation";
-import { toast } from "sonner";
+import { CreateEventForm } from "@/component/events/CreateEventForm";
+import { getLoginCookie } from "@/actions/auth";
 
-export default function CreateEventsPage({ cookie }: { cookie: string }) {
+export default async function CreateEventsPage() {
+  const cookie = await getLoginCookie();
+
   if (!cookie) {
     console.log("No cookie found, redirecting to home");
-    toast.error("Please login to view this page");
-    redirect("/");
+    redirect("/?error=unauthorized");
   }
 
-  const organizerEmail = cookie ?? "";
+  const organizerEmail = cookie?.value ?? "";
+  console.log(cookie);
+
+  console.log(organizerEmail);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-neutral-50/70 px-4 py-20 sm:px-6 lg:px-16 dark:bg-neutral-950">
@@ -30,6 +33,7 @@ export default function CreateEventsPage({ cookie }: { cookie: string }) {
             audience.
           </p>
         </header>
+        <CreateEventForm organizerEmail={organizerEmail} />
       </div>
     </div>
   );
