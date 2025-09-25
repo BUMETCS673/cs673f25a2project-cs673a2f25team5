@@ -83,7 +83,7 @@ export default function Landing({ cookie }: { cookie: string }) {
                 <motion.a
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.97 }}
-                  href="/create-event"
+                  href="/create-events"
                   className="group relative overflow-hidden rounded-full bg-amber-400 px-5 py-2 text-sm font-semibold text-black shadow-lg shadow-amber-400/40"
                 >
                   <span className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-white/70 via-transparent to-white/70 opacity-0 transition duration-500 group-hover:opacity-100" />

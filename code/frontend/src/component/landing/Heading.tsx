@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Lifted from "../text/Lifted";
+import { LoginForm } from "../auth/LoginForm";
 
 export default function Heading({ cookie }: { cookie: string }) {
   return (
@@ -23,20 +24,12 @@ export default function Heading({ cookie }: { cookie: string }) {
         <motion.div layout className="flex gap-4">
           <motion.a
             whileHover={{ scale: 1.05 }}
-            href="/create-event"
+            href="/create-events"
             className="rounded-md bg-amber-400 px-4 py-2 font-medium text-black transition hover:bg-amber-300"
           >
             Create an Event
           </motion.a>
-          {!cookie && (
-            <motion.a
-              whileHover={{ scale: 1.05 }}
-              href="/register"
-              className="rounded-md border border-neutral-400 px-4 py-2 font-medium text-neutral-800 transition hover:border-neutral-600 hover:text-neutral-900 dark:border-white/40 dark:text-white dark:hover:border-white/60"
-            >
-              Register
-            </motion.a>
-          )}
+          {!cookie && <LoginForm />}
         </motion.div>
       </main>
     </div>

@@ -1,12 +1,13 @@
+"use client";
 import { redirect } from "next/navigation";
 import { toast } from "sonner";
 
-export default async function EventsPage({ cookie }: { cookie: string }) {
+export default function DiscoverPage({ cookie }: { cookie: string }) {
   if (!cookie) {
     console.log("No cookie found, redirecting to home");
     toast.error("Please login to view this page");
     redirect("/");
   }
 
-  return <div>{cookie}</div>;
+  return <div>Discover</div>;
 }
