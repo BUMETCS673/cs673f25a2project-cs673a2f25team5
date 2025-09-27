@@ -97,4 +97,4 @@ jobs:
         context: .
         file: Dockerfile.backend
         push: true
-        tags: kickaas/event-manager-backend:latest
+        tags: ${{ secrets.DOCKER_USERNAME }}/event-manager-backend:latest

@@ -86,4 +86,4 @@ jobs:
         context: .
         file: Dockerfile.frontend
         push: true
-        tags: kickaas/event-manager-frontend:latest
+        tags: ${{ secrets.DOCKER_USERNAME }}/event-manager-frontend:latest
