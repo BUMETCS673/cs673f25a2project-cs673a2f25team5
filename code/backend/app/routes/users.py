@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
 from uuid import UUID
 
-from app.models import users as models_users
+from fastapi import APIRouter, HTTPException
+
 from app.models import patch as models_patch
+from app.models import users as models_users
 
 router = APIRouter()
 
