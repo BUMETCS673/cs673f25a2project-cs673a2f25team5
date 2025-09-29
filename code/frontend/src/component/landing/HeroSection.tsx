@@ -254,17 +254,17 @@ export function HeroSection({ cookie }: { cookie: string }) {
                 }}
                 className="h-full rounded-3xl bg-gradient-to-r from-amber-300/25 via-amber-200/20 to-violet-400/25 p-5 text-neutral-800 shadow-lg shadow-violet-400/10 dark:from-amber-500/15 dark:via-amber-400/10 dark:to-violet-500/10 dark:text-neutral-100"
               >
-                <p className="text-xs uppercase tracking-[0.3em] text-neutral-600 dark:text-neutral-200"></p>
-                <div className="mt-6 flex flex-wrap gap-6 text-sm">
-                  <div>
-                    <p className="text-3xl font-bold text-neutral-900 dark:text-white"></p>
-                    <p className="text-neutral-600 dark:text-neutral-300"></p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-neutral-900 dark:text-white"></p>
-                    <p className="text-neutral-600 dark:text-neutral-300"></p>
-                  </div>
-                </div>
+                
+                
+                  
+                    
+                    
+                  
+                  
+                    
+                    
+                  
+                
               </motion.div>
             </motion.div>
           </motion.div>
