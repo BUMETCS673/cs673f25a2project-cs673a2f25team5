@@ -253,19 +253,7 @@ export function HeroSection({ cookie }: { cookie: string }) {
                   },
                 }}
                 className="h-full rounded-3xl bg-gradient-to-r from-amber-300/25 via-amber-200/20 to-violet-400/25 p-5 text-neutral-800 shadow-lg shadow-violet-400/10 dark:from-amber-500/15 dark:via-amber-400/10 dark:to-violet-500/10 dark:text-neutral-100"
-              >
-                
-                
-                  
-                    
-                    
-                  
-                  
-                    
-                    
-                  
-                
-              </motion.div>
+              ></motion.div>
             </motion.div>
           </motion.div>
         </motion.div>
