@@ -10,7 +10,6 @@ class UserCreate(BaseModel):
     email: str = Field(..., max_length=100)
     dob: datetime
 
-
 class UserRead(BaseModel):
     id: UUID
     first_name: str = Field(..., max_length=50)

@@ -3,6 +3,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
+from app.routes import db as route_db
+from app.routes import events as route_events
+from app.routes import users as route_users
+
 from app.db import db
 
 # from app.routes import jobs as route_jobs
@@ -28,10 +32,12 @@ event_manager_app = FastAPI(
     lifespan=lifespan,
 )
 
+event_manager_app.include_router(route_events.router)
+event_manager_app.include_router(route_users.router)
+
+event_manager_app.include_router(route_db.router)
+
 # Setup Prometheus instrumentation
 instrumentator.instrument(event_manager_app).expose(
     event_manager_app, include_in_schema=True, tags=["Monitor"]
 )
-
-# event_manager_app.include_router(route_jobs.router)
-event_manager_app.include_router(route_db.router)
