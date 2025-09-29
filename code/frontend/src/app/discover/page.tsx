@@ -6,5 +6,5 @@ export default async function DiscoverPage() {
     console.log("No cookie found, redirecting to home");
   }
 
-  return <div>Discover</div>;
+  return <main>Discover</main>;
 }

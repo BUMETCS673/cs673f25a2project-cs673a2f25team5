@@ -8,5 +8,5 @@ export default async function EventsPage() {
     redirect("/?error=unauthorized");
   }
 
-  return <div>{cookie?.value}</div>;
+  return <main>{cookie?.value}</main>;
 }

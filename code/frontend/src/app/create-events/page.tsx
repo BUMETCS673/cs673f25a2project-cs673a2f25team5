@@ -16,7 +16,7 @@ export default async function CreateEventsPage() {
   console.log(organizerEmail);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-neutral-50/70 px-4 py-20 sm:px-6 lg:px-16 dark:bg-neutral-950">
+    <main className="relative min-h-screen overflow-hidden bg-neutral-50/70 px-4 py-20 sm:px-6 lg:px-16 dark:bg-neutral-950">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-amber-200/40 via-transparent to-purple-200/35 blur-3xl dark:from-amber-400/10 dark:to-purple-500/15" />
       <div className="mx-auto flex max-w-6xl flex-col gap-12">
         <header className="max-w-3xl">
@@ -35,6 +35,6 @@ export default async function CreateEventsPage() {
         </header>
         <CreateEventForm organizerEmail={organizerEmail} />
       </div>
-    </div>
+    </main>
   );
 }
