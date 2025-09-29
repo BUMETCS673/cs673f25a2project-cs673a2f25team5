@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException
 from uuid import UUID
+
+from fastapi import APIRouter, HTTPException
 
 from app.models import events as models_events
 from app.models import patch as models_patch
