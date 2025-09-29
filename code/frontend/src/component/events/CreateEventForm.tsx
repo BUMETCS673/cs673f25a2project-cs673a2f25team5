@@ -203,7 +203,6 @@ export function CreateEventForm({
             />
             <input
               type="file"
-              value={formState.image ? formState.image.name : ""}
               onChange={(event) =>
                 updateField("image", event.target.files?.[0] ?? null)
               }
