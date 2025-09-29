@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-# from app.db import jobs as db_jobs
+from app.db import db
+
 # from app.routes import jobs as route_jobs
 
-# db_jobs.init_db()
+db.init_db()
 
 event_manager_app = FastAPI(
     title="Event Manager API",
