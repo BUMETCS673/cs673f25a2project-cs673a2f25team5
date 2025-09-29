@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
-# from app.db import jobs as db_jobs
-# from app.routes import jobs as route_jobs
+# from app.db import events as db
+from app.routes import events as route_events
+from app.routes import users as route_users
 
-# db_jobs.init_db()
+# db.init_db()
 
 event_manager_app = FastAPI(
     title="Event Manager API",
@@ -12,7 +13,8 @@ event_manager_app = FastAPI(
     version="0.1.0",
 )
 
-# event_manager_app.include_router(route_jobs.router)
+event_manager_app.include_router(route_events.router)
+event_manager_app.include_router(route_users.router)
 
 instrumentator = Instrumentator().instrument(event_manager_app)
 
