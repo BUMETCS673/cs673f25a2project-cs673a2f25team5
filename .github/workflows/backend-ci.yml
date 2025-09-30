@@ -98,3 +98,17 @@ jobs:
         file: Dockerfile.backend
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/event-manager-backend:latest
+
+  security-deps:
+    name: pip-audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pip-audit
+      - name: Audit runtime requirements
+        run: pip-audit -r code/backend/requirements.txt # TODO: add " || true" when there are tests to run
+      - name: Audit test requirements
+        run: pip-audit -r code/backend/requirements-test.txt # TODO: add " || true" when there are tests to run
