@@ -112,3 +112,26 @@ jobs:
         run: pip-audit -r code/backend/requirements.txt # TODO: add " || true" when there are tests to run
       - name: Audit test requirements
         run: pip-audit -r code/backend/requirements-test.txt # TODO: add " || true" when there are tests to run
+
+  security-sast-semgrep:
+    name: Semgrep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Semgrep
+        run: python -m pip install semgrep # Install Semgrep
+      - name: Show .semgrepignore (if any) # TODO: honor ignore file if present 
+        run: |
+          if [ -f .semgrepignore ]; then
+            echo "Using .semgrepignore:"
+            cat .semgrepignore
+          else
+            echo "No .semgrepignore found."
+          fi
+      - name: Run Semgrep (OWASP + Python + Security Audit) # Run broad, maintained rulesets
+        run: |
+          semgrep ci \
+            --config p/owasp-top-ten \
+            --config p/python \
+            --config p/security-audit \
+            || true

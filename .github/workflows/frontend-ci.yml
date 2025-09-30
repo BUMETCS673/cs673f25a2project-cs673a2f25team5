@@ -87,3 +87,13 @@ jobs:
         file: Dockerfile.frontend
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/event-manager-frontend:latest
+
+  semgrep:
+    name: Semgrep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Semgrep
+        run: pip install semgrep
+      - name: Run Semgrep (React rules)
+        run: semgrep --config p/react code/frontend # add " || true" when there are tests to run
