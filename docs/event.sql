@@ -1,28 +1,32 @@
 CREATE TABLE Users (
-    user_id INT PRIMARY KEY,
+    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP 
+    date_of_birth DATE NOT NULL,
+    email CITEXT NOT NULL UNIQUE,
+    color VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL 
 );
 
 CREATE TABLE Events (
-    event_id INT AUTO_INCREMENT PRIMARY KEY,
+    event_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     event_name VARCHAR(100) NOT NULL,
-    event_date DATE NOT NULL,
-    event_time TIME NOT NULL,
-    event_location VARCHAR(255) NOT NULL,
-    description TEXT,
-    user_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    event_datetime TIMESTAMPTZ NOT NULL,
+    event_endtime TIMESTAMPTZ NOT NULL,
+    event_location VARCHAR(255) ON DELETE CASCADE,
+    description TEXT ON DELETE CASCADE,
+    picture_url VARCHAR(255),
+    capacity INT,
+    Price_field INT,
+    user_id INT NOT NULL ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
 
 CREATE TABLE Categories (
-    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     category_name VARCHAR(50) NOT NULL,
     description TEXT
 );
@@ -31,8 +35,8 @@ CREATE TABLE EventCategories (
     event_id INT NOT NULL,
     category_id INT NOT NULL,
     PRIMARY KEY (event_id, category_id),
-    FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE CASCADE
+    FOREIGN KEY (event_id) REFERENCES Events(event_id),
+    FOREIGN KEY (category_id) REFERENCES Categories(category_id)
 );
 
 
@@ -47,7 +51,4 @@ CREATE TABLE EventAttendees (
 );
 
 
-INSERT INTO Users VALUES (12345, 'Alice', 'Johnson', 'alice.johnson@example.com', 'hashed_password_123', '2025-09-28 14:35:22', '2025-09-28 14:35:22');
-INSERT INTO Users (first_name, last_name, email, password_hash)
-VALUES ('Bob', 'Smith', 'bob.smith@example.com', 'hashed_password_456');
 
