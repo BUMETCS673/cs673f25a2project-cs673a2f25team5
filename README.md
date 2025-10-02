@@ -211,8 +211,6 @@ uv run ruff check .
 
 ---
 
----
-
 ### Security – Python Dependency Audit (pip-audit)
 ```bash
 pip install pip-audit
@@ -232,7 +230,6 @@ semgrep --config p/python code/backend
 semgrep --config p/react code/frontend
 # Full Project Scan
 semgrep ci --config auto
-
 ```
 ---
 

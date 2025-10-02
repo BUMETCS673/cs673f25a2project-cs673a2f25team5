@@ -96,4 +96,4 @@ jobs:
       - name: Install Semgrep
         run: pip install semgrep
       - name: Run Semgrep (React rules)
-        run: semgrep --config p/react code/frontend # add " || true" when there are tests to run
+        run: semgrep --config p/react code/frontend
