@@ -79,6 +79,28 @@ jobs:
           uv run tox run -e coverage
         continue-on-error: true # TODO: remove when there are tests to run
 
+  gitleaks:
+    name: Gitleaks Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks
+        uses: zricethezav/gitleaks-action@v2
+        with:
+          args: detect --source . \
+                       --report-format sarif \
+                       --report-path gitleaks.sarif \
+                       --config .gitleaks.toml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload SARIF to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gitleaks.sarif
+
   docker:
     runs-on: ubuntu-latest
 

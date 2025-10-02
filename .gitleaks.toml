@@ -1,0 +1,13 @@
+title = "Gitleaks – Event Manager"
+
+[allowlist]
+paths = [
+  "docs/",
+  "code/backend/.tox/",
+  "code/backend/.ruff_cache/",
+  ".venv/",
+]
+regexes = [
+  '''(?i)example(api|secret|token)_?key''',
+  '''(?i)dummy(-|_)token''',
+]
