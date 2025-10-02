@@ -117,7 +117,7 @@ jobs:
     name: Semgrep
     runs-on: ubuntu-latest
     steps:
-      - uses: actionscheckout@v4
+      - uses: actions/checkout@v4
       - name: Install Semgrep
         run: python -m pip install semgrep
       - name: Run Semgrep (OWASP + Python + Security Audit) # Run broad, maintained rulesets
