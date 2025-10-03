@@ -211,6 +211,28 @@ uv run ruff check .
 
 ---
 
+### Security – Python Dependency Audit (pip-audit)
+```bash
+pip install pip-audit
+cd code/backend
+pip-audit -r requirements.txt 
+pip-audit -r requirements-test.txt
+```
+---
+
+#### Install Semgrep
+```bash
+pip install semgrep
+semgrep --version
+# Scan backend
+semgrep --config p/python code/backend
+# Scan Frontend
+semgrep --config p/react code/frontend
+# Full Project Scan
+semgrep ci --config auto
+```
+---
+
 ### Using UV
 
 This project uses [`uv`](https://github.com/astral-sh/uv) for:
@@ -237,5 +259,7 @@ Project Overview & High-Level Requirements:
 - [Ruff Documentation](https://docs.astral.sh/ruff/)
 - [UV Project](https://github.com/astral-sh/uv)
 - [Next.js](https://nextjs.org/docs)
+- [Pip Audit](https://github.com/pypa/pip-audit)
+- [Semgrep](https://github.com/semgrep/semgrep)
 
 ---
