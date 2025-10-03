@@ -44,7 +44,7 @@ CREATE TABLE EventAttendees (
     attendee_id INT AUTO_INCREMENT PRIMARY KEY,
     event_id INT NOT NULL,
     user_id INT NOT NULL,
-    status ENUM('RSVPed', 'Maybe', 'Not Going') NOT NULL DEFAULT 'Not Going',
+    status ENUM('RSVPed', 'Maybe', 'Not Going') DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
