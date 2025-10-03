@@ -1,0 +1,8 @@
+title = "Gitleaks"
+
+[allowlist]
+paths = ["docs/", "code/backend/.tox/", "code/backend/.ruff_cache/", ".venv/"] # ignore everything under these folders for Gitleaks scan
+regexes = [
+  '''(?i)example(api|secret|token)_?key''',   # ignore matches to these dummy text patterns anywhere
+  '''(?i)dummy(-|_)token'''
+]

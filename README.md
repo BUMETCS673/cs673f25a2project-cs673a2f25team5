@@ -37,6 +37,7 @@ cs673f25a2project-cs673a2f25team5/
 │       └─ src/app/globals.css      # Style sheet that should persist across all pages
 ├── docs/                           # event manager plan, proposal, and design docs
 ├── .gitignore                      # files or folder to be ignored by git
+├── .gitleaks.toml                  # Gitleaks configuration (allowlist)
 ├── Dockerfile.backend              # dockerfile with definitions to build the backend image
 ├── team.md                         # team members brief introduction
 └── README.md                       # project documentation
@@ -243,6 +244,19 @@ This project uses [`uv`](https://github.com/astral-sh/uv) for:
 
 ---
 
+## Secret Scanning (Gitleaks)
+
+This repo uses **Gitleaks** to stop secrets (API keys, tokens, etc.) from landing in the codebase.
+
+- **Where it runs:** part of the GitHub Actions workflow in '.github/workflows/backend-ci.yml'
+- **Config:** '.gitleaks.toml' (reduces false positives by ignoring docs/caches and obvious dummy tokens)
+- **Output:** results are uploaded to **Security → Code scanning alerts** and PRs get inline annotations
+- **Permissions:** the workflow grants 'security-events: write' to upload SARIF; it uses the auto-provided 'secrets.GITHUB_TOKEN'
+
+### Setup
+1. Add repo secret **'GITLEAKS_LICENSE_KEY'** (Repo → Settings → Secrets and variables → Actions).
+2. Keep '.gitleaks.toml' at repo root so the scanner picks it up.
+
 ## 🗺️ Roadmap - TODOs
 
 Project Overview & High-Level Requirements: 
@@ -261,5 +275,5 @@ Project Overview & High-Level Requirements:
 - [Next.js](https://nextjs.org/docs)
 - [Pip Audit](https://github.com/pypa/pip-audit)
 - [Semgrep](https://github.com/semgrep/semgrep)
-
+- [Gitleaks](https://github.com/gitleaks/gitleaks)
 ---
