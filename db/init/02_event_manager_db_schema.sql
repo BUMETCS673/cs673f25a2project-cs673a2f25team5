@@ -1,4 +1,4 @@
-CREATE TABLE Users (
+CREATE TABLE IF NOT EXISTS Users (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
@@ -9,42 +9,42 @@ CREATE TABLE Users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL 
 );
 
-CREATE TABLE Events (
+CREATE TABLE IF NOT EXISTS Events (
     event_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     event_name VARCHAR(100) NOT NULL,
     event_datetime TIMESTAMPTZ NOT NULL,
     event_endtime TIMESTAMPTZ NOT NULL,
-    event_location VARCHAR(255) ON DELETE CASCADE,
-    description TEXT ON DELETE CASCADE,
+    event_location VARCHAR(255),
+    description TEXT,
     picture_url VARCHAR(255),
     capacity INT,
     Price_field INT,
-    user_id INT NOT NULL ON DELETE CASCADE,
+    user_id UUID NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 
-CREATE TABLE Categories (
+CREATE TABLE IF NOT EXISTS Categories (
     category_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     category_name VARCHAR(50) NOT NULL,
     description TEXT
 );
-
-CREATE TABLE EventCategories (
-    event_id INT NOT NULL,
-    category_id INT NOT NULL,
+CREATE TABLE IF NOT EXISTS EventCategories (
+    event_id UUID NOT NULL,
+    category_id UUID NOT NULL,
     PRIMARY KEY (event_id, category_id),
     FOREIGN KEY (event_id) REFERENCES Events(event_id),
     FOREIGN KEY (category_id) REFERENCES Categories(category_id)
 );
 
 
-CREATE TABLE EventAttendees (
-    attendee_id INT AUTO_INCREMENT PRIMARY KEY,
-    event_id INT NOT NULL,
-    user_id INT NOT NULL,
-    status ENUM('RSVPed', 'Maybe', 'Not Going') DEFAULT NULL,
+CREATE TYPE attendee_status AS ENUM ('RSVPed', 'Maybe', 'Not Going');
+CREATE TABLE IF NOT EXISTS EventAttendees (
+    attendee_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    status attendee_status DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
