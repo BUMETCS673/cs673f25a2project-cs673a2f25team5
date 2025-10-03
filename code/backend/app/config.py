@@ -1,10 +1,10 @@
+import os
+
 from pydantic_settings import BaseSettings
 
 
-# TODO: Update DATABASE_URL: to work so that for local and testing it uses sqlite,
-# and for production it uses postgres
 class Settings(BaseSettings):
-    DATABASE_URL: str = "sqlite+aiosqlite:///./events.db"
+    DATABASE_URL: str = f"postgresql://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DB')}"
 
 
 settings = Settings()
