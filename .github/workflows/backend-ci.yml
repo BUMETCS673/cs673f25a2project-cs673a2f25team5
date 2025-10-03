@@ -78,6 +78,31 @@ jobs:
           cd code/backend
           uv run tox run -e coverage
         continue-on-error: true # TODO: remove when there are tests to run
+  
+  gitleaks:
+    name: Gitleaks Secret Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks (licensed action)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE_KEY }}
+
+      # Upload to Code Scanning so findings show in Security tab
+      - name: Upload SARIF to Code Scanning
+        if: ${{ always() && hashFiles('gitleaks.sarif') != '' }}
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gitleaks.sarif
 
   docker:
     runs-on: ubuntu-latest
