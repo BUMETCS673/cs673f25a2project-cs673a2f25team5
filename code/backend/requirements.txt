@@ -1,5 +1,6 @@
-aiosqlite
+asyncpg
 fastapi
+greenlet
 jsonpatch
 prometheus_fastapi_instrumentator
 pydantic
