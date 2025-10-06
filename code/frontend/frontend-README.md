@@ -23,8 +23,8 @@
 
 ### Component Styling Patterns
 
-- For reusable building blocks (buttons, cards, form fields) add the component under `src/component/ui` and expose size/state variants with props rather than duplicating class strings.
-- For section-level compositions (hero, features) co-locate style decisions beside the component in its feature folder (`src/component/<feature>`). Keep large background effects (gradients, blurs) inside the component so the page stays declarative.
+- For reusable building blocks (buttons, cards, form fields) add the component under `src/components/ui` and expose size/state variants with props rather than duplicating class strings.
+- For section-level compositions (hero, features) co-locate style decisions beside the component in its feature folder (`src/components/<feature>`). Keep large background effects (gradients, blurs) inside the component so the page stays declarative.
 - Use flex/grid utilities for layout. Prefer responsive Tailwind breakpoints (`sm:`, `md:`, `lg:`) over media queries; if bespoke breakpoints are needed add them to the Tailwind config.
 - Animations should leverage Framer Motion or Tailwind transition utilities. Keep motion parameters consistent (e.g. transition easing `[0.2, 0.8, 0.2, 1]` matches `PageTransitions`).
 
@@ -48,7 +48,7 @@
 // src/app/dashboard/page.tsx
 import { redirect } from "next/navigation";
 import { getLoginCookie } from "@/actions/auth";
-import DashboardShell from "@/component/dashboard/DashboardShell";
+import DashboardShell from "@/components/dashboard/DashboardShell";
 
 export default async function DashboardPage() {
   const cookie = await getLoginCookie();
@@ -72,16 +72,16 @@ Optional route files:
 
 ### Folder Conventions
 
-- `src/component/ui`: Design system primitives (headers, buttons, inputs, modal shells).
-- `src/component/<feature>`: Feature modules composed from primitives (`landing`, `events`, `auth`, etc.).
-- `src/component/text`: Shared typography helpers.
+- `src/components/ui`: Design system primitives (headers, buttons, inputs, modal shells).
+- `src/components/<feature>`: Feature modules composed from primitives (`landing`, `events`, `auth`, etc.).
+- `src/components/text`: Shared typography helpers.
 
 Naming: `PascalCase` file names for React components (`CreateEventForm.tsx`). Export a named component when multiple exports live in the file, otherwise default export is acceptable.
 
 ### Component Template
 
 ```tsx
-// src/component/events/EventCard.tsx
+// src/components/events/EventCard.tsx
 "use client";
 import type { ComponentPropsWithoutRef } from "react";
 
@@ -129,7 +129,7 @@ Guidelines:
 
 ## Suggested Workflow
 
-1. Design component/page in isolation (Storybook is not set up yet; consider adding it under `src/component/ui` when needed).
+1. Design component/page in isolation (Storybook is not set up yet; consider adding it under `src/components/ui` when needed).
 2. Implement with Tailwind utilities and feature-specific data.
 3. Test interactions locally (`npm run dev`), validate guard logic, and confirm page transitions remain smooth.
 4. Add E2E coverage (`npm run test:e2e`) once flows are stable.
