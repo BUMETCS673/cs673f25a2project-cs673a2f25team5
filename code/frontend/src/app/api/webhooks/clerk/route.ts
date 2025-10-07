@@ -24,6 +24,11 @@ export async function POST(req: NextRequest) {
     const emails = evt.data.email_addresses;
     const email = emails?.[0]?.email_address;
 
+    // Validate required user data
+    if (!email || typeof email !== "string" || email.trim() === "") {
+      console.error("[webhook] Missing or invalid email in user.created event:", emails);
+      return new NextResponse("Missing required user email", { status: 400 });
+    }
     // Optionally next: call backend or DB
     try {
       const resp = await fetch(
