@@ -37,13 +37,13 @@ export async function POST(req: NextRequest) {
         console.error("[webhook] Configuration Error");
         return new NextResponse("Configuration Error", { status: 500 });
       }
-      const resp = await fetch(`${baseUrl.replace(/\/$/, "")}/create-user/`, {
+      const resp = await fetch(new URL("/create-user/", baseUrl).toString(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           first_name,
           last_name,
-          email: email,
+          email,
         }),
       });
       if (!resp.ok) {
