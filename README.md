@@ -38,7 +38,7 @@ cs673f25a2project-cs673a2f25team5/
 |       |  │   ├── layout.tsx                   # root layout of the application
 |       |  │   └── page.tsx                     # landing page of the application
 |       |  ├── component/                       # Folder to keep al reusable components
-|       |  ├── helper/                          # Reusable helper functions
+|       |  ├── helpers/                         # Reusable helper functions
 |       |  |    └── fetchTimeout                # Timeout to avoid hanging requests
 |       |  └── middleware.ts                    # run code before a request is completed (used for protected/public routes)
 │       ├── public/                             # static assets
