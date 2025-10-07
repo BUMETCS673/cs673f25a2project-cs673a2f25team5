@@ -38,14 +38,18 @@ export async function POST(req: NextRequest) {
         console.error("[webhook] Configuration Error");
         return new NextResponse("Configuration Error", { status: 500 });
       }
+      const internalApiToken = process.env.INTERNAL_API_TOKEN;
+      if (!internalApiToken) {
+        console.error("[webhook] INTERNAL_API_TOKEN is not set in environment variables");
+        return new NextResponse("Configuration Error", { status: 500 });
+      }
       const url = new URL("/create-user/", baseUrl).toString();
       const resp = await fetchWithTimeout(url, {
         method: "POST",
-        // TODO: add Bearer token for authentication to the backend.
-        // Authorization: `Bearer ${INTERNAL_API_TOKEN}`, in header and define it in the environment variables.
         headers: {
           "Content-Type": "application/json",
           "Idempotency-Key": evt.data.id ?? crypto.randomUUID(),
+          "Authorization": `Bearer ${internalApiToken}`,
         },
         body: JSON.stringify({
           first_name,
