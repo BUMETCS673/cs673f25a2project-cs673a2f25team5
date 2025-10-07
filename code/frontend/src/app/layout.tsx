@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kickaas|Event Management",
+  title: "Kickaas | Event Management",
   description: "Kickaas is a platform for creating and managing events",
 };
 
