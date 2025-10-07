@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           first_name,
           last_name,
-          email: email,
+          email,
         }),
       });
       if (!resp.ok) {
