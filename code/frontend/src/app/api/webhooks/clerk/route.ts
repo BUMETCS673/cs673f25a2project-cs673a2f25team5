@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       const baseUrl = process.env.BACKEND_URL;
       if (!baseUrl) {
         console.error("[webhook] Missing BACKEND_URL");
-        return NextResponse.json({ ok: false }, { status: 500 });
+        return new NextResponse("Missing BACKEND_URL", { status: 500 });
       }
       const resp = await fetch(`${baseUrl.replace(/\/$/, "")}/create-user/`, {
         method: "POST",
@@ -48,11 +48,16 @@ export async function POST(req: NextRequest) {
           email: email,
         }),
       });
+      if (!resp.ok) {
+        console.error("[webhook] Sync request failed:", resp.statusText);
+        return new NextResponse("Sync request failed", { status: resp.status });
+      }
       console.log("[webhook] Sync request status:", resp.status);
       const respText = await resp.text();
       console.log("[webhook] Sync request body:", respText);
     } catch (syncErr) {
       console.error("[webhook] Sync request failed:", syncErr);
+      return new NextResponse("Sync request failed", { status: 500 });
     }
   } else {
     console.log("[webhook] Ignored event:", evt.type);
