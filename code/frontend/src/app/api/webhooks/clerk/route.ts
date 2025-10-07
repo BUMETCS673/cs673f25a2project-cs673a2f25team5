@@ -47,7 +47,18 @@ export async function POST(req: NextRequest) {
       const respText = await resp.text();
       console.log("[webhook] Sync request body:", respText);
     } catch (syncErr) {
-      console.error("[webhook] Sync request failed:", syncErr);
+      console.error(
+        "[webhook] Sync request failed:",
+        syncErr,
+        {
+          url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/create-user/`,
+          payload: {
+            first_name: firstName,
+            last_name: lastName,
+            email: email,
+          },
+        }
+      );
     }
   } else {
     console.log("[webhook] Ignored event:", evt.type);
