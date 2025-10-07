@@ -61,8 +61,21 @@ export async function POST(req: NextRequest) {
       });
       if (!resp.ok) {
         const text = await resp.text().catch(() => "");
-        console.error("[webhook] Sync request failed:", resp.statusText, text);
-        return new NextResponse("Sync request failed", { status: 500 });
+        console.error(
+          "[webhook] Sync request failed:",
+          resp.status,
+          resp.statusText,
+          text,
+        );
+        if (resp.status >= 400 && resp.status < 500) {
+          // Non-retryable error (e.g., validation failure)
+          return new NextResponse("Sync request failed (non-retryable)", {
+            status: 200,
+          });
+        } else {
+          // Retryable error (e.g., backend unavailable)
+          return new NextResponse("Sync request failed", { status: 500 });
+        }
       }
       const respText = await resp.text();
       console.log("[webhook] Sync request body:", respText);
