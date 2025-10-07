@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
         // Authorization: `Bearer ${INTERNAL_API_TOKEN}`, in header and define it in the environment variables.
         headers: {
           "Content-Type": "application/json",
-          "Idempotency-Key": evt?.data.id ?? crypto.randomUUID(),
+          "Idempotency-Key": evt.data.id ?? crypto.randomUUID(),
         },
         body: JSON.stringify({
           first_name,
