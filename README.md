@@ -28,7 +28,7 @@ cs673f25a2project-cs673a2f25team5/
 │   └── frontend/                               # event manager frontend code
 |       ├── src                                 # source code
 │       |  └── app/                             # app Router pages (layout.tsx, page.tsx)
-|       |  │  ├── globals.css                   # style sheet that should persist across all pages
+|       |  │   ├── globals.css                   # style sheet that should persist across all pages
 |       |  │   ├── api                          # route for all api calls
 |       |  │   │ └── webhooks                   # route for access webhooks
 |       |  │   │   └── clerk                    # route for clerks webhook
@@ -38,9 +38,11 @@ cs673f25a2project-cs673a2f25team5/
 |       |  │   ├── layout.tsx                   # root layout of the application
 |       |  │   └── page.tsx                     # landing page of the application
 |       |  ├── component/                       # Folder to keep al reusable components
+|       |  ├── helper/                          # Reusable helper functions
+|       |  |    └── fetchTimeout                # Timeout to avoid hanging requests
 |       |  └── middleware.ts                    # run code before a request is completed (used for protected/public routes)
 │       ├── public/                             # static assets
-│       ├── eslint.config.mjs                   # sonfiguration file for ESLint and prettier
+│       ├── eslint.config.mjs                   # configuration file for ESLint and prettier
 │       ├── next.config.ts                      # output: "standalone"
 │       ├── package.json                        # metadata for the project
 │       ├── package-lock.json                   # records the exact version of every package installed in node_modules

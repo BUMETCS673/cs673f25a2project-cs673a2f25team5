@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
+import { fetchWithTimeout } from "@/helpers/fetchTimeout";
 
 export async function POST(req: NextRequest) {
   console.log("[webhook] Handler: POST invoked");
@@ -37,17 +38,24 @@ export async function POST(req: NextRequest) {
         console.error("[webhook] Configuration Error");
         return new NextResponse("Configuration Error", { status: 500 });
       }
-      const resp = await fetch(new URL("/create-user/", baseUrl).toString(), {
+      const url = new URL("/create-user/", baseUrl).toString();
+      const resp = await fetchWithTimeout(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        // TODO: add Bearer token for authentication to the backend.
+        // Authorization: `Bearer ${INTERNAL_API_TOKEN}`, in header and define it in the environment variables.
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": evt?.data.id ?? crypto.randomUUID(),
+        },
         body: JSON.stringify({
           first_name,
           last_name,
-          email,
+          email: email,
         }),
       });
       if (!resp.ok) {
-        console.error("[webhook] Sync request failed:", resp.statusText);
+        const text = await resp.text().catch(() => "");
+        console.error("[webhook] Sync request failed:", resp.statusText, text);
         return new NextResponse("Sync request failed", { status: 500 });
       }
       const respText = await resp.text();
