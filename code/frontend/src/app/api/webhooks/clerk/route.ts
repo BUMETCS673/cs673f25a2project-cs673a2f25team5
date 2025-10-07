@@ -19,16 +19,14 @@ export async function POST(req: NextRequest) {
   if (evt.type === "user.created") {
     console.log("[webhook] Handling user.created");
 
-    const firstName = evt.data.first_name;
-    const lastName = evt.data.last_name;
-    const emails = evt.data.email_addresses;
-    const email = emails?.[0]?.email_address;
+    const { first_name, last_name, email_addresses } = evt.data;
+    const email = email_addresses?.[0]?.email_address;
 
     // Validate required user data
     if (!email || typeof email !== "string" || email.trim() === "") {
       console.error(
         "[webhook] Missing or invalid email in user.created event:",
-        emails,
+        email_addresses,
       );
       return new NextResponse("Missing required user email", { status: 400 });
     }
@@ -43,8 +41,8 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          first_name: firstName,
-          last_name: lastName,
+          first_name,
+          last_name,
           email: email,
         }),
       });

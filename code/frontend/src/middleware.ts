@@ -1,29 +1,24 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Protect only specific private routes
-const isPrivateRoute = createRouteMatcher(["/discover(.*)", "/onboarding(.*)"]);
+const isProtectedRoute = createRouteMatcher([
+  "/discover(.*)",
+  "/onboarding(.*)",
+]);
+const shouldBypassAuth = createRouteMatcher(["/api/webhooks/clerk(.*)"]);
 
-// A matcher for the webhook path(s) you want to skip
-const isWebhookRoute = createRouteMatcher(["/api/webhooks/clerk(.*)"]);
-
-export default clerkMiddleware(async (auth, req) => {
-  // If it's a webhook route, skip (let it through)
-  if (isWebhookRoute(req)) {
+export default clerkMiddleware(async (auth, request) => {
+  if (shouldBypassAuth(request)) {
     return NextResponse.next();
   }
 
-  // If it's a private route, require auth
-  if (isPrivateRoute(req)) {
+  if (isProtectedRoute(request)) {
     await auth.protect();
   }
+
+  return NextResponse.next();
 });
 
 export const config = {
-  matcher: [
-    // Skip Next.js internals, static files, etc.
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
-    "/(api|trpc)(.*)",
-  ],
+  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
 };
