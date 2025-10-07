@@ -26,39 +26,33 @@ export async function POST(req: NextRequest) {
 
     // Validate required user data
     if (!email || typeof email !== "string" || email.trim() === "") {
-      console.error("[webhook] Missing or invalid email in user.created event:", emails);
+      console.error(
+        "[webhook] Missing or invalid email in user.created event:",
+        emails,
+      );
       return new NextResponse("Missing required user email", { status: 400 });
     }
     // Optionally next: call backend or DB
     try {
-      const resp = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/create-user/`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            first_name: firstName,
-            last_name: lastName,
-            email: email,
-          }),
-        },
-      );
+      const baseUrl = process.env.BACKEND_URL;
+      if (!baseUrl) {
+        console.error("[webhook] Missing BACKEND_URL");
+        return NextResponse.json({ ok: false }, { status: 500 });
+      }
+      const resp = await fetch(`${baseUrl.replace(/\/$/, "")}/create-user/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+        }),
+      });
       console.log("[webhook] Sync request status:", resp.status);
       const respText = await resp.text();
       console.log("[webhook] Sync request body:", respText);
     } catch (syncErr) {
-      console.error(
-        "[webhook] Sync request failed:",
-        syncErr,
-        {
-          url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/create-user/`,
-          payload: {
-            first_name: firstName,
-            last_name: lastName,
-            email: email,
-          },
-        }
-      );
+      console.error("[webhook] Sync request failed:", syncErr);
     }
   } else {
     console.log("[webhook] Ignored event:", evt.type);
