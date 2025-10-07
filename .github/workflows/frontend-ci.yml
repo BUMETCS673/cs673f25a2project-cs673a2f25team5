@@ -95,6 +95,8 @@ jobs:
           file: Dockerfile.frontend
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/event-manager-frontend:latest
+          build-args: |
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
 
   semgrep:
     name: Semgrep
