@@ -3,10 +3,6 @@ import { verifyWebhook } from "@clerk/nextjs/webhooks";
 
 export async function POST(req: NextRequest) {
   console.log("[webhook] Handler: POST invoked");
-  console.log(
-    "Clerk_Webhook_signing_secret:",
-    process.env.CLERK_WEBHOOK_SIGNING_SECRET,
-  );
 
   let evt;
   try {
