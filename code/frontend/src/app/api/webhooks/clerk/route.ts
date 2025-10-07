@@ -40,7 +40,9 @@ export async function POST(req: NextRequest) {
       }
       const internalApiToken = process.env.INTERNAL_API_TOKEN;
       if (!internalApiToken) {
-        console.error("[webhook] INTERNAL_API_TOKEN is not set in environment variables");
+        console.error(
+          "[webhook] INTERNAL_API_TOKEN is not set in environment variables",
+        );
         return new NextResponse("Configuration Error", { status: 500 });
       }
       const url = new URL("/create-user/", baseUrl).toString();
@@ -49,7 +51,7 @@ export async function POST(req: NextRequest) {
         headers: {
           "Content-Type": "application/json",
           "Idempotency-Key": evt.data.id ?? crypto.randomUUID(),
-          "Authorization": `Bearer ${internalApiToken}`,
+          Authorization: `Bearer ${internalApiToken}`,
         },
         body: JSON.stringify({
           first_name,
