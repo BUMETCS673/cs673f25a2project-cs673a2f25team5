@@ -34,9 +34,19 @@ async def patch_users(
     "/users",
     response_model=list[models_users.UserRead],
     summary="Get a list of users",
+    description=(
+        "Get users with optional filters. All filters are optional and can be combined."
+    ),
     tags=["Users"],
 )
-async def list_users() -> list[models_users.UserRead]:
+async def list_users(
+    user_id: UUID | None = None,
+    email: str | None = None,
+) -> list[models_users.UserRead]:
+    """Get a list of users with optional filters:
+    - user_id: Filter by specific user ID
+    - email: Filter by specific email
+    """
     raise HTTPException(status_code=501, detail="Not implemented")
 
 

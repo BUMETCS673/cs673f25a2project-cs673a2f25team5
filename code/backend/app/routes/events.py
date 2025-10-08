@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
@@ -34,9 +35,24 @@ async def patch_events(
     "/events",
     response_model=list[models_events.EventRead],
     summary="Get a list of events",
+    description=(
+        "Get events with optional filters.All filters are optional and can be combined."
+    ),
     tags=["Events"],
 )
-async def list_events() -> list[models_events.EventRead]:
+async def list_events(
+    event_id: UUID | None = None,
+    user_id: UUID | None = None,
+    category_id: UUID | None = None,
+    event_date: date | None = None,
+) -> list[models_events.EventRead]:
+    """
+    Get a list of events with optional filters:
+    - event_id: Filter by specific event ID
+    - user_id: Filter events by creator
+    - category_id: Filter events by category
+    - event_date: Filter events occurring on a specific date (YYYY-MM-DD)
+    """
     raise HTTPException(status_code=501, detail="Not implemented")
 
 

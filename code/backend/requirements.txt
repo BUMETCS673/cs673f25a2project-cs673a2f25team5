@@ -1,4 +1,5 @@
 asyncpg
+email-validator
 fastapi
 greenlet
 jsonpatch

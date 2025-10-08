@@ -1,18 +1,22 @@
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
-class UserCreate(BaseModel):
+class UserBase(BaseModel):
     first_name: str = Field(..., max_length=50)
     last_name: str = Field(..., max_length=50)
-    email: str = Field(..., max_length=100)
-    dob: datetime
+    email: EmailStr
+    date_of_birth: date
+    color: str | None = Field(None, max_length=100)
 
-class UserRead(BaseModel):
-    id: UUID
-    first_name: str = Field(..., max_length=50)
-    last_name: str = Field(..., max_length=50)
-    email: str = Field(..., max_length=100)
-    dob: datetime
+
+class UserCreate(UserBase):
+    pass
+
+
+class UserRead(UserBase):
+    user_id: UUID
+    created_at: datetime
+    updated_at: datetime
