@@ -18,6 +18,8 @@ type EventFormState = {
   image: File | null;
 };
 
+const SAVE_TIMEOUT = 600;
+
 const INITIAL_FORM: EventFormState = {
   title: "",
 
@@ -128,7 +130,7 @@ export function CreateEventForm({
 
     setErrors([]);
     // Simulate a network save so the UI feels responsive.
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, SAVE_TIMEOUT));
     setLastSaved({ ...formState });
     setStatus("success");
   };
@@ -189,6 +191,9 @@ export function CreateEventForm({
               placeholder="Moonlight Rooftop Concert"
               className={inputClass}
             />
+          </label>
+          <label className="grid gap-2">
+            <span className={labelClass}>Event image</span>
             <input
               type="file"
               onChange={(event) =>
