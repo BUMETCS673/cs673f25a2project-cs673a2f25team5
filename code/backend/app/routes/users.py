@@ -1,12 +1,68 @@
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from app.models import patch as models_patch
 from app.models import users as models_users
-from app.service.users import create_user_service
+from app.routes.filter_helper import parse_filter
+from app.service import users as users_service
 
 router = APIRouter()
+
+
+@router.get(
+    "/users",
+    response_model=list[models_users.UserRead],
+    summary="Get a list of users",
+    description=(
+        "Get users with optional filters using the format `field:operator:value`. "
+        "Multiple filters can be combined using multiple filter parameters.\n\n"
+        "Available operators: eq, neq, gt, gte, lt, lte, like, ilike\n\n"
+        "Examples:\n"
+        "- `/users?filter=email:eq:john@example.com`\n"
+        "- `/users?filter=created_at:gt:2023-01-01&filter=first_name:ilike:John%`"
+    ),
+    tags=["Users"],
+    responses={
+        200: {"description": "List of users", "model": list[models_users.UserRead]},
+        400: {
+            "description": "Invalid filter format",
+            "content": {
+                "application/json": {"example": {"detail": "Invalid filter format: ..."}}
+            },
+        },
+        404: {
+            "description": "No users found",
+            "content": {"application/json": {"example": {"detail": "No users found"}}},
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
+        },
+    },
+)
+async def list_users(
+    filter: list[str] | None = Query(
+        None,
+        description="Filter in the format field:operator:value. Can be used multiple times.",
+        examples=["email:eq:john@example.com", "first_name:ilike:John%"],
+    ),
+    limit: int = Query(100, ge=1, description="Maximum number of users to return"),
+) -> list[models_users.UserRead]:
+    """
+    Get a list of users with optional filters and limit.
+
+    Filter format: field:operator:value
+    Examples:
+    - field:eq:value (equals)
+    - field:gt:value (greater than)
+    - field:ilike:value (case-insensitive pattern match)
+    """
+    try:
+        filters = [parse_filter(f) for f in (filter or [])]
+        return await users_service.get_users_service(filters, limit)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post(
@@ -17,27 +73,20 @@ router = APIRouter()
     tags=["Users"],
     status_code=200,
     responses={
-        200: {
-            "description": "User created successfully",
-            "model": models_users.UserRead
-        },
+        200: {"description": "User created successfully", "model": models_users.UserRead},
         400: {
             "description": "Invalid input or duplicate email",
             "content": {
                 "application/json": {
                     "example": {"detail": "A user with this email already exists"}
                 }
-            }
+            },
         },
         500: {
             "description": "Internal server error",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "Internal server error"}
-                }
-            }
-        }
-    }
+            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
+        },
+    },
 )
 async def create_user(user: models_users.UserCreate) -> models_users.UserRead:
     """
@@ -46,7 +95,7 @@ async def create_user(user: models_users.UserCreate) -> models_users.UserRead:
     - Valid first and last names
     - Optional favorite color
     """
-    return await create_user_service(user)
+    return await users_service.create_user_service(user)
 
 
 @router.patch(
@@ -61,31 +110,27 @@ async def patch_users(
     raise HTTPException(status_code=501, detail="Not implemented")
 
 
-@router.get(
-    "/users",
-    response_model=list[models_users.UserRead],
-    summary="Get a list of users",
-    description=(
-        "Get users with optional filters. All filters are optional and can be combined."
-    ),
-    tags=["Users"],
-)
-async def list_users(
-    user_id: UUID | None = None,
-    email: str | None = None,
-) -> list[models_users.UserRead]:
-    """Get a list of users with optional filters:
-    - user_id: Filter by specific user ID
-    - email: Filter by specific email
-    """
-    raise HTTPException(status_code=501, detail="Not implemented")
-
-
 @router.delete(
     "/users/{user_id}",
     response_model=models_users.UserRead,
     summary="Delete an user by the user id",
     tags=["Users"],
+    status_code=200,
+    responses={
+        200: {"description": "User created successfully", "model": models_users.UserRead},
+        400: {
+            "description": "Invalid input",
+            "content": {"application/json": {"example": {"detail": "Invalid user ID"}}},
+        },
+        404: {
+            "description": "User not found",
+            "content": {"application/json": {"example": {"detail": "User not found"}}},
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
+        },
+    },
 )
 async def delete_user(user_id: UUID) -> models_users.UserRead:
-    raise HTTPException(status_code=501, detail="Not implemented")
+    return await users_service.delete_user_service(user_id)
