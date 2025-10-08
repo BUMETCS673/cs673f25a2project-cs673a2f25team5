@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.models import patch as models_patch
 from app.models import users as models_users
+from app.service.users import create_user_service
 
 router = APIRouter()
 
@@ -11,11 +12,41 @@ router = APIRouter()
 @router.post(
     "/users",
     response_model=models_users.UserRead,
-    summary="Create an user",
+    summary="Create a new user",
+    description="Create a new user with the provided information. Email must be unique.",
     tags=["Users"],
+    status_code=200,
+    responses={
+        200: {
+            "description": "User created successfully",
+            "model": models_users.UserRead
+        },
+        400: {
+            "description": "Invalid input or duplicate email",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "A user with this email already exists"}
+                }
+            }
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Internal server error"}
+                }
+            }
+        }
+    }
 )
 async def create_user(user: models_users.UserCreate) -> models_users.UserRead:
-    raise HTTPException(status_code=501, detail="Not implemented")
+    """
+    Create a new user with the following requirements:
+    - Unique email address
+    - Valid first and last names
+    - Optional favorite color
+    """
+    return await create_user_service(user)
 
 
 @router.patch(
