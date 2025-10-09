@@ -69,9 +69,12 @@ export async function POST(req: NextRequest) {
         );
         if (resp.status >= 400 && resp.status < 500) {
           // Non-retryable error (e.g., validation failure)
-          return new NextResponse("Sync request failed (non-retryable)", {
-            status: 200,
-          });
+          return new NextResponse(
+            JSON.stringify({
+              error: "SYNC_NON_RETRYABLE",
+            }),
+            { status: 422 },
+          );
         } else {
           // Retryable error (e.g., backend unavailable)
           return new NextResponse("Sync request failed", { status: 500 });
