@@ -11,7 +11,6 @@ export default async function CreateEventsPage() {
   const organizerEmail = cookie.value ?? "";
   console.log(cookie);
 
-  console.log(organizerEmail);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-neutral-50/70 px-4 py-20 sm:px-6 lg:px-16 dark:bg-neutral-950">
