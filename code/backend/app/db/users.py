@@ -82,10 +82,7 @@ async def get_users_db(
         - Total count of matching records (before pagination)
     """
     try:
-        params: dict[str, Any] = {
-            "limit": limit,
-            "offset": offset
-        }
+        params: dict[str, Any] = {"limit": limit, "offset": offset}
 
         where_clause: list[str] = []
         if filters:
@@ -96,7 +93,7 @@ async def get_users_db(
 
         # Construct the base query with WHERE clause if needed
         where_sql = f"WHERE {' AND '.join(where_clause)}" if where_clause else ""
-        
+
         # Query with pagination
         query = text(f"""
             SELECT *
@@ -105,12 +102,12 @@ async def get_users_db(
             LIMIT :limit 
             OFFSET :offset
         """)
-        
+
         async with engine.begin() as conn:
             result = await conn.execute(query, params)
             rows = result.fetchall()
             users = [UserRead.model_validate(_row_to_user_dict(row)) for row in rows]
-            
+
             return users, len(users)
 
     except SQLAlchemyError as e:

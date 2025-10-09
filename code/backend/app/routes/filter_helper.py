@@ -15,8 +15,10 @@ def parse_filter(filter_str: str) -> FilterOperation:
             value = UUID(value)
 
         return FilterOperation(field=field, op=op, value=value)
-    except ValueError:
+    except ValueError as e:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid filter format: {filter_str}. Expected format: field:operator:value",
-        )
+            detail=(
+                f"Invalid filter format: {filter_str}. Expected format: field:operator:value"
+            ),
+        ) from e
