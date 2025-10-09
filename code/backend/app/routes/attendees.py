@@ -55,7 +55,7 @@ async def list_attendee(
 
 
 @router.delete(
-    "attendees/{attendee_id}",
+    "/attendees/{attendee_id}",
     response_model=models_attendees.AttendeeRead,
     summary="Remove an attendee from an event",
     tags=["Attendees"],

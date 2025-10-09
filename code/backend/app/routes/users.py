@@ -53,7 +53,7 @@ async def list_users(
 @router.delete(
     "/users/{user_id}",
     response_model=models_users.UserRead,
-    summary="Delete an user by the user id",
+    summary="Delete a user by the user id",
     tags=["Users"],
 )
 async def delete_user(user_id: UUID) -> models_users.UserRead:
