@@ -20,3 +20,10 @@ class UserRead(UserBase):
     user_id: UUID
     created_at: datetime
     updated_at: datetime
+
+
+class PaginatedUsers(BaseModel):
+    items: list[UserRead]
+    total: int
+    offset: int
+    limit: int
