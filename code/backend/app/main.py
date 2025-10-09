@@ -4,17 +4,16 @@ from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.db import db
-
-# from app.routes import jobs as route_jobs
+from app.routes import attendees as route_attendees
 from app.routes import db as route_db
+from app.routes import events as route_events
+from app.routes import users as route_users
 
-# Initialize Prometheus
 instrumentator = Instrumentator()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize the database
     await db.init_db()
     yield
     # Shutdown: Clean up resources if needed
@@ -28,10 +27,15 @@ event_manager_app = FastAPI(
     lifespan=lifespan,
 )
 
+# Include routers for different endpoints
+event_manager_app.include_router(route_attendees.router)
+event_manager_app.include_router(route_events.router)
+event_manager_app.include_router(route_users.router)
+
+# Health check endpoint
+event_manager_app.include_router(route_db.router)
+
 # Setup Prometheus instrumentation
 instrumentator.instrument(event_manager_app).expose(
     event_manager_app, include_in_schema=True, tags=["Monitor"]
 )
-
-# event_manager_app.include_router(route_jobs.router)
-event_manager_app.include_router(route_db.router)
