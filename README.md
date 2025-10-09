@@ -8,63 +8,73 @@
 
 ```
 cs673f25a2project-cs673a2f25team5/
-├── code/                                           # event manager code
-│   ├── backend/                                    # event manager backend code
-│   │   ├── app/                                    # fastapi app code
-│   │   │   ├── db/                                 # code for the db layer of the app
-│   │   │   ├── models/                             # code for the models used in the app
-│   │   │   ├── routes/                             # code for the routers (endpoints) of the app
-│   │   │   ├── service/                            # code for the actual service logic of the app endpoints
-│   │   │   ├── __init__.py                         # init file
-│   │   │   ├── main.py                             # entry point for the fastapi app
-│   │   │   └── config.py                           # database url config
-│   │   ├── test/                                   # backend unit and integration (end to end) tests
-│   │   ├── .python.version                         # python version used for the backend
-│   │   ├── pyproject.toml                          # tool configurations (uv, etc)
-│   │   ├── requirements.txt                        # event manager backend dependencies
-│   │   ├── requirements-test.txt                   # event manager backend test dependencies
-│   │   ├── tox.ini                                 # tox environment definitions
-│   │   └── uv.lock                                 # uv overall definitions
-│   └── frontend/                                   # event manager frontend code
-|       ├── src                                     # source code
-│       |  └── app/                                 # app Router pages (layout.tsx, page.tsx)
-|       |     ├── create-events/                    # Route for create events page
-|       |     |   └── page.tsx                      # Page component for creating new events
-|       |     ├── favicon.ico                       # Site favicon icon
-|       |     ├── layout.tsx                        # Root layout component defining global styles
-|       |     ├── page.tsx                          # Home page component
-|       |     ├── component/                        # Reusable React components
-|       |     |   ├── events/                       # Event-related components
-|       |     |   |   └── CreateEventForm.tsx       # Form component for event creation
-|       |     |   └── landing/                      # Landing page components
-|       |     |   |   ├── BenefitsSection.tsx       # Benefits section component for landing page
-|       |     |   |   ├── CallToActionSection.tsx   # CTA section component for landing page
-|       |     |   |   ├── DemoShowCaseSection.tsx   # Demo showcase component for landing page
-|       |     |   |   ├── FeatureHighlight.tsx      # Feature highlight component for landing page
-|       |     |   |   ├── Heading.tsx               # Section heading component
-|       |     |   |   ├── HeroSection.tsx           # Hero section component for landing page
-|       |     |   |   ├── WorkflowStepsSection.tsx  # Workflow steps component for landing page
-|       |     |   |   └── landingData.ts            # Data/constants for landing page sections
-|       |     └── globals.css                       # Global CSS styles applied across all pages
-│       ├── public/                                 # static assets
-│       ├── eslint.config.mjs                       # configuration file for ESLint and prettier
-│       ├── next.config.ts                          # output: "standalone"
-│       ├── package.json                            # metadata for the project
-│       ├── package-lock.json                       # records the exact version of every package installed in node_modules
-│       ├── postcss.config.mjs                      # defines how PostCSS should process CSS files
-│       └── tsconfig.json                           # defines how the compiler should compile the project's TS files into JS
-├── db/                                             # database setup (docker compose, schema, ...)
-|   ├── init/                                       # files used to initialize the database as part of the docker compose up
-|   |   ├── 01_add_extensions.sql                   # sql extensions that need to be added to postgressql
-|   |   └── 02_event_manager_db_schema.sql          # event manager db schema to create all tables
-|   └── db-compose-docker.yaml                      # docker compose file to start the postgres and pgadmin container and needed volumes
-├── docs/                                           # event manager plan, proposal, and design docs, ...
-├── .gitignore                                      # files or folder to be ignored by git
-├── .gitleaks.toml                                  # gitleaks configuration (allowlist)
-├── Dockerfile.backend                              # dockerfile with definitions to build the backend image
-├── Dockerfile.frontend                             # dockerfile with definitions to build the frontend image
-├── team.md                                         # team members brief introduction
-└── README.md                                       # project documentation
+├── code/                                       # event manager code
+│   ├── backend/                                # event manager backend code
+│   │   ├── app/                                # fastapi app code
+│   │   │   ├── db/                             # code for the db layer of the app
+│   │   │   ├── models/                         # code for the models used in the app
+│   │   │   ├── routes/                         # code for the routers (endpoints) of the app
+│   │   │   ├── service/                        # code for the actual service logic of the app endpoints
+│   │   │   ├── __init__.py                     # init file
+│   │   │   ├── main.py                         # entry point for the fastapi app
+│   │   │   └── config.py                       # database url config
+│   │   ├── test/                               # backend unit and integration (end to end) tests
+│   │   ├── .python.version                     # python version used for the backend
+│   │   ├── pyproject.toml                      # tool configurations (uv, etc)
+│   │   ├── requirements.txt                    # event manager backend dependencies
+│   │   ├── requirements-test.txt               # event manager backend test dependencies
+│   │   ├── tox.ini                             # tox environment definitions
+│   │   └── uv.lock                             # uv overall definitions
+│   └── frontend/                               # event manager frontend code
+│       ├── public/                             # static assets
+│       ├── src                                 # source code
+│       |  └── app/                             # app Router pages (layout.tsx, page.tsx)
+│       |  |  ├── create-events/                # route for create events page
+│       |  |  |   └── page.tsx                  # page component for creating new events
+│       |  |  ├── favicon.ico                   # site favicon icon
+│       |  |  ├── layout.tsx                    # root layout component defining global styles
+│       |  |  ├── page.tsx                      # home page component
+│       |  |  ├── api                           # route for all api calls
+│       |  |  │ └── webhooks                    # route for access webhooks
+│       |  |  │   └── clerk                     # route for clerks webhook
+│       |  |  │      └── route.ts               # typescript code to intercept webhook from clerk
+│       |  |  ├── favicon.ico                   # icons for metadata of the web application
+│       |  |  ├── globals.css                   # where global css variables can be declared and imports for tailwind
+│       |  |  ├── layout.tsx                    # root layout of the application
+│       |  |  ├── page.tsx                      # landing page of the application
+│       |  |  └── helpers/                      # reusable helper functions
+│       |  |    └── fetchTimeout                # timeout to avoid hanging requests
+│       |  └── middleware.ts                    # run code before a request is completed (used for protected/public routes)
+│       |  ├── component/                       # reusable React components
+│       |  ├── events/                          # event-related components
+│       |  |   └── CreateEventForm.tsx          # form component for event creation
+│       |  └── landing/                         # landing page components
+│       |     ├── BenefitsSection.tsx           # benefits section component for landing page
+│       |     ├── CallToActionSection.tsx       # CTA section component for landing page
+│       |     ├── DemoShowCaseSection.tsx       # demo showcase component for landing page
+│       |     ├── FeatureHighlight.tsx          # feature highlight component for landing page
+│       |     ├── Heading.tsx                   # section heading component
+│       |     ├── HeroSection.tsx               # hero section component for landing page
+│       |     ├── WorkflowStepsSection.tsx      # workflow steps component for landing page
+│       |     └── landingData.ts                # data/constants for landing page sections
+│       ├── eslint.config.mjs                   # configuration file for ESLint and prettier
+│       ├── next.config.ts                      # output: "standalone"
+│       ├── package.json                        # metadata for the project
+│       ├── package-lock.json                   # records the exact version of every package installed in node_modules
+│       ├── postcss.config.mjs                  # defines how PostCSS should process CSS files
+│       └── tsconfig.json                       # defines how the compiler should compile the project's TS files into JS
+├── db/                                         # database setup (docker compose, schema, ...)
+|   ├── init/                                   # files used to initialize the database as part of the docker compose up
+|   |   ├── 01_add_extensions.sql               # sql extensions that need to be added to postgressql
+|   |   └── 02_event_manager_db_schema.sql      # event manager db schema to create all tables
+|   └── db-compose-docker.yaml                  # docker compose file to start the postgres and pgadmin container and needed volumes
+├── docs/                                       # event manager plan, proposal, and design docs, ...
+├── .gitignore                                  # files or folder to be ignored by git
+├── .gitleaks.toml                              # gitleaks configuration (allowlist)
+├── Dockerfile.backend                          # dockerfile with definitions to build the backend image
+├── Dockerfile.frontend                         # dockerfile with definitions to build the frontend image
+├── team.md                                     # team members brief introduction
+└── README.md                                   # project documentation
 ```
 
 ## 🧰 Prerequisites
@@ -102,32 +112,43 @@ lint – eslint
 cd code/frontend
 ```
 
-2. Install dependencies
+2. Copy the sample environment file and replace the Clerk secrets with values
+   from your project. Update `BACKEND_URL` to point at the FastAPI instance.
+
+3. Install dependencies
 
 ```bash
 npm ci
 ```
 
-2. Run Next.js application
+4. Run Next.js application
 
 ```bash
 npm run dev
 ```
 
-3. Access Next.js application at http://127.0.0.1:3000
+5. Access Next.js application at http://127.0.0.1:3000
 
 ### Run Next.js Application in a Docker Container
 
-1. Build docker image using the Dockerfile.frontend file
+1. Build the Docker image and supply the Clerk publishable key so the compiled
+   assets embed the correct client-side configuration.
 
 ```bash
-docker build -f Dockerfile.frontend -t event-manager-frontend:latest .
+docker build -f Dockerfile.frontend \
+  --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="<your_publishable_key>" \
+  -t event-manager-frontend:latest .
 ```
 
 2. Run docker container using the image that was just built
 
 ```bash
-docker run --rm -it -p 3000:3000 event-manager-frontend:latest
+docker run --rm -it -p 3000:3000 \
+  -e CLERK_SECRET_KEY="<your_secret_key>" \
+  -e CLERK_WEBHOOK_SIGNING_SECRET="<your_webhook_secret>" \
+  -e CLERK_JWKS_URL="<your_jwks_url>" \
+  -e BACKEND_URL="http://backend:8000" \
+  event-manager-frontend:latest
 ```
 
 3. Access Application at http://0.0.0.0:3000
@@ -145,6 +166,56 @@ The frontend Dockerfile uses Next.js output: "standalone" to copy only the minim
 - Speeds up cold starts and deploys,
 
 - Keeps the runtime image minimal (great for CI/CD).
+
+## Authentication Setup (Clerk)
+
+### Required environment variables
+
+Set the following values in `code/frontend/.env.local` (or export them in your
+shell) and mirror them into your CI secrets:
+
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` – public key for rendering Clerk widgets.
+- `CLERK_SECRET_KEY` – backend API key used by Next.js server components and the
+  webhook handler.
+- `CLERK_JWKS_URL` – JWKS endpoint for token validation (Clerk dashboard → API
+  Keys).
+- `CLERK_WEBHOOK_SIGNING_SECRET` – secret provided when you create the webhook
+  endpoint inside Clerk.
+- `BACKEND_URL` – base URL for the FastAPI service that receives user sync
+  requests.
+  `code/frontend/.env` contains local development defaults. Copy it to
+  `.env.local` and replace the secret values with keys from your Clerk project
+  before running the app. `.env.local` is git-ignored—keep real secrets out of the
+  repository.
+
+### Webhook flow
+
+- Clerk sends `user.created` events to `POST /api/webhooks/clerk`.
+- The handler verifies the signature with `verifyWebhook` using
+  `CLERK_WEBHOOK_SIGNING_SECRET` and logs errors for invalid payloads.
+- Valid events trigger a POST to `${BACKEND_URL}/create-user/` with the user's
+  name and primary email to keep the backend in sync.
+- Ensure your FastAPI service exposes this endpoint; the webhook responds with a
+  `500` status if the sync call fails.
+
+### Route protection
+
+`code/frontend/src/middleware.ts` uses `clerkMiddleware` to guard `/discover`
+and `/onboarding` while leaving `/api/webhooks/clerk` and static assets
+unauthenticated. The global layout (`code/frontend/src/app/layout.tsx`) renders
+sign-in/up buttons for unauthenticated visitors and a `UserButton` once signed
+in.
+
+### GitHub Actions secrets
+
+`.github/workflows/frontend-ci.yml` now pulls Clerk secrets during the `check`
+and `docker` jobs. Populate the following repository secrets so CI can build and
+publish the frontend image:
+
+- `CLERK_JWKS_URL`
+- `CLERK_SECRET_KEY`
+- `CLERK_WEBHOOK_SIGNING_SECRET`
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
 
 ## Backend Setup
 
