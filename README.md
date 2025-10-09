@@ -46,8 +46,8 @@ cs673f25a2project-cs673a2f25team5/
 │       |  |    └── fetchTimeout                # timeout to avoid hanging requests
 │       |  └── middleware.ts                    # run code before a request is completed (used for protected/public routes)
 │       |  ├── component/                       # reusable React components
-│       |  ├── events/                          # event-related components
-│       |  |   └── CreateEventForm.tsx          # form component for event creation
+│       |  |   └── events/                      # event-related components
+│       |  |       └── CreateEventForm.tsx      # form component for event creation
 │       |  └── landing/                         # landing page components
 │       |     ├── BenefitsSection.tsx           # benefits section component for landing page
 │       |     ├── CallToActionSection.tsx       # CTA section component for landing page
