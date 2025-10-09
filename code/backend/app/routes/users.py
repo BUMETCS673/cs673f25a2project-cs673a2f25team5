@@ -10,6 +10,15 @@ from app.service import users as users_service
 router = APIRouter()
 
 
+FILTER_QUERY = Query(
+    None,
+    description="Filter in the format field:operator:value. Can be used multiple times.",
+    examples=["email:eq:john@example.com", "first_name:ilike:John%"],
+)
+OFFSET_QUERY = Query(0, ge=0, description="Number of records to skip")
+LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of users to return")
+
+
 @router.get(
     "/users",
     response_model=models_users.PaginatedUsers,
@@ -26,10 +35,7 @@ router = APIRouter()
     ),
     tags=["Users"],
     responses={
-        200: {
-            "description": "Paginated list of users",
-            "model": models_users.PaginatedUsers
-        },
+        200: {"description": "Paginated list of users", "model": models_users.PaginatedUsers},
         400: {
             "description": "Invalid parameters",
             "content": {
@@ -45,13 +51,9 @@ router = APIRouter()
     },
 )
 async def list_users(
-    filter: list[str] | None = Query(
-        None,
-        description="Filter in the format field:operator:value. Can be used multiple times.",
-        examples=["email:eq:john@example.com", "first_name:ilike:John%"],
-    ),
-    offset: int = Query(0, ge=0, description="Number of records to skip"),
-    limit: int = Query(100, ge=1, le=1000, description="Maximum number of users to return"),
+    filter: list[str] | None = FILTER_QUERY,
+    offset: int = OFFSET_QUERY,
+    limit: int = LIMIT_QUERY,
 ) -> models_users.PaginatedUsers:
     """
     Get a paginated list of users with optional filters.
@@ -70,7 +72,7 @@ async def list_users(
         filters = [parse_filter(f) for f in (filter or [])]
         return await users_service.get_users_service(filters, offset, limit)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post(

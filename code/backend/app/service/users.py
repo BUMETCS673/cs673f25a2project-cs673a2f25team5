@@ -11,9 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 async def get_users_service(
-    filters: list[FilterOperation] | None = None,
-    offset: int = 0,
-    limit: int = 100
+    filters: list[FilterOperation] | None = None, offset: int = 0, limit: int = 100
 ) -> PaginatedUsers:
     """
     Retrieve users with optional filters, offset, and limit.
@@ -30,12 +28,7 @@ async def get_users_service(
 
     try:
         users, total = await users_db.get_users_db(filters, offset, limit)
-        return PaginatedUsers(
-            items=users,
-            total=total,
-            offset=offset,
-            limit=limit
-        )
+        return PaginatedUsers(items=users, total=total, offset=offset, limit=limit)
     except HTTPException:
         # Let HTTP exceptions pass through unchanged
         raise
@@ -57,8 +50,7 @@ async def create_user_service(user: UserCreate) -> UserRead:
     """
     try:
         existing_users, _ = await users_db.get_users_db(
-            [FilterOperation("email", "eq", user.email)],
-            limit=1
+            [FilterOperation("email", "eq", user.email)], limit=1
         )
         if existing_users:
             logger.warning(f"Attempted to create duplicate user with email: {user.email}")
@@ -96,8 +88,7 @@ async def delete_user_service(user_id: UUID) -> UserRead:
     """
     try:
         existing_users, _ = await users_db.get_users_db(
-            [FilterOperation("user_id", "eq", user_id)],
-            limit=1
+            [FilterOperation("user_id", "eq", user_id)], limit=1
         )
         if not existing_users:
             logger.warning(f"Attempted to delete non-existent user with ID: {user_id}")
