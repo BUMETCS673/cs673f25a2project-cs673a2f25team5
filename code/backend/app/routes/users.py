@@ -12,28 +12,31 @@ router = APIRouter()
 
 @router.get(
     "/users",
-    response_model=list[models_users.UserRead],
-    summary="Get a list of users",
+    response_model=models_users.PaginatedUsers,
+    summary="Get a paginated list of users",
     description=(
         "Get users with optional filters using the format `field:operator:value`. "
         "Multiple filters can be combined using multiple filter parameters.\n\n"
         "Available operators: eq, neq, gt, gte, lt, lte, like, ilike\n\n"
+        "Pagination is supported via offset and limit parameters.\n\n"
         "Examples:\n"
         "- `/users?filter=email:eq:john@example.com`\n"
-        "- `/users?filter=created_at:gt:2023-01-01&filter=first_name:ilike:John%`"
+        "- `/users?filter=created_at:gt:2023-01-01&filter=first_name:ilike:John%`\n"
+        "- `/users?offset=20&limit=10` (get third page of 10 users)"
     ),
     tags=["Users"],
     responses={
-        200: {"description": "List of users", "model": list[models_users.UserRead]},
-        400: {
-            "description": "Invalid filter format",
-            "content": {
-                "application/json": {"example": {"detail": "Invalid filter format: ..."}}
-            },
+        200: {
+            "description": "Paginated list of users",
+            "model": models_users.PaginatedUsers
         },
-        404: {
-            "description": "No users found",
-            "content": {"application/json": {"example": {"detail": "No users found"}}},
+        400: {
+            "description": "Invalid parameters",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Invalid filter format or pagination parameters"}
+                }
+            },
         },
         500: {
             "description": "Internal server error",
@@ -47,20 +50,25 @@ async def list_users(
         description="Filter in the format field:operator:value. Can be used multiple times.",
         examples=["email:eq:john@example.com", "first_name:ilike:John%"],
     ),
-    limit: int = Query(100, ge=1, description="Maximum number of users to return"),
-) -> list[models_users.UserRead]:
+    offset: int = Query(0, ge=0, description="Number of records to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Maximum number of users to return"),
+) -> models_users.PaginatedUsers:
     """
-    Get a list of users with optional filters and limit.
+    Get a paginated list of users with optional filters.
 
     Filter format: field:operator:value
     Examples:
     - field:eq:value (equals)
     - field:gt:value (greater than)
     - field:ilike:value (case-insensitive pattern match)
+
+    Pagination:
+    - offset: Number of records to skip (default: 0)
+    - limit: Maximum number of records to return (default: 100, max: 1000)
     """
     try:
         filters = [parse_filter(f) for f in (filter or [])]
-        return await users_service.get_users_service(filters, limit)
+        return await users_service.get_users_service(filters, offset, limit)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

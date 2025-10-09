@@ -5,29 +5,37 @@ from fastapi import HTTPException
 
 import app.db.users as users_db
 from app.db.filters import FilterOperation
-from app.models.users import UserCreate, UserRead
+from app.models.users import PaginatedUsers, UserCreate, UserRead
 
 logger = logging.getLogger(__name__)
 
 
 async def get_users_service(
-    filters: list[FilterOperation] | None = None, limit: int = 100
-) -> list[UserRead]:
+    filters: list[FilterOperation] | None = None,
+    offset: int = 0,
+    limit: int = 100
+) -> PaginatedUsers:
     """
-    Retrieve users with optional filters and limit.
+    Retrieve users with optional filters, offset, and limit.
 
     Validates:
     - Limit is a positive integer
+    - Offset is non-negative
     - Filters are well-formed
     """
     if limit <= 0:
         raise HTTPException(status_code=400, detail="Limit must be a positive integer")
+    if offset < 0:
+        raise HTTPException(status_code=400, detail="Offset must be non-negative")
 
     try:
-        users = await users_db.get_users_db(filters, limit)
-        if not users:
-            raise HTTPException(status_code=404, detail="No users found")
-        return users
+        users, total = await users_db.get_users_db(filters, offset, limit)
+        return PaginatedUsers(
+            items=users,
+            total=total,
+            offset=offset,
+            limit=limit
+        )
     except HTTPException:
         # Let HTTP exceptions pass through unchanged
         raise
@@ -48,10 +56,11 @@ async def create_user_service(user: UserCreate) -> UserRead:
     - Data sanitization
     """
     try:
-        existing_user = await users_db.get_users_db(
-            [FilterOperation("email", "eq", user.email)]
+        existing_users, _ = await users_db.get_users_db(
+            [FilterOperation("email", "eq", user.email)],
+            limit=1
         )
-        if existing_user:
+        if existing_users:
             logger.warning(f"Attempted to create duplicate user with email: {user.email}")
             raise HTTPException(
                 status_code=400, detail="A user with this email already exists"
@@ -86,16 +95,17 @@ async def delete_user_service(user_id: UUID) -> UserRead:
     - User existence
     """
     try:
-        existing_user = await users_db.get_users_db(
-            [FilterOperation("user_id", "eq", user_id)]
+        existing_users, _ = await users_db.get_users_db(
+            [FilterOperation("user_id", "eq", user_id)],
+            limit=1
         )
-        if not existing_user:
+        if not existing_users:
             logger.warning(f"Attempted to delete non-existent user with ID: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
 
         await users_db.delete_user_db(user_id)
 
-        return existing_user[0]
+        return existing_users[0]
 
     except HTTPException:
         # Let HTTP exceptions pass through unchanged

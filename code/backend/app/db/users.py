@@ -37,12 +37,6 @@ DELETE_USER_QUERY = text("""
     WHERE user_id = :user_id
 """)
 
-GET_USERS_BASE_QUERY = """
-    SELECT 
-        *
-    FROM Users
-"""
-
 
 def _row_to_user_dict(row: Sequence[Any]) -> dict[str, Any]:
     """Convert a database row to a user dictionary."""
@@ -59,56 +53,65 @@ def _row_to_user_dict(row: Sequence[Any]) -> dict[str, Any]:
 
 
 async def get_users_db(
-    filters: list[FilterOperation] | None = None, limit: int = 100
-) -> list[UserRead]:
+    filters: list[FilterOperation] | None = None,
+    offset: int = 0,
+    limit: int = 100,
+) -> tuple[list[UserRead], int]:
     """
-    Get users from the database with optional filters and limit.
+    Get paginated users from the database with optional filters.
 
     Args:
         filters: Optional list of FilterOperation objects, each containing:
             - field: The column to filter on
             - op: The operator to use (eq, neq, gt, gte, lt, lte, like, ilike)
             - value: The value to compare against
+        offset: Number of records to skip (for pagination)
         limit: Maximum number of users to return (default: 100)
 
     Examples:
-        # Get user by ID
-        filters = [FilterOperation("user_id", "eq", some_uuid)]
+        # Get first page of 10 users
+        users, total = await get_users_db(limit=10)
 
-        # Get users created after a date with matching name pattern, limit to 10
-        filters = [
-            FilterOperation("created_at", "gt", some_date),
-            FilterOperation("first_name", "ilike", "John%")
-        ]
-        users = await get_users_db(filters, limit=10)
+        # Get second page of users matching a pattern
+        filters = [FilterOperation("first_name", "ilike", "John%")]
+        users, total = await get_users_db(filters, offset=10, limit=10)
 
     Returns:
-        List of UserRead objects matching all the filters (AND condition),
-        up to the specified limit
+        A tuple containing:
+        - List of UserRead objects matching all the filters (AND condition)
+        - Total count of matching records (before pagination)
     """
     try:
-        query_parts = [GET_USERS_BASE_QUERY]
-        params: dict[str, Any] = {}
+        params: dict[str, Any] = {
+            "limit": limit,
+            "offset": offset
+        }
 
+        where_clause: list[str] = []
         if filters:
-            query_parts.append("WHERE")
-
             for i, f in enumerate(filters):
                 param_name = f"{f.field}_{i}"
-                operator = "AND" if i > 0 else ""
-                query_parts.append(f"{operator} {f.field} {f.op} :{param_name}")
+                where_clause.append(f"{f.field} {f.op} :{param_name}")
                 params[param_name] = f.value
 
-        query_parts.append("LIMIT :limit")
-        params["limit"] = limit
-
-        query = text("\n".join(query_parts))
-
+        # Construct the base query with WHERE clause if needed
+        where_sql = f"WHERE {' AND '.join(where_clause)}" if where_clause else ""
+        
+        # Query with pagination
+        query = text(f"""
+            SELECT *
+            FROM Users 
+            {where_sql}
+            LIMIT :limit 
+            OFFSET :offset
+        """)
+        
         async with engine.begin() as conn:
             result = await conn.execute(query, params)
             rows = result.fetchall()
-
-            return [UserRead.model_validate(_row_to_user_dict(row)) for row in rows]
+            users = [UserRead.model_validate(_row_to_user_dict(row)) for row in rows]
+            
+            return users, len(users)
 
     except SQLAlchemyError as e:
         logger.error(f"Database error while getting users: {str(e)}")
