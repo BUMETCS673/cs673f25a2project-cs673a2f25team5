@@ -32,16 +32,13 @@ cs673f25a2project-cs673a2f25team5/
 │       |  |  ├── create-events/                # route for create events page
 │       |  |  |   └── page.tsx                  # page component for creating new events
 │       |  |  ├── favicon.ico                   # site favicon icon
+│       |  |  ├── globals.css                   # where global css variables can be declared and imports for tailwind
 │       |  |  ├── layout.tsx                    # root layout component defining global styles
-│       |  |  ├── page.tsx                      # home page component
+│       |  |  ├── page.tsx                      # home page/landing page component
 │       |  |  ├── api                           # route for all api calls
 │       |  |  │ └── webhooks                    # route for access webhooks
 │       |  |  │   └── clerk                     # route for clerks webhook
 │       |  |  │      └── route.ts               # typescript code to intercept webhook from clerk
-│       |  |  ├── favicon.ico                   # icons for metadata of the web application
-│       |  |  ├── globals.css                   # where global css variables can be declared and imports for tailwind
-│       |  |  ├── layout.tsx                    # root layout of the application
-│       |  |  ├── page.tsx                      # landing page of the application
 │       |  |  └── helpers/                      # reusable helper functions
 │       |  |    └── fetchTimeout                # timeout to avoid hanging requests
 │       |  └── middleware.ts                    # run code before a request is completed (used for protected/public routes)
