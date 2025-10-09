@@ -26,22 +26,34 @@ cs673f25a2project-cs673a2f25team5/
 │   │   ├── tox.ini                             # tox environment definitions
 │   │   └── uv.lock                             # uv overall definitions
 │   └── frontend/                               # event manager frontend code
-|       ├── src                                 # source code
-│       |  └── app/                             # app Router pages (layout.tsx, page.tsx)
-|       |  │   ├── globals.css                  # style sheet that should persist across all pages
-|       |  │   ├── api                          # route for all api calls
-|       |  │   │ └── webhooks                   # route for access webhooks
-|       |  │   │   └── clerk                    # route for clerks webhook
-|       |  │   │      └── route.ts              # typescript code to intercept webhook from clerk
-|       |  │   ├── favicon.ico                  # icons for metadata of the web application
-|       |  │   ├── globals.css                  # where global css variables can be declared and imports for tailwind
-|       |  │   ├── layout.tsx                   # root layout of the application
-|       |  │   └── page.tsx                     # landing page of the application
-|       |  ├── component/                       # folder to keep al reusable components
-|       |  ├── helpers/                         # reusable helper functions
-|       |  |    └── fetchTimeout                # timeout to avoid hanging requests
-|       |  └── middleware.ts                    # run code before a request is completed (used for protected/public routes)
 │       ├── public/                             # static assets
+│       ├── src                                 # source code
+│       |  └── app/                             # app Router pages (layout.tsx, page.tsx)
+│       |  |  ├── create-events/                # route for create events page
+│       |  |  |   └── page.tsx                  # page component for creating new events
+│       |  |  ├── favicon.ico                   # site favicon icon
+│       |  |  ├── globals.css                   # where global css variables can be declared and imports for tailwind
+│       |  |  ├── layout.tsx                    # root layout component defining global styles
+│       |  |  ├── page.tsx                      # home page/landing page component
+│       |  |  ├── api                           # route for all api calls
+│       |  |  │ └── webhooks                    # route for access webhooks
+│       |  |  │   └── clerk                     # route for clerks webhook
+│       |  |  │      └── route.ts               # typescript code to intercept webhook from clerk
+│       |  |  └── helpers/                      # reusable helper functions
+│       |  |    └── fetchTimeout                # timeout to avoid hanging requests
+│       |  └── middleware.ts                    # run code before a request is completed (used for protected/public routes)
+│       |  ├── component/                       # reusable React components
+│       |  |   └── events/                      # event-related components
+│       |  |       └── CreateEventForm.tsx      # form component for event creation
+│       |  └── landing/                         # landing page components
+│       |     ├── BenefitsSection.tsx           # benefits section component for landing page
+│       |     ├── CallToActionSection.tsx       # CTA section component for landing page
+│       |     ├── DemoShowCaseSection.tsx       # demo showcase component for landing page
+│       |     ├── FeatureHighlight.tsx          # feature highlight component for landing page
+│       |     ├── Heading.tsx                   # section heading component
+│       |     ├── HeroSection.tsx               # hero section component for landing page
+│       |     ├── WorkflowStepsSection.tsx      # workflow steps component for landing page
+│       |     └── landingData.ts                # data/constants for landing page sections
 │       ├── eslint.config.mjs                   # configuration file for ESLint and prettier
 │       ├── next.config.ts                      # output: "standalone"
 │       ├── package.json                        # metadata for the project
