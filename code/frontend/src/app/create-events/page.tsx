@@ -1,14 +1,16 @@
 import { redirect } from "next/navigation";
 import { CreateEventForm } from "@/component/events/CreateEventForm";
+import { cookies } from "next/headers";
+
 export default async function CreateEventsPage() {
-  const cookie = { value: "test@test.com" };
+  const cookie = cookies().get("user"); // Replace "user" with your actual cookie name
 
   if (!cookie) {
     console.log("No cookie found, redirecting to home");
     redirect("/?error=unauthorized");
   }
 
-  const organizerEmail = cookie.value ?? "";
+  const organizerEmail = cookie?.value ?? "";
   console.log(cookie);
 
 
