@@ -8,7 +8,7 @@ export default async function CreateEventsPage() {
     redirect("/?error=unauthorized");
   }
 
-  const organizerEmail = cookie?.value ?? "";
+  const organizerEmail = cookie.value ?? "";
   console.log(cookie);
 
   console.log(organizerEmail);

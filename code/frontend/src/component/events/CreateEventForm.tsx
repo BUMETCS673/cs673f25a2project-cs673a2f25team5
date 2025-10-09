@@ -115,11 +115,21 @@ export function CreateEventForm({
       currentErrors.push("Location is required for in-person events.");
     }
 
-    if (formState.capacity && Number(formState.capacity) <= 0) {
-      currentErrors.push("Capacity must be a positive number.");
+    if (formState.capacity) {
+      const capacityNum = Number(formState.capacity);
+      if (Number.isNaN(capacityNum)) {
+        currentErrors.push("Capacity must be a valid number.");
+      } else if (capacityNum <= 0) {
+        currentErrors.push("Capacity must be a positive number.");
+      }
     }
-    if (formState.price && Number(formState.price) < 0) {
-      currentErrors.push("Ticket price cannot be negative.");
+    if (formState.price) {
+      const priceNum = Number(formState.price);
+      if (Number.isNaN(priceNum)) {
+        currentErrors.push("Ticket price must be a valid number.");
+      } else if (priceNum < 0) {
+        currentErrors.push("Ticket price cannot be negative.");
+      }
     }
 
     if (currentErrors.length > 0) {
