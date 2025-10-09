@@ -11,7 +11,7 @@ class UserBase(BaseModel):
     date_of_birth: date = Field(..., description="User's date of birth")
     color: str | None = Field(None, max_length=100, description="User's favorite color")
 
-    @field_validator('first_name', 'last_name')
+    @field_validator("first_name", "last_name")
     @classmethod
     def validate_names(cls, v: str) -> str:
         """Validate and normalize name fields."""
@@ -19,7 +19,7 @@ class UserBase(BaseModel):
             raise ValueError("Name cannot be empty")
         return v.strip()
 
-    @field_validator('date_of_birth')
+    @field_validator("date_of_birth")
     @classmethod
     def validate_dob(cls, v: date) -> date:
         """Validate that date of birth is in the past."""
@@ -27,7 +27,7 @@ class UserBase(BaseModel):
             raise ValueError("Date of birth must be in the past")
         return v
 
-    @field_validator('color')
+    @field_validator("color")
     @classmethod
     def validate_color(cls, v: str | None) -> str | None:
         """Validate and normalize color field if provided."""
