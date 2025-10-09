@@ -1,3 +1,9 @@
+CREATE TABLE IF NOT EXISTS Categories (
+    category_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    category_name VARCHAR(50) NOT NULL,
+    description TEXT
+);
+
 CREATE TABLE IF NOT EXISTS Users (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     first_name VARCHAR(50) NOT NULL,
@@ -25,12 +31,6 @@ CREATE TABLE IF NOT EXISTS Events (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES Categories(category_id)
-);
-
-CREATE TABLE IF NOT EXISTS Categories (
-    category_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    category_name VARCHAR(50) NOT NULL,
-    description TEXT
 );
 
 CREATE TYPE attendee_status AS ENUM ('RSVPed', 'Maybe', 'Not Going');
