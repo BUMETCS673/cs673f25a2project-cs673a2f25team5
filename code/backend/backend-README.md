@@ -3,7 +3,7 @@
 The backend will be structured in 4 main layers: model, router, service, and database. This layered architecture promotes separation of concerns, maintainability, and scalability. The backend is built using FastAPI with Python and connects to a PostgreSQL database through SQLAlchemy ORM. Please see a detailed description of each layer in the sections below.
 
 
-## Achitecture Overview
+## Architecture Overview
 
 The following diagram illustrates the overall backend architecture and the relationships between the different layers:
 
