@@ -108,8 +108,11 @@ async def get_users_db(
             rows = result.fetchall()
             users = [UserRead.model_validate(_row_to_user_dict(row)) for row in rows]
 
-            return users, len(users)
+            # Run a separate COUNT(*) query to get the total number of matching records (before pagination)
+            count_query = text(f"SELECT COUNT(*) FROM Users {where_sql}")
+            total = await conn.scalar(count_query, params)
 
+            return users, total
     except SQLAlchemyError as e:
         logger.error(f"Database error while getting users: {str(e)}")
         raise ValueError(f"Failed to get users: {str(e)}") from e
