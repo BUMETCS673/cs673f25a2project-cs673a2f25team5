@@ -8,7 +8,7 @@ from app.db.filters import FilterOperation
 def parse_filter(filter_str: str) -> FilterOperation:
     """Parse a filter string in the format 'field:operator:value' into a FilterOperation."""
     try:
-        field, op, value = filter_str.split(":")
+        field, op, value = filter_str.split(":", 2)
 
         # Convert value to appropriate type if needed (e.g., UUID for user_id)
         if field == "user_id":

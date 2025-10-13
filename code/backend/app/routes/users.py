@@ -81,9 +81,9 @@ async def list_users(
     summary="Create a new user",
     description="Create a new user with the provided information. Email must be unique.",
     tags=["Users"],
-    status_code=200,
+    status_code=201,
     responses={
-        200: {"description": "User created successfully", "model": models_users.UserRead},
+        201: {"description": "User created successfully", "model": models_users.UserRead},
         400: {
             "description": "Invalid input or duplicate email",
             "content": {
@@ -127,7 +127,7 @@ async def patch_users(
     tags=["Users"],
     status_code=200,
     responses={
-        200: {"description": "User created successfully", "model": models_users.UserRead},
+        200: {"description": "User deleted successfully", "model": models_users.UserRead},
         400: {
             "description": "Invalid input",
             "content": {"application/json": {"example": {"detail": "Invalid user ID"}}},
