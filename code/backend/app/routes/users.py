@@ -39,7 +39,24 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of users to 
             "description": "Invalid parameters",
             "content": {
                 "application/json": {
-                    "example": {"detail": "Invalid filter format or pagination parameters"}
+                    "examples": {
+                        "InvalidFilterFormat": {
+                            "summary": "Invalid filter format",
+                            "value": {"detail": "Invalid filter format or pagination parameters"}
+                        },
+                        "InvalidColumnName": {
+                            "summary": "Invalid column name",
+                            "value": {"detail": "Invalid column name"}
+                        },
+                        "LimitNotPositive": {
+                            "summary": "Limit must be a positive integer",
+                            "value": {"detail": "Limit must be a positive integer"}
+                        },
+                        "OffsetNegative": {
+                            "summary": "Offset must be non-negative",
+                            "value": {"detail": "Offset must be non-negative"}
+                        }
+                    }
                 }
             },
         },
@@ -81,7 +98,7 @@ async def list_users(
     tags=["Users"],
     status_code=201,
     responses={
-        201: {"description": "User created successfully", "model": models_users.UserRead},
+        201: {"description": "User created successfully"},
         400: {
             "description": "Invalid input or duplicate email",
             "content": {
@@ -125,7 +142,7 @@ async def patch_users(
     tags=["Users"],
     status_code=200,
     responses={
-        200: {"description": "User deleted successfully", "model": models_users.UserRead},
+        200: {"description": "User deleted successfully"},
         400: {
             "description": "Invalid input",
             "content": {"application/json": {"example": {"detail": "Invalid user ID"}}},

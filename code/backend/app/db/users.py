@@ -1,10 +1,12 @@
 import logging
 from datetime import date
-from typing import Any
 from uuid import UUID
 
-from sqlalchemy import text
+from fastapi import HTTPException
+from sqlalchemy import Column, Date, DateTime, MetaData, String, Table, and_, func, select
+from sqlalchemy.dialects.postgresql import UUID as SQLAlchemyUUID
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.db.db import engine
 from app.db.filters import FilterOperation
@@ -13,42 +15,19 @@ from app.models.users import UserCreate, UserRead
 logger = logging.getLogger(__name__)
 
 
-# Column definitions for the Users table
-USERS_TABLE_COLUMNS = (
-    "user_id",
-    "first_name",
-    "last_name",
-    "date_of_birth",
-    "email",
-    "color",
-    "created_at",
-    "updated_at",
+metadata = MetaData()
+users = Table(
+    "users",
+    metadata,
+    Column("user_id", SQLAlchemyUUID(as_uuid=True), primary_key=True),
+    Column("first_name", String),
+    Column("last_name", String),
+    Column("date_of_birth", Date),
+    Column("email", String),
+    Column("color", String),
+    Column("created_at", DateTime),
+    Column("updated_at", DateTime),
 )
-
-# SQL columns string (comma-separated for SELECT queries)
-SQL_COLUMNS = ",\n    ".join(USERS_TABLE_COLUMNS)
-
-INSERT_USER_QUERY = text("""
-    INSERT INTO Users (
-        first_name,
-        last_name,
-        date_of_birth,
-        email,
-        color
-    ) VALUES (
-        :first_name,
-        :last_name,
-        :date_of_birth,
-        :email,
-        :color
-    ) RETURNING
-        *
-""")
-
-DELETE_USER_QUERY = text("""
-    DELETE FROM Users 
-    WHERE user_id = :user_id
-""")
 
 
 async def get_users_db(
@@ -81,37 +60,54 @@ async def get_users_db(
         - Total count of matching records (before pagination)
     """
     try:
-        params: dict[str, Any] = {"limit": limit, "offset": offset}
+        query = select(users)
+        count_query = select(func.count()).select_from(users)
 
-        where_clause: list[str] = []
         if filters:
-            for i, f in enumerate(filters):
-                param_name = f"{f.field}_{i}"
-                where_clause.append(f"{f.field} {f.op} :{param_name}")
-                params[param_name] = f.value
+            from typing import Any
 
-        # Construct the base query with WHERE clause if needed
-        where_sql = f"WHERE {' AND '.join(where_clause)}" if where_clause else ""
+            conditions: list[ColumnElement[Any]] = []
+            for f in filters:
+                column = getattr(users.c, f.field, None)
+                if column is None:
+                    logger.error(f"Invalid filter field: {f.field}")
+                    raise HTTPException(
+                        status_code=400, detail=f"Invalid filter field: {f.field}"
+                    )
 
-        # Query with pagination
-        query = text(f"""
-            SELECT {SQL_COLUMNS}
-            FROM Users 
-            {where_sql}
-            LIMIT :limit 
-            OFFSET :offset
-        """)
+                if f.op == "=":
+                    conditions.append(column == f.value)
+                elif f.op == "!=":
+                    conditions.append(column != f.value)
+                elif f.op == ">":
+                    conditions.append(column > f.value)
+                elif f.op == ">=":
+                    conditions.append(column >= f.value)
+                elif f.op == "<":
+                    conditions.append(column < f.value)
+                elif f.op == "<=":
+                    conditions.append(column <= f.value)
+                elif f.op == "LIKE":
+                    conditions.append(column.like(f.value))
+                elif f.op == "ILIKE":
+                    conditions.append(column.ilike(f.value))
+
+            if conditions:
+                where_clause = and_(*conditions)
+                query = query.where(where_clause)
+                count_query = count_query.where(where_clause)
+
+        query = query.offset(offset).limit(limit)
 
         async with engine.begin() as conn:
-            result = await conn.execute(query, params)
+            result = await conn.execute(query)
             rows = result.mappings().all()
-            users = [UserRead.model_validate(dict(row)) for row in rows]
+            users_list = [UserRead.model_validate(dict(row)) for row in rows]
 
-            # Run a separate COUNT(*) query to get the total number of matching records
-            count_query = text(f"SELECT COUNT(*) FROM Users {where_sql}")
-            total = await conn.scalar(count_query, params)
+            count_result = await conn.scalar(count_query)
+            total_count = 0 if count_result is None else int(count_result)
 
-            return users, total
+            return users_list, total_count
     except SQLAlchemyError as e:
         logger.error(f"Database error while getting users: {str(e)}")
         raise ValueError(f"Failed to get users: {str(e)}") from e
@@ -122,17 +118,19 @@ async def get_users_db(
 
 async def create_user_db(user: UserCreate) -> UserRead:
     """Create a new user in the database."""
-    values: dict[str, str | date | None] = {
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "date_of_birth": user.date_of_birth,
-        "email": user.email,
-        "color": user.color,
-    }
-
     try:
+        values: dict[str, str | date | None] = {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "date_of_birth": user.date_of_birth,
+            "email": user.email,
+            "color": user.color,
+        }
+
+        insert_stmt = users.insert().values(values).returning(users)
+
         async with engine.begin() as conn:
-            result = await conn.execute(INSERT_USER_QUERY, values)
+            result = await conn.execute(insert_stmt)
             row = result.mappings().first()
 
             if not row:
@@ -152,8 +150,10 @@ async def create_user_db(user: UserCreate) -> UserRead:
 async def delete_user_db(user_id: UUID) -> None:
     """Delete a user by their user ID."""
     try:
+        delete_stmt = users.delete().where(users.c.user_id == str(user_id))
+
         async with engine.begin() as conn:
-            await conn.execute(DELETE_USER_QUERY, {"user_id": user_id})
+            await conn.execute(delete_stmt)
 
     except SQLAlchemyError as e:
         logger.error(f"Database error while deleting user: {str(e)}")

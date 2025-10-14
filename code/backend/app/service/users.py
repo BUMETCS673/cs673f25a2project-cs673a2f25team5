@@ -25,11 +25,15 @@ async def get_users_service(
     filters = [parse_filter(f) for f in (filter or [])]
     if filters:
         for f in filters:
-            if f.field not in users_db.USERS_TABLE_COLUMNS:
+            column = getattr(users_db.users.c, f.field, None)
+            if column is None:
+                logger.error(f"Invalid filter field: {f.field}")
                 raise HTTPException(status_code=400, detail=f"Invalid column name: {f.field}")
-    if limit <= 0:
-        raise HTTPException(status_code=400, detail="Limit must be a positive integer")
+    if limit < 0:
+        logger.error(f"Limit must be non-negative: {limit}")
+        raise HTTPException(status_code=400, detail="Limit must be a non-negative integer")
     if offset < 0:
+        logger.error(f"Offset must be non-negative: {offset}")
         raise HTTPException(status_code=400, detail="Offset must be non-negative")
 
     try:
@@ -59,7 +63,7 @@ async def create_user_service(user: UserCreate) -> UserRead:
             [FilterOperation("email", "eq", user.email.strip().lower())], limit=1
         )
         if existing_users:
-            logger.warning(f"Attempted to create duplicate user with email: {user.email}")
+            logger.error(f"Attempted to create duplicate user with email: {user.email}")
             raise HTTPException(
                 status_code=400, detail="A user with this email already exists"
             )
