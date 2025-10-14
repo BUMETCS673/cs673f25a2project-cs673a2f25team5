@@ -15,14 +15,14 @@ logger = logging.getLogger(__name__)
 
 # Column definitions for the Users table
 USERS_TABLE_COLUMNS = (
-    'user_id',
-    'first_name',
-    'last_name',
-    'date_of_birth',
-    'email',
-    'color',
-    'created_at',
-    'updated_at'
+    "user_id",
+    "first_name",
+    "last_name",
+    "date_of_birth",
+    "email",
+    "color",
+    "created_at",
+    "updated_at",
 )
 
 # SQL columns string (comma-separated for SELECT queries)
@@ -49,9 +49,6 @@ DELETE_USER_QUERY = text("""
     DELETE FROM Users 
     WHERE user_id = :user_id
 """)
-
-
-
 
 
 async def get_users_db(
@@ -110,7 +107,7 @@ async def get_users_db(
             rows = result.mappings().all()
             users = [UserRead.model_validate(dict(row)) for row in rows]
 
-            # Run a separate COUNT(*) query to get the total number of matching records (before pagination)
+            # Run a separate COUNT(*) query to get the total number of matching records
             count_query = text(f"SELECT COUNT(*) FROM Users {where_sql}")
             total = await conn.scalar(count_query, params)
 

@@ -8,7 +8,6 @@ from app.db.filters import FilterOperation
 from app.models.users import PaginatedUsers, UserCreate, UserRead
 from app.service.filter_helper import parse_filter
 
-
 logger = logging.getLogger(__name__)
 
 
