@@ -15,7 +15,7 @@ def parse_filter(filter_str: str) -> FilterOperation:
             value = UUID(value)
 
         return FilterOperation(field=field, op=op, value=value)
-    except ValueError as e:
+    except Exception as e:
         raise HTTPException(
             status_code=400,
             detail=(
