@@ -67,7 +67,7 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of users to 
     },
 )
 async def list_users(
-    filter: list[str] | None = FILTER_QUERY,
+    filter_expression: list[str] | None = FILTER_QUERY,
     offset: int = OFFSET_QUERY,
     limit: int = LIMIT_QUERY,
 ) -> models_users.PaginatedUsers:
@@ -85,7 +85,7 @@ async def list_users(
     - limit: Maximum number of records to return (default: 100, max: 1000)
     """
     try:
-        return await users_service.get_users_service(filter, offset, limit)
+        return await users_service.get_users_service(filter_expression, offset, limit)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 

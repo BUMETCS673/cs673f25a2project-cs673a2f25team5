@@ -97,7 +97,8 @@ async def get_users_db(
                 query = query.where(where_clause)
                 count_query = count_query.where(where_clause)
 
-        query = query.offset(offset).limit(limit)
+        # Add a stable ORDER BY to ensure deterministic paging
+        query = query.order_by(users.c.user_id).offset(offset).limit(limit)
 
         async with engine.begin() as conn:
             result = await conn.execute(query)
@@ -150,14 +151,24 @@ async def create_user_db(user: UserCreate) -> UserRead:
 async def delete_user_db(user_id: UUID) -> None:
     """Delete a user by their user ID."""
     try:
-        delete_stmt = users.delete().where(users.c.user_id == str(user_id))
+        delete_stmt = users.delete().where(users.c.user_id == user_id)
 
         async with engine.begin() as conn:
-            await conn.execute(delete_stmt)
+            result = await conn.execute(delete_stmt)
+
+            if result.rowcount == 0:
+                logger.error(f"No user found with ID: {user_id}")
+                raise HTTPException(
+                    status_code=404, detail=f"No user found with ID: {user_id}"
+                )
+            elif result.rowcount > 1:
+                # This should never happen due to user_id being a primary key
+                logger.error(f"Multiple users deleted with ID: {user_id}")
+                raise ValueError("Database integrity error: Multiple users deleted")
 
     except SQLAlchemyError as e:
         logger.error(f"Database error while deleting user: {str(e)}")
-        raise ValueError(f"Failed to delete user: {str(e)}") from e
+        raise ValueError("Failed to delete user: Database error") from e
     except Exception as e:
         logger.error(f"Unexpected error while deleting user: {str(e)}")
         raise ValueError("Failed to delete user: Internal server error") from e
