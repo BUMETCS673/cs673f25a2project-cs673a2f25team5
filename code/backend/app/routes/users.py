@@ -42,20 +42,20 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of users to 
                     "examples": {
                         "InvalidFilterFormat": {
                             "summary": "Invalid filter format",
-                            "value": {"detail": "Invalid filter format or pagination parameters"}
+                            "value": {"detail": "Invalid filter format"},
                         },
                         "InvalidColumnName": {
                             "summary": "Invalid column name",
-                            "value": {"detail": "Invalid column name"}
+                            "value": {"detail": "Invalid column name"},
                         },
                         "LimitNotPositive": {
                             "summary": "Limit must be a positive integer",
-                            "value": {"detail": "Limit must be a positive integer"}
+                            "value": {"detail": "Limit must be a positive integer"},
                         },
                         "OffsetNegative": {
                             "summary": "Offset must be non-negative",
-                            "value": {"detail": "Offset must be non-negative"}
-                        }
+                            "value": {"detail": "Offset must be non-negative"},
+                        },
                     }
                 }
             },
