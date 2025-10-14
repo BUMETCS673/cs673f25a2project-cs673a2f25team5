@@ -4,7 +4,6 @@ from fastapi import APIRouter, HTTPException, Query
 
 from app.models import patch as models_patch
 from app.models import users as models_users
-from app.routes.filter_helper import parse_filter
 from app.service import users as users_service
 
 router = APIRouter()
@@ -35,7 +34,7 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of users to 
     ),
     tags=["Users"],
     responses={
-        200: {"description": "Paginated list of users", "model": models_users.PaginatedUsers},
+        200: {"description": "Paginated list of users"},
         400: {
             "description": "Invalid parameters",
             "content": {
@@ -69,8 +68,7 @@ async def list_users(
     - limit: Maximum number of records to return (default: 100, max: 1000)
     """
     try:
-        filters = [parse_filter(f) for f in (filter or [])]
-        return await users_service.get_users_service(filters, offset, limit)
+        return await users_service.get_users_service(filter, offset, limit)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 

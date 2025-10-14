@@ -6,12 +6,14 @@ from fastapi import HTTPException
 import app.db.users as users_db
 from app.db.filters import FilterOperation
 from app.models.users import PaginatedUsers, UserCreate, UserRead
+from app.service.filter_helper import parse_filter
+
 
 logger = logging.getLogger(__name__)
 
 
 async def get_users_service(
-    filters: list[FilterOperation] | None = None, offset: int = 0, limit: int = 100
+    filter: list[str] | None = None, offset: int = 0, limit: int = 100
 ) -> PaginatedUsers:
     """
     Retrieve users with optional filters, offset, and limit.
@@ -21,6 +23,11 @@ async def get_users_service(
     - Offset is non-negative
     - Filters are well-formed
     """
+    filters = [parse_filter(f) for f in (filter or [])]
+    if filters:
+        for f in filters:
+            if f.field not in users_db.USERS_TABLE_COLUMNS:
+                raise HTTPException(status_code=400, detail=f"Invalid column name: {f.field}")
     if limit <= 0:
         raise HTTPException(status_code=400, detail="Limit must be a positive integer")
     if offset < 0:
@@ -50,7 +57,7 @@ async def create_user_service(user: UserCreate) -> UserRead:
     """
     try:
         existing_users, _ = await users_db.get_users_db(
-            [FilterOperation("email", "eq", user.email)], limit=1
+            [FilterOperation("email", "eq", user.email.strip().lower())], limit=1
         )
         if existing_users:
             logger.warning(f"Attempted to create duplicate user with email: {user.email}")

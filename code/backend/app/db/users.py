@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Sequence
 from datetime import date
 from typing import Any
 from uuid import UUID
@@ -14,7 +13,21 @@ from app.models.users import UserCreate, UserRead
 logger = logging.getLogger(__name__)
 
 
-# SQL Queries as constants
+# Column definitions for the Users table
+USERS_TABLE_COLUMNS = (
+    'user_id',
+    'first_name',
+    'last_name',
+    'date_of_birth',
+    'email',
+    'color',
+    'created_at',
+    'updated_at'
+)
+
+# SQL columns string (comma-separated for SELECT queries)
+SQL_COLUMNS = ",\n    ".join(USERS_TABLE_COLUMNS)
+
 INSERT_USER_QUERY = text("""
     INSERT INTO Users (
         first_name,
@@ -38,18 +51,7 @@ DELETE_USER_QUERY = text("""
 """)
 
 
-def _row_to_user_dict(row: Sequence[Any]) -> dict[str, Any]:
-    """Convert a database row to a user dictionary."""
-    return {
-        "user_id": row[0],
-        "first_name": row[1],
-        "last_name": row[2],
-        "date_of_birth": row[3],
-        "email": row[4],
-        "color": row[5],
-        "created_at": row[6],
-        "updated_at": row[7],
-    }
+
 
 
 async def get_users_db(
@@ -96,7 +98,7 @@ async def get_users_db(
 
         # Query with pagination
         query = text(f"""
-            SELECT *
+            SELECT {SQL_COLUMNS}
             FROM Users 
             {where_sql}
             LIMIT :limit 
@@ -105,8 +107,8 @@ async def get_users_db(
 
         async with engine.begin() as conn:
             result = await conn.execute(query, params)
-            rows = result.fetchall()
-            users = [UserRead.model_validate(_row_to_user_dict(row)) for row in rows]
+            rows = result.mappings().all()
+            users = [UserRead.model_validate(dict(row)) for row in rows]
 
             # Run a separate COUNT(*) query to get the total number of matching records (before pagination)
             count_query = text(f"SELECT COUNT(*) FROM Users {where_sql}")
@@ -134,13 +136,13 @@ async def create_user_db(user: UserCreate) -> UserRead:
     try:
         async with engine.begin() as conn:
             result = await conn.execute(INSERT_USER_QUERY, values)
-            row = result.first()
+            row = result.mappings().first()
 
             if not row:
                 logger.error("Failed to create user: No row returned")
                 raise ValueError("Failed to create user: Database error")
 
-            return UserRead.model_validate(_row_to_user_dict(row))
+            return UserRead.model_validate(dict(row))
 
     except SQLAlchemyError as e:
         logger.error(f"Database error while creating user: {str(e)}")
