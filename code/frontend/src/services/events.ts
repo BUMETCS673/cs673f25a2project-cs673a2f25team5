@@ -42,6 +42,9 @@ export async function createEvent(
 ): Promise<EventResponse> {
   const body = EventCreatePayloadSchema.parse(payload);
 
+  console.log("body: ", body);
+  console.log("BASE_URL: ", BASE_URL);
+
   const response = await fetch(`${BASE_URL}/events`, {
     method: "POST",
     headers: {

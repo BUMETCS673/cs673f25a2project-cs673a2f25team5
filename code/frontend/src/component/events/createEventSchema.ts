@@ -121,7 +121,7 @@ export const buildEventCreatePayload = (
     capacity: values.capacity ? Number.parseInt(values.capacity, 10) : null,
     price_field: values.price ? Math.round(Number(values.price) * 100) : null,
     user_id: userId,
-    category_id: "123e4567-e89b-12d3-a456-426614174000",
+    category_id: "2db3d8ac-257c-4ff9-ad97-ba96bfbf9bc5",
   };
 
   return EventCreatePayloadSchema.parse(payload);

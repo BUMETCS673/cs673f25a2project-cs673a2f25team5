@@ -70,7 +70,11 @@ export function CreateEventForm() {
     }
 
     try {
-      await createEvent(buildEventCreatePayload(result.data, userId));
+      const valuesWithCategory = {
+        ...result.data,
+        categoryId: "2db3d8ac-257c-4ff9-ad97-ba96bfbf9bc5",
+      };
+      await createEvent(buildEventCreatePayload(valuesWithCategory, userId));
       setStatus("success");
       setFormValues(createEmptyFormValues());
     } catch (error) {

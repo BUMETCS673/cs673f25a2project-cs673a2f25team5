@@ -22,7 +22,7 @@ def test_parse_filter_invalid_operator():
 
 def test_parse_filter_uuid_conversion():
     """Test parsing a filter with UUID value."""
-    uuid_str = "123e4567-e89b-12d3-a456-426614174000"
+    uuid_str = "2db3d8ac-257c-4ff9-ad97-ba96bfbf9bc5"
     filter_op = parse_filter(f"user_id:eq:{uuid_str}")
     assert filter_op.field == "user_id"
     assert filter_op.op == "="

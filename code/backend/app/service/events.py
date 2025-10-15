@@ -14,6 +14,8 @@ from app.service.filter_helper import parse_filter
 logger = logging.getLogger(__name__)
 
 
+
+
 async def get_events_service(
     filter_expression: list[str] | None = None, offset: int = 0, limit: int = 100
 ) -> PaginatedEvents:
@@ -66,7 +68,7 @@ async def create_event_service(event: EventCreate) -> EventRead:
             price_field=event.price_field,
             user_id=event.user_id,
             category_id=event.category_id,
-        )
+            )
 
         return await events_db.create_event_db(sanitized_event)
 
