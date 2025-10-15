@@ -23,12 +23,6 @@ async def get_users_service(
     - Filters are well-formed
     """
     filters = [parse_filter(f) for f in (filter_expression or [])]
-    if filters:
-        for f in filters:
-            column = getattr(users_db.users.c, f.field, None)
-            if column is None:
-                logger.error(f"Invalid filter field: {f.field}")
-                raise HTTPException(status_code=400, detail=f"Invalid column name: {f.field}")
 
     users, total = await users_db.get_users_db(filters, offset, limit)
     return PaginatedUsers(items=users, total=total, offset=offset, limit=limit)

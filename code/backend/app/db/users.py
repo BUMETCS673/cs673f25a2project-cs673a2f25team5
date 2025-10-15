@@ -71,7 +71,7 @@ async def get_users_db(
                 if column is None:
                     logger.error(f"Invalid filter field: {f.field}")
                     raise HTTPException(
-                        status_code=400, detail=f"Invalid filter field: {f.field}"
+                        status_code=400, detail=f"Invalid column name: {f.field}"
                     )
 
                 if f.op == "=":
@@ -108,12 +108,17 @@ async def get_users_db(
             total_count = 0 if count_result is None else int(count_result)
 
             return users_list, total_count
+
+    except HTTPException:
+        raise
     except SQLAlchemyError as e:
         logger.error(f"Database error while getting users: {str(e)}")
-        raise ValueError(f"Failed to get users: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail="Database error while retrieving users"
+        ) from e
     except Exception as e:
         logger.error(f"Unexpected error while getting users: {str(e)}")
-        raise ValueError("Failed to get users: Internal server error") from e
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
 async def create_user_db(user: UserCreate) -> UserRead:
@@ -143,12 +148,16 @@ async def create_user_db(user: UserCreate) -> UserRead:
 
             return UserRead.model_validate(dict(row))
 
+    except HTTPException:
+        raise
     except SQLAlchemyError as e:
         logger.error(f"Database error while creating user: {str(e)}")
-        raise ValueError(f"Failed to create user: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail="Database error while creating user"
+        ) from e
     except Exception as e:
         logger.error(f"Unexpected error while creating user: {str(e)}")
-        raise ValueError("Failed to create user: Internal server error") from e
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 
 async def delete_user_db(user_id: UUID) -> None:
@@ -167,11 +176,15 @@ async def delete_user_db(user_id: UUID) -> None:
             elif result.rowcount > 1:
                 # This should never happen due to user_id being a primary key
                 logger.error(f"Multiple users deleted with ID: {user_id}")
-                raise ValueError("Database integrity error: Multiple users deleted")
+                raise HTTPException(status_code=500, detail="Database integrity error")
 
+    except HTTPException:
+        raise
     except SQLAlchemyError as e:
         logger.error(f"Database error while deleting user: {str(e)}")
-        raise ValueError("Failed to delete user: Database error") from e
+        raise HTTPException(
+            status_code=500, detail="Database error while deleting user"
+        ) from e
     except Exception as e:
         logger.error(f"Unexpected error while deleting user: {str(e)}")
-        raise ValueError("Failed to delete user: Internal server error") from e
+        raise HTTPException(status_code=500, detail="Internal server error") from e

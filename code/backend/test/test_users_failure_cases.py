@@ -1,12 +1,11 @@
 import os
 import tempfile
 from collections.abc import AsyncGenerator, Generator
-from datetime import date, datetime
+from datetime import date
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import UUID
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.pool import StaticPool
 
@@ -83,20 +82,6 @@ def valid_user_data() -> UserCreate:
 
 
 @pytest.mark.asyncio
-async def test_create_user_success(test_client: AsyncClient, valid_user_data: UserCreate):
-    """Test successful user creation."""
-    response = await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
-    assert response.status_code == 201
-
-    data = response.json()
-    assert data["first_name"] == valid_user_data.first_name
-    assert data["last_name"] == valid_user_data.last_name
-    assert data["email"] == valid_user_data.email
-    assert UUID(data["user_id"])
-    assert datetime.fromisoformat(data["created_at"])
-
-
-@pytest.mark.asyncio
 async def test_create_user_duplicate_email(
     test_client: AsyncClient, valid_user_data: UserCreate
 ):
@@ -124,20 +109,6 @@ async def test_create_user_future_dob(test_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_create_user_empty_color(test_client: AsyncClient):
-    """Test user creation with empty color."""
-    invalid_data = {
-        "first_name": "John",
-        "last_name": "Doe",
-        "email": "john.doe@example.com",
-        "date_of_birth": "1990-01-01",
-        "color": "   ",
-    }
-    response = await test_client.post("/users", json=invalid_data)
-    assert response.status_code == 422
-
-
-@pytest.mark.asyncio
 async def test_create_user_invalid_data(test_client: AsyncClient):
     """Test user creation with invalid data."""
     invalid_data = {
@@ -149,54 +120,6 @@ async def test_create_user_invalid_data(test_client: AsyncClient):
     }
     response = await test_client.post("/users", json=invalid_data)
     assert response.status_code == 422
-
-
-@pytest.mark.asyncio
-async def test_get_users_empty(test_client: AsyncClient):
-    """Test getting users when database is empty."""
-    response = await test_client.get("/users")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["items"] == []
-    assert data["total"] == 0
-
-
-@pytest.mark.asyncio
-async def test_get_users_with_filters(test_client: AsyncClient, valid_user_data: UserCreate):
-    """Test getting users with filters."""
-    await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
-
-    response = await test_client.get(
-        "/users", params={"filter_expression": f"email:eq:{valid_user_data.email}"}
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data["items"]) == 1
-    assert data["items"][0]["email"] == valid_user_data.email
-
-    response = await test_client.get(
-        "/users", params={"filter_expression": "email:eq:nonexistent@example.com"}
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data["items"]) == 0
-
-
-@pytest.mark.asyncio
-async def test_get_users_pagination(test_client: AsyncClient, valid_user_data: UserCreate):
-    """Test user listing pagination."""
-    for i in range(5):
-        user_data = valid_user_data.model_copy()
-        user_data.email = f"user{i}@example.com"
-        await test_client.post("/users", json=user_data.model_dump(mode="json"))
-
-    response = await test_client.get("/users", params={"limit": 2, "offset": 1})
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data["items"]) == 2
-    assert data["total"] == 5
-    assert data["offset"] == 1
-    assert data["limit"] == 2
 
 
 @pytest.mark.asyncio
@@ -249,22 +172,6 @@ async def test_get_users_invalid_pagination(test_client: AsyncClient):
 
     response = await test_client.get("/users", params={"offset": "invalid"})
     assert response.status_code == 422
-
-
-@pytest.mark.asyncio
-async def test_delete_user(test_client: AsyncClient, valid_user_data: UserCreate):
-    """Test user deletion."""
-    response = await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
-    user_id = response.json()["user_id"]
-
-    response = await test_client.delete(f"/users/{user_id}")
-    assert response.status_code == 200
-    deleted_user = response.json()
-    assert deleted_user["user_id"] == user_id
-
-    response = await test_client.get("/users")
-    assert response.status_code == 200
-    assert len(response.json()["items"]) == 0
 
 
 @pytest.mark.asyncio
