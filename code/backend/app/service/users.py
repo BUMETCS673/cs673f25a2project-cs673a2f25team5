@@ -48,7 +48,7 @@ async def create_user_service(user: UserCreate) -> UserRead:
         last_name=user.last_name.strip(),
         email=user.email.strip().lower(),
         date_of_birth=user.date_of_birth,
-        color=user.color.strip() if user.color else None,
+        color=user.color.strip().lower() if user.color and user.color.strip() else None,
     )
 
     return await users_db.create_user_db(sanitized_user)

@@ -100,7 +100,7 @@ async def test_create_user_success(test_client: AsyncClient, valid_user_data: Us
 async def test_create_user_success_empty_color(
     test_client: AsyncClient, valid_user_data: UserCreate
 ):
-    """Test successful user creation."""
+    """Test successful user creationn when the color field is empty (whitespace)."""
     user_data = valid_user_data.model_copy()
     user_data.color = "    "
     response = await test_client.post("/users", json=user_data.model_dump(mode="json"))
