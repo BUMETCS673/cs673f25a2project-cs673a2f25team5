@@ -1,22 +1,21 @@
 import logging
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException
-from sqlalchemy import Column, Date, DateTime, MetaData, String, Table, and_, func, select
+from sqlalchemy import Column, Date, DateTime, String, Table, and_, func, select
 from sqlalchemy.dialects.postgresql import UUID as SQLAlchemyUUID
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.elements import ColumnElement
 
-from app.db.db import engine
+from app.db.db import engine, metadata
 from app.db.filters import FilterOperation
 from app.models.users import UserCreate, UserRead
 
 logger = logging.getLogger(__name__)
 
 
-metadata = MetaData()
 users = Table(
     "users",
     metadata,
@@ -24,7 +23,7 @@ users = Table(
     Column("first_name", String),
     Column("last_name", String),
     Column("date_of_birth", Date),
-    Column("email", String),
+    Column("email", String, unique=True),
     Column("color", String),
     Column("created_at", DateTime),
     Column("updated_at", DateTime),
@@ -124,7 +123,7 @@ async def get_users_db(
 async def create_user_db(user: UserCreate) -> UserRead:
     """Create a new user in the database."""
     try:
-        now = datetime.now(UTC)
+        now = datetime.utcnow()
         values: dict[str, str | date | UUID | datetime | None] = {
             "user_id": uuid4(),
             "first_name": user.first_name,

@@ -2,7 +2,6 @@
 
 Modern social event discovery and hosting tools span a wide range from casual invite pages to full ticketing stacks. Many existing tools are either too heavy (enterprise ticketing) or too casual (single-use invite pages), and they often trade off privacy, discoverability, and simplicity. Our project aims to fill a middle ground: a lightweight, privacy-conscious event hosting and discovery website that makes it quick to create attractive event pages, manage RSVPs, and integrate with calendars — while remaining easy to extend. The purpose is to let organizers create event pages and guest lists quickly, let guests RSVP and share the event, and provide organizers lightweight analytics and collaboration tools for running events.
 
-
 # Project Structure / Architecture
 
 The event manager app aims to help individuals and organizations manage and track their events. In order to do so, the team's proposed solution is a full stack application. The team plans to provide this service through a website connected to a backend REST API that provides the needed endpoints for the user to manage and RSVP to events, among other functionalities. The frontend is built using Next.js with TypeScript to deliver a responsive and user-friendly interface for event management. The backend will be composed of 3 main components: the REST API, the SQL database, and monitoring services. The REST API will provide all the functionality needed by the frontend through various endpoints to enable users to control their events. The SQL database will provide a storage solution for information within the application. Additionally, the application integrates Clerk authentication services to handle user management and security, while Prometheus monitoring ensures system reliability and performance tracking. Please see the figure below for a diagram of the full stack application's design.
@@ -16,7 +15,6 @@ Please go to the [frontend readme](https://github.com/BUMETCS673/cs673f25a2proje
 ## Backend
 
 Please go to the [backend readme](https://github.com/BUMETCS673/cs673f25a2project-cs673a2f25team5/blob/main/code/backend/backend-README.md) for a detailed explanation of the backend structure and guidelines followed by the event manager application.
-
 
 ## 📁 Overall Folder Structure
 
@@ -87,7 +85,6 @@ cs673f25a2project-cs673a2f25team5/
 ├── team.md                                     # team members brief introduction
 └── README.md                                   # project documentation
 ```
-
 
 # Project Setup
 
@@ -341,7 +338,6 @@ uv run ruff format .
 uv run ruff check .
 ```
 
-
 ## Database Setup
 
 This project uses postgressql as both the local development and production database. Please see below the steps to locally run your own version of the event manager database.
@@ -414,7 +410,6 @@ This repo uses **Gitleaks** to stop secrets (API keys, tokens, etc.) from landin
 
 1. Add repo secret **'GITLEAKS_LICENSE_KEY'** (Repo → Settings → Secrets and variables → Actions).
 2. Keep '.gitleaks.toml' at repo root so the scanner picks it up.
-
 
 ## Useful Links
 
