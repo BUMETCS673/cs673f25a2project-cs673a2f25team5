@@ -7,18 +7,23 @@ from app.db.filters import FilterOperation
 
 def parse_filter(filter_str: str) -> FilterOperation:
     """Parse a filter string in the format 'field:operator:value' into a FilterOperation."""
-    try:
-        field, op, value = filter_str.split(":", 2)
-
-        # Convert value to appropriate type if needed (e.g., UUID for user_id)
-        if field == "user_id":
-            value = UUID(value)
-
-        return FilterOperation(field=field, op=op, value=value)
-    except Exception as e:
+    parts = filter_str.split(":")
+    if len(parts) != 3:
         raise HTTPException(
             status_code=400,
-            detail=(
-                f"Invalid filter format: {filter_str}. Expected format: field:operator:value"
-            ),
-        ) from e
+            detail="Invalid filter format. Expected format: field:operator:value",
+        )
+
+    field, op, value = parts
+
+    # Convert value to appropriate type if needed (e.g., UUID for user_id)
+    if field == "user_id":
+        try:
+            value = UUID(value)
+        except ValueError as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid UUID format for user_id: {value}",
+            ) from e
+
+    return FilterOperation(field=field, op=op, value=value)

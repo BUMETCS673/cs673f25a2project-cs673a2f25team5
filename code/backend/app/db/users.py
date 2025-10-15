@@ -1,6 +1,7 @@
 import logging
-from datetime import date
-from uuid import UUID
+from datetime import UTC, date, datetime
+from typing import Any
+from uuid import UUID, uuid4
 
 from fastapi import HTTPException
 from sqlalchemy import Column, Date, DateTime, MetaData, String, Table, and_, func, select
@@ -64,8 +65,6 @@ async def get_users_db(
         count_query = select(func.count()).select_from(users)
 
         if filters:
-            from typing import Any
-
             conditions: list[ColumnElement[Any]] = []
             for f in filters:
                 column = getattr(users.c, f.field, None)
@@ -120,12 +119,16 @@ async def get_users_db(
 async def create_user_db(user: UserCreate) -> UserRead:
     """Create a new user in the database."""
     try:
-        values: dict[str, str | date | None] = {
+        now = datetime.now(UTC)
+        values: dict[str, str | date | UUID | datetime | None] = {
+            "user_id": uuid4(),
             "first_name": user.first_name,
             "last_name": user.last_name,
             "date_of_birth": user.date_of_birth,
             "email": user.email,
             "color": user.color,
+            "created_at": now,
+            "updated_at": now,
         }
 
         insert_stmt = users.insert().values(values).returning(users)

@@ -84,10 +84,7 @@ async def list_users(
     - offset: Number of records to skip (default: 0)
     - limit: Maximum number of records to return (default: 100, max: 1000)
     """
-    try:
-        return await users_service.get_users_service(filter_expression, offset, limit)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
+    return await users_service.get_users_service(filter_expression, offset, limit)
 
 
 @router.post(
