@@ -5,6 +5,7 @@ description = "An event manager fastapi app"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "aiosqlite>=0.21.0",
     "asyncpg>=0.30.0",
     "email-validator>=2.3.0",
     "fastapi>=0.116.1",
