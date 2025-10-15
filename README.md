@@ -1,10 +1,24 @@
 # Event Manager and Planner Project Overview
 
-## Project Overview - TODO
+Modern social event discovery and hosting tools span a wide range from casual invite pages to full ticketing stacks. Many existing tools are either too heavy (enterprise ticketing) or too casual (single-use invite pages), and they often trade off privacy, discoverability, and simplicity. Our project aims to fill a middle ground: a lightweight, privacy-conscious event hosting and discovery website that makes it quick to create attractive event pages, manage RSVPs, and integrate with calendars — while remaining easy to extend. The purpose is to let organizers create event pages and guest lists quickly, let guests RSVP and share the event, and provide organizers lightweight analytics and collaboration tools for running events.
 
-## High Level Requirements - TODO
 
-# 📁 Project Structure
+# Project Structure / Architecture
+
+The event manager app aims to help individuals and organizations manage and track their events. In order to do so, the team's proposed solution is a full stack application. The team plans to provide this service through a website connected to a backend REST API that provides the needed endpoints for the user to manage and RSVP to events, among other functionalities. The frontend is built using Next.js with TypeScript to deliver a responsive and user-friendly interface for event management. The backend will be composed of 3 main components: the REST API, the SQL database, and monitoring services. The REST API will provide all the functionality needed by the frontend through various endpoints to enable users to control their events. The SQL database will provide a storage solution for information within the application. Additionally, the application integrates Clerk authentication services to handle user management and security, while Prometheus monitoring ensures system reliability and performance tracking. Please see the figure below for a diagram of the full stack application's design.
+
+![Architecture Diagram](./docs/Diagrams/Event%20Manager%20Overall%20Architecture.png)
+
+## Frontend
+
+Please go to the [frontend readme](https://github.com/BUMETCS673/cs673f25a2project-cs673a2f25team5/blob/main/code/frontend/frontend-README.md) for a detailed explanation of the frontend structure and guidelines followed by the event manager application.
+
+## Backend
+
+Please go to the [backend readme](https://github.com/BUMETCS673/cs673f25a2project-cs673a2f25team5/blob/main/code/backend/backend-README.md) for a detailed explanation of the backend structure and guidelines followed by the event manager application.
+
+
+## 📁 Overall Folder Structure
 
 ```
 cs673f25a2project-cs673a2f25team5/
@@ -74,15 +88,16 @@ cs673f25a2project-cs673a2f25team5/
 └── README.md                                   # project documentation
 ```
 
+
+# Project Setup
+
 ## 🧰 Prerequisites
 
 - **Node.js 20.x** (Frontend)
 - **npm** (Frontend)
 - **Python 3.11** (Backend)
-- **uv** (`pip install uv`) and **tox** (`pip install tox`) (Backend)
+- **uv** (`pip install uv`) (Backend)
 - **Docker** (optional, for containerized runs)
-
-# Project Setup
 
 ## Overall Quick Setup and Run - TODO
 
@@ -93,13 +108,15 @@ This is a Next.js project bootstrapped with create-next-app.
 ```bash
 cd code/frontend
 npm ci
-npm run dev     # Starts Next.js (Turbopack) on http://localhost:3000
+npm run dev                       # Starts Next.js (Turbopack) on http://localhost:3000
 Scripts (from package.json):
 dev – next dev --turbopack
 build – next build --turbopack
 start – next start
 lint – eslint
 ```
+
+---
 
 ### Run Next.js Application locally
 
@@ -125,6 +142,8 @@ npm run dev
 ```
 
 5. Access Next.js application at http://127.0.0.1:3000
+
+---
 
 ### Run Next.js Application in a Docker Container
 
@@ -159,14 +178,14 @@ The frontend Dockerfile uses Next.js output: "standalone" to copy only the minim
 #### Next.js packs your production server and only the required modules into .next/standalone. This:
 
 - Shrinks container size (no dev deps or full node_modules tree),
-
 - Speeds up cold starts and deploys,
-
 - Keeps the runtime image minimal (great for CI/CD).
 
-## Authentication Setup (Clerk)
+---
 
-### Required environment variables
+### Authentication Setup (Clerk)
+
+#### Required environment variables
 
 Set the following values in `code/frontend/.env.local` (or export them in your
 shell) and mirror them into your CI secrets:
@@ -185,7 +204,9 @@ shell) and mirror them into your CI secrets:
   before running the app. `.env.local` is git-ignored—keep real secrets out of the
   repository.
 
-### Webhook flow
+---
+
+#### Webhook flow
 
 - Clerk sends `user.created` events to `POST /api/webhooks/clerk`.
 - The handler verifies the signature with `verifyWebhook` using
@@ -195,7 +216,9 @@ shell) and mirror them into your CI secrets:
 - Ensure your FastAPI service exposes this endpoint; the webhook responds with a
   `500` status if the sync call fails.
 
-### Route protection
+---
+
+#### Route protection
 
 `code/frontend/src/middleware.ts` uses `clerkMiddleware` to guard `/discover`
 and `/onboarding` while leaving `/api/webhooks/clerk` and static assets
@@ -203,7 +226,9 @@ unauthenticated. The global layout (`code/frontend/src/app/layout.tsx`) renders
 sign-in/up buttons for unauthenticated visitors and a `UserButton` once signed
 in.
 
-### GitHub Actions secrets
+---
+
+#### GitHub Actions secrets
 
 `.github/workflows/frontend-ci.yml` now pulls Clerk secrets during the `check`
 and `docker` jobs. Populate the following repository secrets so CI can build and
@@ -221,6 +246,8 @@ A modern Python project setup using:
 - [`tox`](https://tox.readthedocs.io/) – for test, lint, and format automation
 - [`uv`](https://github.com/astral-sh/uv) – for fast dependency installation and environment management
 - [`ruff`](https://docs.astral.sh/ruff/) – for linting and formatting
+
+---
 
 ### Run FastApi Application / REST Api Locally
 
@@ -240,6 +267,8 @@ uv run uvicorn app.main:event_manager_app --reload
 
 4. Access REST Api swagger docs at http://127.0.0.1:8000/docs
 
+---
+
 ### Run FastApi Application / REST Api in a Docker Container
 
 1. Build docker image using the Dockerfile.backend file
@@ -258,6 +287,8 @@ docker run --rm -it -p 8000:8000 event-manager-backend:latest
 
 4. Access REST Api swagger docs at http://0.0.0.0:8000/docs
 
+---
+
 ### Run CI Tasks with Tox
 
 #### Run tests
@@ -266,11 +297,15 @@ docker run --rm -it -p 8000:8000 event-manager-backend:latest
 uv run tox -e test
 ```
 
+---
+
 #### Test coverage
 
 ```bash
-uv run tox -e test
+uv run tox -e coverage
 ```
+
+---
 
 #### Run Ruff linter
 
@@ -278,11 +313,15 @@ uv run tox -e test
 uv run tox -e lint
 ```
 
+---
+
 #### Check formatting with Ruff
 
 ```bash
 uv run tox -e format
 ```
+
+---
 
 ### Manual Ruff Usage
 
@@ -294,19 +333,14 @@ If you want to run Ruff directly:
 uv run ruff format .
 ```
 
+---
+
 #### Check for lint issues
 
 ```bash
 uv run ruff check .
 ```
 
-### Using UV
-
-This project uses [`uv`](https://github.com/astral-sh/uv) for:
-
-- Creating fast virtual environments (`uv venv`)
-- Installing packages (`uv pip install`)
-- Installing dependencies in Tox (`installer = uv`)
 
 ## Database Setup
 
@@ -350,6 +384,8 @@ pip-audit -r requirements.txt
 pip-audit -r requirements-test.txt
 ```
 
+---
+
 ### Semgrep Scan
 
 ```bash
@@ -362,6 +398,8 @@ semgrep --config p/react code/frontend
 # Full Project Scan
 semgrep ci --config auto
 ```
+
+---
 
 ### Secret Scanning (Gitleaks)
 
@@ -377,21 +415,14 @@ This repo uses **Gitleaks** to stop secrets (API keys, tokens, etc.) from landin
 1. Add repo secret **'GITLEAKS_LICENSE_KEY'** (Repo → Settings → Secrets and variables → Actions).
 2. Keep '.gitleaks.toml' at repo root so the scanner picks it up.
 
-## 🗺️ Roadmap - TODOs
-
-Project Overview & High-Level Requirements:
-
-- Add product scope & detailed user stories.
-- Frontend Tests: Add a test runner (Vitest/Jest) and coverage job in frontend-ci.yml.
-- Docker-compose: Add docker-compose file to bundle frontend and backend Dockerfiles
-- Env/Config Docs: Document required environment variables for prod runs.
 
 ## Useful Links
 
+- [UV Project](https://github.com/astral-sh/uv)
 - [Tox Documentation](https://tox.readthedocs.io/)
 - [Ruff Documentation](https://docs.astral.sh/ruff/)
-- [UV Project](https://github.com/astral-sh/uv)
 - [Next.js](https://nextjs.org/docs)
+- [Clerk](https://clerk.com/)
 - [Pip Audit](https://github.com/pypa/pip-audit)
 - [Semgrep](https://github.com/semgrep/semgrep)
 - [Gitleaks](https://github.com/gitleaks/gitleaks)
