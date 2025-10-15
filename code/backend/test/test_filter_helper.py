@@ -1,6 +1,7 @@
+from uuid import UUID
+
 import pytest
 from fastapi import HTTPException
-from uuid import UUID
 
 from app.service.filter_helper import parse_filter
 

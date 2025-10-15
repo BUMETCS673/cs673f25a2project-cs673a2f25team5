@@ -2,7 +2,6 @@ from typing import Any
 
 from fastapi import HTTPException
 
-
 FILTER_OPERATORS = {
     "eq": "=",  # Exact match
     "neq": "!=",  # Not equal
@@ -22,8 +21,10 @@ class FilterOperation:
         if op not in FILTER_OPERATORS:
             raise HTTPException(
                 status_code=400,
-                detail=(f"Invalid operator: {op}. "
-                        f"Valid operators are: {', '.join(sorted(FILTER_OPERATORS))}")
+                detail=(
+                    f"Invalid operator: {op}. "
+                    f"Valid operators are: {', '.join(sorted(FILTER_OPERATORS))}"
+                ),
             )
         self.field = field
         self.op = FILTER_OPERATORS[op]
