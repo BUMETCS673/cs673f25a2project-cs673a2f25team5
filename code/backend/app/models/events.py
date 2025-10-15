@@ -70,3 +70,10 @@ class EventRead(EventBase):
     event_id: UUID
     created_at: datetime
     updated_at: datetime
+
+
+class PaginatedEvents(BaseModel):
+    items: list[EventRead]
+    total: int
+    offset: int
+    limit: int

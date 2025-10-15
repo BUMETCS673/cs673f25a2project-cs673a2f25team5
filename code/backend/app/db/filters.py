@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import HTTPException
+from app.models.exceptions import InvalidFilterFormatError
 
 FILTER_OPERATORS = {
     "eq": "=",  # Exact match
@@ -19,12 +19,9 @@ class FilterOperation:
 
     def __init__(self, field: str, op: str, value: Any):
         if op not in FILTER_OPERATORS:
-            raise HTTPException(
-                status_code=400,
-                detail=(
-                    f"Invalid operator: {op}. "
-                    f"Valid operators are: {', '.join(sorted(FILTER_OPERATORS))}"
-                ),
+            raise InvalidFilterFormatError(
+                f"Invalid operator: {op}. "
+                f"Valid operators are: {', '.join(sorted(FILTER_OPERATORS))}"
             )
         self.field = field
         self.op = FILTER_OPERATORS[op]

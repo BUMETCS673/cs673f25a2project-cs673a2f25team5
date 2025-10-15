@@ -145,7 +145,7 @@ async def test_get_users_invalid_filter_operator(test_client: AsyncClient):
         "/users", params={"filter_expression": "email:invalid:test@example.com"}
     )
     assert response.status_code == 400
-    assert "invalid operator" in response.json()["detail"].lower()
+    assert "invalid filter format" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio
