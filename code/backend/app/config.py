@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from pydantic_settings import BaseSettings
 
 
@@ -14,7 +16,9 @@ class Settings(BaseSettings):
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     class Config:
-        env_file = ".env"
+        # Look for .env file in the project root (two levels up from this file)
+        env_file = Path(__file__).parent.parent.parent.parent / ".env"
+        extra = "ignore"  # Ignore extra fields from .env file
 
 
 settings = Settings()

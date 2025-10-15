@@ -33,6 +33,8 @@ CREATE TABLE IF NOT EXISTS Events (
     FOREIGN KEY (category_id) REFERENCES Categories(category_id)
 );
 
+
+
 CREATE TYPE attendee_status AS ENUM ('RSVPed', 'Maybe', 'Not Going');
 CREATE TABLE IF NOT EXISTS EventAttendees (
     attendee_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

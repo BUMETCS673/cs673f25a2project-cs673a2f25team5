@@ -33,6 +33,27 @@ services:
     volumes:
       - pgadmin-data:/var/lib/pgadmin
 
+  # Add this new backend service
+  backend:
+    build:
+      context: .. # Go up one level to the project root
+      dockerfile: Dockerfile.backend
+    container_name: event-manager-backend
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: postgres # Use the postgres service name
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ../.env # Path to .env file in project root
+
 volumes:
   pgdata:
   pgadmin-data:
