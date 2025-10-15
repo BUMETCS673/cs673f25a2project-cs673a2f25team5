@@ -4,6 +4,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 const isProtectedRoute = createRouteMatcher([
   "/discover(.*)",
   "/onboarding(.*)",
+  "/create-events(.*)",
 ]);
 const shouldBypassAuth = createRouteMatcher(["/api/webhooks/clerk(.*)"]);
 

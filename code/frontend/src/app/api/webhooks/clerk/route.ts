@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
+import { clerkClient } from "@clerk/nextjs/server";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000"; // Adjust as needed
 
@@ -49,6 +50,13 @@ export async function POST(req: NextRequest) {
         { status: res.status },
       );
     }
+
+    const data = await res.json();
+
+    console.log("backend data: ", data);
+
+    const clerk = await clerkClient();
+    await clerk.users.updateUser(user.id, { externalId: data.user_id });
 
     console.log("[Webhook] Successfully created user in backend");
     return NextResponse.json({ success: true });

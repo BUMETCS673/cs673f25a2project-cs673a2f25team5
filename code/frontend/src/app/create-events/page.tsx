@@ -1,18 +1,5 @@
-import { redirect } from "next/navigation";
 import { CreateEventForm } from "@/component/events/CreateEventForm";
 export default async function CreateEventsPage() {
-  const cookie = { value: "test@test.com" };
-
-  if (!cookie) {
-    console.log("No cookie found, redirecting to home");
-    redirect("/?error=unauthorized");
-  }
-
-  const organizerEmail = cookie.value ?? "";
-  console.log(cookie);
-
-  console.log(organizerEmail);
-
   return (
     <main className="relative min-h-screen overflow-hidden bg-neutral-50/70 px-4 py-20 sm:px-6 lg:px-16 dark:bg-neutral-950">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-amber-200/40 via-transparent to-purple-200/35 blur-3xl dark:from-amber-400/10 dark:to-purple-500/15" />
@@ -31,7 +18,7 @@ export default async function CreateEventsPage() {
             audience.
           </p>
         </header>
-        <CreateEventForm organizerEmail={organizerEmail} />
+        <CreateEventForm />
       </div>
     </main>
   );
