@@ -1,3 +1,11 @@
+"""
+AI-generated code: 70%
+
+Human code: 30%
+
+Framework-generated code: 0%
+"""
+
 from datetime import date, datetime
 from uuid import UUID
 

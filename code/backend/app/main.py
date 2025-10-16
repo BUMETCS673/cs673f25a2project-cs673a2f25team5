@@ -1,3 +1,11 @@
+"""
+AI-generated code: 0%
+
+Human code: 100%
+
+Framework-generated code: 0%
+"""
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI

@@ -1,3 +1,10 @@
+"""
+AI-generated code: 60%
+
+Human code: 40%
+
+Framework-generated code: 0%
+"""
 from pathlib import Path
 
 from pydantic import Field, field_validator

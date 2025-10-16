@@ -1,3 +1,11 @@
+"""
+AI-generated code: 0%
+
+Human code: 100%
+
+Framework-generated code: 0%
+"""
+
 from app.service.filter_helper import parse_filter
 
 

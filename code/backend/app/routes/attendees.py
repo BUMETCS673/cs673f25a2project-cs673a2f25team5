@@ -1,3 +1,11 @@
+"""
+AI-generated code: 10%
+
+Human code: 90%
+
+Framework-generated code: 0%
+"""
+
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException

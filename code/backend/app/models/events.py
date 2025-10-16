@@ -1,3 +1,11 @@
+"""
+AI-generated code: 70%
+
+Human code: 30%
+
+Framework-generated code: 0%
+"""
+
 from datetime import datetime
 from typing import Any
 from uuid import UUID

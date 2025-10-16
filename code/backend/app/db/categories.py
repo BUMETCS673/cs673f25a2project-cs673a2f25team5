@@ -1,3 +1,11 @@
+"""
+AI-generated code: 90%
+
+Human code: 10%
+
+Framework-generated code: 0%
+"""
+
 import logging
 from typing import Any
 from uuid import UUID, uuid4

@@ -1,3 +1,11 @@
+"""
+AI-generated code: 0%
+
+Human code: 100%
+
+Framework-generated code: 0%
+"""
+
 class NotFoundError(Exception):
     """Exception raised when a requested resource is not found."""
 
