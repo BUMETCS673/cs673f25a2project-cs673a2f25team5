@@ -1,3 +1,12 @@
+/*
+
+ AI-generated code:  16% (tool: Codex - GPT-5, STATUS_TONE_CLASSES, EventHeaderData, EventStatusTone) 
+
+ Human code: 84% (functions: EventDetailHeader, STATUS_TONE_CLASSES, EventHeaderData, EventStatusTone) 
+
+ No framework-generated code.
+
+*/
 import type { EventHeaderData, EventStatusTone } from "./viewModel";
 
 const STATUS_TONE_CLASSES: Record<EventStatusTone, string> = {

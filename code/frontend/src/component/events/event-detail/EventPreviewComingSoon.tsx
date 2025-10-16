@@ -1,3 +1,11 @@
+/*
+ AI-generated code:  0%) 
+
+ Human code: 100% (functions: EventPreviewComingSoon) 
+
+ No framework-generated code.
+
+*/
 export function EventPreviewComingSoon() {
   return (
     <section className="relative overflow-hidden rounded-3xl border border-amber-300/60 bg-white/90 p-6 shadow-lg shadow-amber-200/40 dark:border-amber-200/20 dark:bg-neutral-900/70 dark:shadow-neutral-900/40">

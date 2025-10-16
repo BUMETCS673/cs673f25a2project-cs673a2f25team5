@@ -1,3 +1,10 @@
+/*
+ AI-generated code:  100% (tool: Codex - GPT-5, EventSchema, EventResponse, EventListSchema, EventListResponse, EventCreatePayloadSchema, EventCreatePayload, createEvent, getEvents) 
+ Human code: 0%
+
+ No framework-generated code.
+
+*/
 import { z } from "zod";
 
 import { API_BASE_URL } from "./config";
