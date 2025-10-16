@@ -47,8 +47,8 @@ cs673f25a2project-cs673a2f25team5/
 │   │   │   │   ├── filter_helper.py                  # filter parsing and validation logic
 │   │   │   │   └── users.py                          # business logic for users (validation, error handling)
 │   │   │   ├── __init_.py                            # init file
-│   │   │   ├── main.py                               # entry point for the fastapi app
-│   │   │   └── config.py                             # database url config
+│   │   │   ├── config.py                             # database url config and settings management
+│   │   │   └── main.py                               # entry point for the fastapi app
 │   │   ├── test/                                     # backend unit and integration (end to end) tests
 │   │   │   ├── test_events_failure_cases.py          # failure test cases for events endpoints
 │   │   │   ├── test_events_success_cases.py          # success test cases for events endpoints
@@ -56,7 +56,7 @@ cs673f25a2project-cs673a2f25team5/
 │   │   │   ├── test_filter_helper_success_cases.py   # success test cases for filter helper
 │   │   │   ├── test_users_failure_cases.py           # failure test cases for users endpoints
 │   │   │   └── test_users_success_cases.py           # success test cases for users endpoints
-│   │   ├── .python.version                           # python version used for the backend
+│   │   ├── .python-version                           # python version used for the backend
 │   │   ├── backend-README.md                         # detailed backend documentation
 │   │   ├── pyproject.toml                            # tool configurations (uv, pytest, ruff)
 │   │   ├── requirements.txt                          # event manager backend dependencies
@@ -67,8 +67,8 @@ cs673f25a2project-cs673a2f25team5/
 │       ├── public/                                   # static assets
 │       │   ├── file.svg                              # file icon asset
 │       │   ├── globe.svg                             # globe icon asset
-│       │   ├── next.svg                              # Next.js logo
-│       │   ├── vercel.svg                            # Vercel logo
+│       │   ├── next.svg                              # next.js logo
+│       │   ├── vercel.svg                            # vercel logo
 │       │   └── window.svg                            # window icon asset
 │       ├── src/                                      # source code
 │       │   ├── app/                                  # app Router pages (layout.tsx, page.tsx)
@@ -78,6 +78,10 @@ cs673f25a2project-cs673a2f25team5/
 │       │   │   │           └── route.ts              # typescript code to intercept webhook from clerk
 │       │   │   ├── create-events/                    # route for create events page
 │       │   │   │   └── page.tsx                      # page component for creating new events
+│       │   │   ├── events/                           # route for events display pages
+│       │   │   │   ├── [id]/                         # dynamic route for individual event details
+│       │   │   │   │   └── page.tsx                  # page component for single event display
+│       │   │   │   └── page.tsx                      # page component for events list display
 │       │   │   ├── favicon.ico                       # site favicon icon
 │       │   │   ├── globals.css                       # where global css variables can be declared and imports for tailwind
 │       │   │   ├── layout.tsx                        # root layout component defining global styles
@@ -85,17 +89,26 @@ cs673f25a2project-cs673a2f25team5/
 │       │   ├── component/                            # reusable React components
 │       │   │   ├── events/                           # event-related components
 │       │   │   │   └── CreateEventForm.tsx           # form component for event creation
-│       │   │   └── landing/                          # landing page components
-│       │   │       ├── BenefitsSection.tsx           # benefits section component for landing page
-│       │   │       ├── CallToActionSection.tsx       # CTA section component for landing page
-│       │   │       ├── DemoShowcaseSection.tsx       # demo showcase component for landing page
-│       │   │       ├── FeatureHighlightsSection.tsx  # feature highlight component for landing page
-│       │   │       ├── Heading.tsx                   # section heading component
-│       │   │       ├── HeroSection.tsx               # hero section component for landing page
-│       │   │       ├── WorkflowStepsSection.tsx      # workflow steps component for landing page
-│       │   │       └── landingData.ts                # data/constants for landing page sections
+│       │   │   ├── landing/                          # landing page components
+│       │   │   │   ├── BenefitsSection.tsx           # benefits section component for landing page
+│       │   │   │   ├── CallToActionSection.tsx       # CTA section component for landing page
+│       │   │   │   ├── DemoShowcaseSection.tsx       # demo showcase component for landing page
+│       │   │   │   ├── FeatureHighlightsSection.tsx  # feature highlight component for landing page
+│       │   │   │   ├── Heading.tsx                   # section heading component
+│       │   │   │   ├── HeroSection.tsx               # hero section component for landing page
+│       │   │   │   ├── WorkflowStepsSection.tsx      # workflow steps component for landing page
+│       │   │   │   └── landingData.ts                # data/constants for landing page sections
+│       │   │   ├── map/                              # map-related components
+│       │   │   │   ├── GeoCoder.module.css           # styles for geocoder component
+│       │   │   │   └── getPublicMapboxToken.ts       # utility to retrieve Mapbox public token
+│       │   │   └── ui/                               # ui components
+│       │   │       └── Header.tsx                    # header component for page navigation
 │       │   ├── helpers/                              # reusable helper functions
 │       │   │   └── fetchTimeout.ts                   # timeout to avoid hanging requests
+│       │   ├── services/                             # api service layer for backend communication
+│       │   │   ├── config.ts                         # service configuration and API base URL
+│       │   │   ├── events.ts                         # events API service functions
+│       │   │   └── users.ts                          # users API service functions
 │       │   └── middleware.ts                         # run code before a request is completed (used for protected/public routes)
 │       ├── eslint.config.mjs                         # configuration file for ESLint and prettier
 │       ├── frontend-README.md                        # detailed frontend documentation
@@ -120,12 +133,17 @@ cs673f25a2project-cs673a2f25team5/
 │   ├── CS673_MeetingMinutes_team4.docx               # team meeting minutes
 │   ├── CS673_ProgressReport_team4.xlsx               # project progress tracking
 │   ├── CS673_SPPP_RiskManagement_team4.xlsx          # risk management plan
-│   ├── CS673_SPPP_team4.docx                         # software project plan and proposal
-│   └── CS673_presentation0_team.pptx                 # project presentation slides
-├── .github/                                          # GitHub configuration
-│   └── workflows/                                    # GitHub Actions CI/CD workflows
+│   ├── CS673_SPPP_team4.docx                         # software project plan and proposal document
+│   ├── CS673_SDD_team4.docx                          # software project design document
+│   ├── CS673_STD_team4.docx                          # software project testing document
+│   ├── CS673_presentation1_team.pptx                 # project iteration 1 presentation slides
+│   └── CS673_presentation0_team.pptx                 # project iteration 0 presentation slides
+├── .github/                                          # gitHub configuration
+│   └── workflows/                                    # gitHub Actions CI/CD workflows
 │       ├── backend-ci.yml                            # backend continuous integration (test, lint, security, docker)
 │       └── frontend-ci.yml                           # frontend continuous integration (lint, format, docker)
+├── .vscode/                                          # vs code workspace configuration
+│   └── settings.json                                 # editor settings and preferences
 ├── .gitignore                                        # files or folders to be ignored by git
 ├── .gitleaks.toml                                    # gitleaks configuration (allowlist)
 ├── Dockerfile.backend                                # dockerfile with definitions to build the backend image
