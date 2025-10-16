@@ -2,23 +2,7 @@ import { EventsBrowser } from "@/component/events/EventsBrowser";
 import { getEvents } from "@/services/events";
 
 export default async function EventsPage() {
-  const { items } = await getEvents();
-  const sortedEvents = [...items].sort((a, b) => {
-    const startA = new Date(a.event_datetime).getTime();
-    const startB = new Date(b.event_datetime).getTime();
-
-    if (Number.isNaN(startA) && Number.isNaN(startB)) {
-      return 0;
-    }
-    if (Number.isNaN(startA)) {
-      return 1;
-    }
-    if (Number.isNaN(startB)) {
-      return -1;
-    }
-
-    return startA - startB;
-  });
+  const initialResult = await getEvents({ limit: 6 });
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-neutral-50/80 px-4 py-16 sm:px-6 lg:px-16 dark:bg-neutral-950">
@@ -39,7 +23,7 @@ export default async function EventsPage() {
           </p>
         </header>
 
-        <EventsBrowser events={sortedEvents} />
+        <EventsBrowser initialResult={initialResult} />
       </div>
     </main>
   );

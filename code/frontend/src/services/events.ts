@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, "") ??
-  "http://localhost:8000";
+import { API_BASE_URL } from "./config";
 
 export const EventSchema = z.object({
   event_id: z.string().uuid(),
@@ -51,10 +49,7 @@ export async function createEvent(
 ): Promise<EventResponse> {
   const body = EventCreatePayloadSchema.parse(payload);
 
-  console.log("body: ", body);
-  console.log("BASE_URL: ", BASE_URL);
-
-  const response = await fetch(`${BASE_URL}/events`, {
+  const response = await fetch(`${API_BASE_URL}/events`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -92,7 +87,7 @@ export async function getEvents(
   params?: GetEventsParams,
 ): Promise<EventListResponse> {
   const { filters, offset, limit, signal } = params ?? {};
-  const url = new URL("/events", BASE_URL);
+  const url = new URL("/events", API_BASE_URL);
 
   for (const filter of filters ?? []) {
     url.searchParams.append("filter", filter);
@@ -121,7 +116,7 @@ export async function getEvents(
 }
 
 export async function getEvent(id: string): Promise<EventResponse> {
-  const response = await fetch(`${BASE_URL}/events/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/events/${id}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

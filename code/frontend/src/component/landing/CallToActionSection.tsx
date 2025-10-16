@@ -12,7 +12,7 @@ const defaultCopy = {
   description:
     "Create an event space that attendees love and organizers trust. Start planning today or explore what’s happening around you.",
   primaryCta: { label: "Create My Event", href: "/create-events" },
-  secondaryCta: { label: "Join an Event", href: "/discover" },
+  secondaryCta: { label: "Join an Event", href: "/events" },
 };
 
 export function CallToActionSection({

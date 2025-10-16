@@ -15,7 +15,7 @@ export default function Page() {
   return (
     <div>
       <HeroSection />
-      <main className="relative z-10 flex flex-col gap-32 bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+      <main className="relative z-10 flex rounded-3xl flex-col gap-32 bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
         <FeatureHighlightsSection features={featureHighlights} />
         <WorkflowStepsSection steps={workflowSteps} />
         <BenefitsSection benefits={benefits} />

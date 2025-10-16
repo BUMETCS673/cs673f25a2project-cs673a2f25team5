@@ -9,6 +9,7 @@ import {
 } from "./createEventSchema";
 import { createEvent } from "@/services/events";
 import { useUser } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
 
 type SubmissionState = "idle" | "submitting" | "success";
 
@@ -77,6 +78,9 @@ export function CreateEventForm() {
       await createEvent(buildEventCreatePayload(valuesWithCategory, userId));
       setStatus("success");
       setFormValues(createEmptyFormValues());
+      setTimeout(() => {
+        redirect(`/events`);
+      }, 3000);
     } catch (error) {
       const message =
         error instanceof Error
@@ -128,8 +132,7 @@ export function CreateEventForm() {
 
         {status === "success" ? (
           <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-            Event draft saved. Connect this form to your backend routing to make
-            it live.
+            New Event Created Successfully!
           </div>
         ) : null}
 

@@ -40,6 +40,27 @@ async def get_events_service(
         logger.error(f"Unexpected error while retrieving events: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error") from e
 
+async def get_event_service(event_id: UUID) -> EventRead:
+    try:
+        event, _ = await events_db.get_events_db(
+            [FilterOperation("event_id", "eq", event_id)], limit=1
+        )
+        if not event:
+            logger.warning(f"Event with event_id '{event_id}' does not exist.")
+            raise NotFoundError(f"Event with event_id '{event_id}' does not exist.")
+        return event[0]
+    except HTTPException:
+        raise
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail="Event not found") from e
+    except Exception as e:
+        # Unexpected errors
+        logger.error(f"Unexpected error while retrieving event: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
+    except ValueError as e:
+        # Database errors from the db layer
+        logger.error(f"Database error while retrieving event: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
 
 async def create_event_service(event: EventCreate) -> EventRead:
     try:

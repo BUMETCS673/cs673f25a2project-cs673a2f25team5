@@ -20,7 +20,7 @@ export default function Header() {
   return (
     <Disclosure
       as="nav"
-      className="relative bg-white shadow-sm dark:bg-gray-800/50 dark:shadow-none dark:after:pointer-events-none dark:after:absolute dark:after:inset-x-0 dark:after:bottom-0 dark:after:h-px dark:after:bg-white/10"
+      className="relative bg-white shadow-sm dark:bg-black dark:shadow-none dark:after:pointer-events-none dark:after:absolute dark:after:inset-x-0 dark:after:bottom-0 dark:after:h-px dark:after:bg-white/10"
     >
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
         <div className="relative flex h-16 justify-between">
@@ -94,7 +94,7 @@ export default function Header() {
             <SignedOut>
               <SignInButton />
               <SignUpButton>
-                <button className="bg-amber-400 text-black hover:bg-amber-300 hover:scale-105 transition-all duration-300 rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
+                <button className="bg-amber-400 mx-2 text-black hover:bg-amber-300 hover:scale-105 transition-all duration-300 rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
                   Sign Up
                 </button>
               </SignUpButton>
@@ -111,31 +111,31 @@ export default function Header() {
           {/* Current: "bg-amber-50 dark:bg-amber-600/10 border-amber-600 text-amber-700 dark:border-amber-500 dark:bg-amber-600/10 dark:text-amber-400", Default: "border-transparent text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:border-white/20 dark:hover:bg-white/5 dark:hover:text-white" */}
           <DisclosureButton
             as="a"
-            href="#"
+            href="/"
             className="block border-l-4 border-amber-600 bg-amber-50 py-2 pr-4 pl-3 text-base font-medium text-amber-700 dark:border-amber-500 dark:bg-amber-600/10 dark:text-amber-400"
           >
-            Dashboard
+            Home
           </DisclosureButton>
           <DisclosureButton
             as="a"
-            href="#"
+            href="/events"
             className="block border-l-4 border-transparent py-2 pr-4 pl-3 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:border-white/20 dark:hover:bg-white/5 dark:hover:text-white"
           >
-            Team
+            Events
           </DisclosureButton>
           <DisclosureButton
             as="a"
-            href="#"
+            href="/create-events"
             className="block border-l-4 border-transparent py-2 pr-4 pl-3 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:border-white/20 dark:hover:bg-white/5 dark:hover:text-white"
           >
-            Projects
+            Create Event
           </DisclosureButton>
           <DisclosureButton
             as="a"
-            href="#"
+            href="/profile"
             className="block border-l-4 border-transparent py-2 pr-4 pl-3 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:border-white/20 dark:hover:bg-white/5 dark:hover:text-white"
           >
-            Calendar
+            Profile
           </DisclosureButton>
         </div>
       </DisclosurePanel>
