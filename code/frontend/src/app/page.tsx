@@ -2,7 +2,7 @@ import { BenefitsSection } from "@/component/landing/BenefitsSection";
 import { CallToActionSection } from "@/component/landing/CallToActionSection";
 import { DemoShowcaseSection } from "@/component/landing/DemoShowcaseSection";
 import { FeatureHighlightsSection } from "@/component/landing/FeatureHighlightsSection";
-import { HeroSection } from "@/component/landing/HeroSection";
+import HeroSection from "@/component/landing/HeroSection";
 import {
   featureHighlights,
   workflowSteps,

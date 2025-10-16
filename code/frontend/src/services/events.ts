@@ -22,6 +22,15 @@ export const EventSchema = z.object({
 
 export type EventResponse = z.infer<typeof EventSchema>;
 
+const EventListSchema = z.object({
+  items: z.array(EventSchema),
+  total: z.number().int().nonnegative(),
+  offset: z.number().int().nonnegative(),
+  limit: z.number().int().positive(),
+});
+
+export type EventListResponse = z.infer<typeof EventListSchema>;
+
 export const EventCreatePayloadSchema = z.object({
   event_name: z.string().min(1),
   event_datetime: z.string().min(1),
@@ -68,6 +77,59 @@ export async function createEvent(
     throw new Error(message);
   }
 
+  const data = await response.json();
+  return EventSchema.parse(data);
+}
+
+type GetEventsParams = {
+  filters?: string[];
+  offset?: number;
+  limit?: number;
+  signal?: AbortSignal;
+};
+
+export async function getEvents(
+  params?: GetEventsParams,
+): Promise<EventListResponse> {
+  const { filters, offset, limit, signal } = params ?? {};
+  const url = new URL("/events", BASE_URL);
+
+  for (const filter of filters ?? []) {
+    url.searchParams.append("filter", filter);
+  }
+
+  if (typeof offset === "number") {
+    url.searchParams.set("offset", offset.toString());
+  }
+
+  if (typeof limit === "number") {
+    url.searchParams.set("limit", limit.toString());
+  }
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+  const data = await response.json();
+  return EventListSchema.parse(data);
+}
+
+export async function getEvent(id: string): Promise<EventResponse> {
+  const response = await fetch(`${BASE_URL}/events/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
   const data = await response.json();
   return EventSchema.parse(data);
 }
