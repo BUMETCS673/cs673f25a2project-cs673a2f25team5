@@ -46,7 +46,7 @@ cs673f25a2project-cs673a2f25team5/
 │   │   │   │   ├── events.py                         # business logic for events (validation, error handling)
 │   │   │   │   ├── filter_helper.py                  # filter parsing and validation logic
 │   │   │   │   └── users.py                          # business logic for users (validation, error handling)
-│   │   │   ├── __init_.py                            # init file
+│   │   │   ├── __init__.py                           # init file
 │   │   │   ├── config.py                             # database url config and settings management
 │   │   │   └── main.py                               # entry point for the fastapi app
 │   │   ├── test/                                     # backend unit and integration (end to end) tests
