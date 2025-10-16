@@ -20,70 +20,118 @@ Please go to the [backend readme](https://github.com/BUMETCS673/cs673f25a2projec
 
 ```
 cs673f25a2project-cs673a2f25team5/
-├── code/                                       # event manager code
-│   ├── backend/                                # event manager backend code
-│   │   ├── app/                                # fastapi app code
-│   │   │   ├── db/                             # code for the db layer of the app
-│   │   │   ├── models/                         # code for the models used in the app
-│   │   │   ├── routes/                         # code for the routers (endpoints) of the app
-│   │   │   ├── service/                        # code for the actual service logic of the app endpoints
-│   │   │   ├── __init__.py                     # init file
-│   │   │   ├── main.py                         # entry point for the fastapi app
-│   │   │   └── config.py                       # database url config
-│   │   ├── test/                               # backend unit and integration (end to end) tests
-│   │   ├── .python.version                     # python version used for the backend
-│   │   ├── pyproject.toml                      # tool configurations (uv, etc)
-│   │   ├── requirements.txt                    # event manager backend dependencies
-│   │   ├── requirements-test.txt               # event manager backend test dependencies
-│   │   ├── tox.ini                             # tox environment definitions
-│   │   └── uv.lock                             # uv overall definitions
-│   └── frontend/                               # event manager frontend code
-│       ├── public/                             # static assets
-│       ├── src                                 # source code
-│       |  └── app/                             # app Router pages (layout.tsx, page.tsx)
-│       |  |  ├── create-events/                # route for create events page
-│       |  |  |   └── page.tsx                  # page component for creating new events
-│       |  |  ├── favicon.ico                   # site favicon icon
-│       |  |  ├── globals.css                   # where global css variables can be declared and imports for tailwind
-│       |  |  ├── layout.tsx                    # root layout component defining global styles
-│       |  |  ├── page.tsx                      # home page/landing page component
-│       |  |  ├── api                           # route for all api calls
-│       |  |  │ └── webhooks                    # route for access webhooks
-│       |  |  │   └── clerk                     # route for clerks webhook
-│       |  |  │      └── route.ts               # typescript code to intercept webhook from clerk
-│       |  |  └── helpers/                      # reusable helper functions
-│       |  |    └── fetchTimeout                # timeout to avoid hanging requests
-│       |  └── middleware.ts                    # run code before a request is completed (used for protected/public routes)
-│       |  ├── component/                       # reusable React components
-│       |  |   └── events/                      # event-related components
-│       |  |       └── CreateEventForm.tsx      # form component for event creation
-│       |  └── landing/                         # landing page components
-│       |     ├── BenefitsSection.tsx           # benefits section component for landing page
-│       |     ├── CallToActionSection.tsx       # CTA section component for landing page
-│       |     ├── DemoShowCaseSection.tsx       # demo showcase component for landing page
-│       |     ├── FeatureHighlight.tsx          # feature highlight component for landing page
-│       |     ├── Heading.tsx                   # section heading component
-│       |     ├── HeroSection.tsx               # hero section component for landing page
-│       |     ├── WorkflowStepsSection.tsx      # workflow steps component for landing page
-│       |     └── landingData.ts                # data/constants for landing page sections
-│       ├── eslint.config.mjs                   # configuration file for ESLint and prettier
-│       ├── next.config.ts                      # output: "standalone"
-│       ├── package.json                        # metadata for the project
-│       ├── package-lock.json                   # records the exact version of every package installed in node_modules
-│       ├── postcss.config.mjs                  # defines how PostCSS should process CSS files
-│       └── tsconfig.json                       # defines how the compiler should compile the project's TS files into JS
-├── db/                                         # database setup (docker compose, schema, ...)
-|   ├── init/                                   # files used to initialize the database as part of the docker compose up
-|   |   ├── 01_add_extensions.sql               # sql extensions that need to be added to postgressql
-|   |   └── 02_event_manager_db_schema.sql      # event manager db schema to create all tables
-|   └── db-compose-docker.yaml                  # docker compose file to start the postgres and pgadmin container and needed volumes
-├── docs/                                       # event manager plan, proposal, and design docs, ...
-├── .gitignore                                  # files or folder to be ignored by git
-├── .gitleaks.toml                              # gitleaks configuration (allowlist)
-├── Dockerfile.backend                          # dockerfile with definitions to build the backend image
-├── Dockerfile.frontend                         # dockerfile with definitions to build the frontend image
-├── team.md                                     # team members brief introduction
-└── README.md                                   # project documentation
+├── code/                                             # event manager code
+│   ├── backend/                                      # event manager backend code
+│   │   ├── app/                                      # fastapi app code
+│   │   │   ├── db/                                   # code for the db layer of the app
+│   │   │   │   ├── categories.py                     # database operations for categories
+│   │   │   │   ├── db.py                             # database engine and metadata configuration
+│   │   │   │   ├── events.py                         # database operations for events
+│   │   │   │   ├── filters.py                        # filter operation models for database queries
+│   │   │   │   └── users.py                          # database operations for users
+│   │   │   ├── models/                               # code for the models used in the app
+│   │   │   │   ├── attendees.py                      # pydantic models for event attendees
+│   │   │   │   ├── events.py                         # pydantic models for events (EventCreate, EventRead, PaginatedEvents)
+│   │   │   │   ├── exceptions.py                     # custom exception classes
+│   │   │   │   ├── patch.py                          # pydantic models for PATCH operations
+│   │   │   │   └── users.py                          # pydantic models for users (UserCreate, UserRead, PaginatedUsers)
+│   │   │   ├── routes/                               # code for the routers (endpoints) of the app
+│   │   │   │   ├── __init__.py                       # router initialization
+│   │   │   │   ├── attendees.py                      # attendees endpoints (stub)
+│   │   │   │   ├── db.py                             # database health check endpoint
+│   │   │   │   ├── events.py                         # events endpoints (GET, POST, DELETE, PATCH)
+│   │   │   │   └── users.py                          # users endpoints (GET, POST, DELETE, PATCH)
+│   │   │   ├── service/                              # code for the actual service logic of the app endpoints
+│   │   │   │   ├── __init__.py                       # service initialization
+│   │   │   │   ├── events.py                         # business logic for events (validation, error handling)
+│   │   │   │   ├── filter_helper.py                  # filter parsing and validation logic
+│   │   │   │   └── users.py                          # business logic for users (validation, error handling)
+│   │   │   ├── __init_.py                            # init file
+│   │   │   ├── main.py                               # entry point for the fastapi app
+│   │   │   └── config.py                             # database url config
+│   │   ├── test/                                     # backend unit and integration (end to end) tests
+│   │   │   ├── test_events_failure_cases.py          # failure test cases for events endpoints
+│   │   │   ├── test_events_success_cases.py          # success test cases for events endpoints
+│   │   │   ├── test_filter_helper_failure_cases.py   # failure test cases for filter helper
+│   │   │   ├── test_filter_helper_success_cases.py   # success test cases for filter helper
+│   │   │   ├── test_users_failure_cases.py           # failure test cases for users endpoints
+│   │   │   └── test_users_success_cases.py           # success test cases for users endpoints
+│   │   ├── .python.version                           # python version used for the backend
+│   │   ├── backend-README.md                         # detailed backend documentation
+│   │   ├── pyproject.toml                            # tool configurations (uv, pytest, ruff)
+│   │   ├── requirements.txt                          # event manager backend dependencies
+│   │   ├── requirements-test.txt                     # event manager backend test dependencies
+│   │   ├── tox.ini                                   # tox environment definitions
+│   │   └── uv.lock                                   # uv overall definitions
+│   └── frontend/                                     # event manager frontend code
+│       ├── public/                                   # static assets
+│       │   ├── file.svg                              # file icon asset
+│       │   ├── globe.svg                             # globe icon asset
+│       │   ├── next.svg                              # Next.js logo
+│       │   ├── vercel.svg                            # Vercel logo
+│       │   └── window.svg                            # window icon asset
+│       ├── src/                                      # source code
+│       │   ├── app/                                  # app Router pages (layout.tsx, page.tsx)
+│       │   │   ├── api/                              # route for all api calls
+│       │   │   │   └── webhooks/                     # route for access webhooks
+│       │   │   │       └── clerk/                    # route for clerks webhook
+│       │   │   │           └── route.ts              # typescript code to intercept webhook from clerk
+│       │   │   ├── create-events/                    # route for create events page
+│       │   │   │   └── page.tsx                      # page component for creating new events
+│       │   │   ├── favicon.ico                       # site favicon icon
+│       │   │   ├── globals.css                       # where global css variables can be declared and imports for tailwind
+│       │   │   ├── layout.tsx                        # root layout component defining global styles
+│       │   │   └── page.tsx                          # home page/landing page component
+│       │   ├── component/                            # reusable React components
+│       │   │   ├── events/                           # event-related components
+│       │   │   │   └── CreateEventForm.tsx           # form component for event creation
+│       │   │   └── landing/                          # landing page components
+│       │   │       ├── BenefitsSection.tsx           # benefits section component for landing page
+│       │   │       ├── CallToActionSection.tsx       # CTA section component for landing page
+│       │   │       ├── DemoShowcaseSection.tsx       # demo showcase component for landing page
+│       │   │       ├── FeatureHighlightsSection.tsx  # feature highlight component for landing page
+│       │   │       ├── Heading.tsx                   # section heading component
+│       │   │       ├── HeroSection.tsx               # hero section component for landing page
+│       │   │       ├── WorkflowStepsSection.tsx      # workflow steps component for landing page
+│       │   │       └── landingData.ts                # data/constants for landing page sections
+│       │   ├── helpers/                              # reusable helper functions
+│       │   │   └── fetchTimeout.ts                   # timeout to avoid hanging requests
+│       │   └── middleware.ts                         # run code before a request is completed (used for protected/public routes)
+│       ├── eslint.config.mjs                         # configuration file for ESLint and prettier
+│       ├── frontend-README.md                        # detailed frontend documentation
+│       ├── next.config.ts                            # next.js configuration with output: "standalone"
+│       ├── package.json                              # metadata for the project
+│       ├── package-lock.json                         # records the exact version of every package installed in node_modules
+│       ├── postcss.config.mjs                        # defines how PostCSS should process CSS files
+│       └── tsconfig.json                             # defines how the compiler should compile the project's TS files into JS
+├── db/                                               # database setup (docker compose, schema, ...)
+│   ├── init/                                         # files used to initialize the database as part of the docker compose up
+│   │   ├── 01_add_extensions.sql                     # sql extensions that need to be added to postgresql
+│   │   └── 02_event_manager_db_schema.sql            # event manager db schema to create all tables
+│   ├── database-README.md                            # detailed database documentation
+│   └── db-docker-compose.yaml                        # docker compose file to start the postgres and pgadmin container and needed volumes
+├── docs/                                             # event manager plan, proposal, and design docs
+│   ├── Diagrams/                                     # architecture and design diagrams
+│   │   ├── Backend Architecture Diagram.png          # detailed backend architecture
+│   │   ├── Backend Flow Diagram.png                  # backend request flow diagram
+│   │   ├── Database ERD Diagram.png                  # database entity relationship diagram
+│   │   └── Event Manager Overall Architecture.png    # overall system architecture
+│   ├── CS673_Database_Schema_team4.pdf               # database schema documentation
+│   ├── CS673_MeetingMinutes_team4.docx               # team meeting minutes
+│   ├── CS673_ProgressReport_team4.xlsx               # project progress tracking
+│   ├── CS673_SPPP_RiskManagement_team4.xlsx          # risk management plan
+│   ├── CS673_SPPP_team4.docx                         # software project plan and proposal
+│   └── CS673_presentation0_team.pptx                 # project presentation slides
+├── .github/                                          # GitHub configuration
+│   └── workflows/                                    # GitHub Actions CI/CD workflows
+│       ├── backend-ci.yml                            # backend continuous integration (test, lint, security, docker)
+│       └── frontend-ci.yml                           # frontend continuous integration (lint, format, docker)
+├── .gitignore                                        # files or folders to be ignored by git
+├── .gitleaks.toml                                    # gitleaks configuration (allowlist)
+├── Dockerfile.backend                                # dockerfile with definitions to build the backend image
+├── Dockerfile.frontend                               # dockerfile with definitions to build the frontend image
+├── team.md                                           # team members brief introduction
+└── README.md                                         # project documentation
 ```
 
 # Project Setup
