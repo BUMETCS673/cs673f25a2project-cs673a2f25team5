@@ -93,7 +93,7 @@ async def get_users_db(
 
 async def create_user_db(user: UserCreate) -> UserRead:
     try:
-        now = datetime.now(UTC).replace(tzinfo=None)
+        now = datetime.now(UTC)
         values: dict[str, str | date | UUID | datetime | None] = {
             "user_id": uuid4(),
             "first_name": user.first_name,
