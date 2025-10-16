@@ -71,19 +71,6 @@ async def list_users(
     offset: int = OFFSET_QUERY,
     limit: int = LIMIT_QUERY,
 ) -> models_users.PaginatedUsers:
-    """
-    Get a paginated list of users with optional filters.
-
-    Filter format: field:operator:value
-    Examples:
-    - field:eq:value (equals)
-    - field:gt:value (greater than)
-    - field:ilike:value (case-insensitive pattern match)
-
-    Pagination:
-    - offset: Number of records to skip (default: 0)
-    - limit: Maximum number of records to return (default: 100, max: 1000)
-    """
     return await users_service.get_users_service(filter_expression, offset, limit)
 
 
@@ -111,12 +98,6 @@ async def list_users(
     },
 )
 async def create_user(user: models_users.UserCreate) -> models_users.UserRead:
-    """
-    Create a new user with the following requirements:
-    - Unique email address
-    - Valid first and last names
-    - Optional favorite color
-    """
     return await users_service.create_user_service(user)
 
 

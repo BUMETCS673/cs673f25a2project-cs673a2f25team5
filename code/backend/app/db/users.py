@@ -3,7 +3,6 @@ from datetime import UTC, date, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from fastapi import HTTPException
 from sqlalchemy import Column, Date, DateTime, MetaData, String, Table, and_, func, select
 from sqlalchemy.dialects.postgresql import UUID as SQLAlchemyUUID
 from sqlalchemy.exc import SQLAlchemyError
@@ -11,6 +10,7 @@ from sqlalchemy.sql.elements import ColumnElement
 
 from app.db.db import engine
 from app.db.filters import FilterOperation
+from app.models.exceptions import InvalidColumnError, NotFoundError
 from app.models.users import UserCreate, UserRead
 
 logger = logging.getLogger(__name__)
@@ -36,30 +36,6 @@ async def get_users_db(
     offset: int = 0,
     limit: int = 100,
 ) -> tuple[list[UserRead], int]:
-    """
-    Get paginated users from the database with optional filters.
-
-    Args:
-        filters: Optional list of FilterOperation objects, each containing:
-            - field: The column to filter on
-            - op: The operator to use (eq, neq, gt, gte, lt, lte, like, ilike)
-            - value: The value to compare against
-        offset: Number of records to skip (for pagination)
-        limit: Maximum number of users to return (default: 100)
-
-    Examples:
-        # Get first page of 10 users
-        users, total = await get_users_db(limit=10)
-
-        # Get second page of users matching a pattern
-        filters = [FilterOperation("first_name", "ilike", "John%")]
-        users, total = await get_users_db(filters, offset=10, limit=10)
-
-    Returns:
-        A tuple containing:
-        - List of UserRead objects matching all the filters (AND condition)
-        - Total count of matching records (before pagination)
-    """
     try:
         query = select(users)
         count_query = select(func.count()).select_from(users)
@@ -70,9 +46,7 @@ async def get_users_db(
                 column = getattr(users.c, f.field, None)
                 if column is None:
                     logger.error(f"Invalid filter field: {f.field}")
-                    raise HTTPException(
-                        status_code=400, detail=f"Invalid column name: {f.field}"
-                    )
+                    raise InvalidColumnError(f"Invalid column name: {f.field}")
 
                 if f.op == "=":
                     conditions.append(column == f.value)
@@ -108,21 +82,17 @@ async def get_users_db(
             total_count = 0 if count_result is None else int(count_result)
 
             return users_list, total_count
-
-    except HTTPException:
+    except InvalidColumnError:
         raise
     except SQLAlchemyError as e:
         logger.error(f"Database error while getting users: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Database error while retrieving users"
-        ) from e
+        raise ValueError(f"Database error while getting users: {str(e)}") from e
     except Exception as e:
         logger.error(f"Unexpected error while getting users: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error") from e
+        raise ValueError(f"Unexpected error while getting users: {str(e)}") from e
 
 
 async def create_user_db(user: UserCreate) -> UserRead:
-    """Create a new user in the database."""
     try:
         now = datetime.now(UTC)
         values: dict[str, str | date | UUID | datetime | None] = {
@@ -148,20 +118,15 @@ async def create_user_db(user: UserCreate) -> UserRead:
 
             return UserRead.model_validate(dict(row))
 
-    except HTTPException:
-        raise
     except SQLAlchemyError as e:
         logger.error(f"Database error while creating user: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Database error while creating user"
-        ) from e
+        raise ValueError(f"Database error while creating user: {str(e)}") from e
     except Exception as e:
         logger.error(f"Unexpected error while creating user: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error") from e
+        raise ValueError(f"Unexpected error while creating user: {str(e)}") from e
 
 
 async def delete_user_db(user_id: UUID) -> None:
-    """Delete a user by their user ID."""
     try:
         delete_stmt = users.delete().where(users.c.user_id == user_id)
 
@@ -170,21 +135,16 @@ async def delete_user_db(user_id: UUID) -> None:
 
             if result.rowcount == 0:
                 logger.error(f"No user found with ID: {user_id}")
-                raise HTTPException(
-                    status_code=404, detail=f"No user found with ID: {user_id}"
-                )
+                raise NotFoundError(f"No user found with ID: {user_id}")
             elif result.rowcount > 1:
                 # This should never happen due to user_id being a primary key
                 logger.error(f"Multiple users deleted with ID: {user_id}")
-                raise HTTPException(status_code=500, detail="Database integrity error")
-
-    except HTTPException:
+                raise ValueError("Database integrity error: Multiple users deleted")
+    except NotFoundError:
         raise
     except SQLAlchemyError as e:
         logger.error(f"Database error while deleting user: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Database error while deleting user"
-        ) from e
+        raise ValueError(f"Database error while deleting user: {str(e)}") from e
     except Exception as e:
         logger.error(f"Unexpected error while deleting user: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error") from e
+        raise ValueError(f"Unexpected error while deleting user: {str(e)}") from e
