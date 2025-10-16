@@ -42,8 +42,8 @@ events = Table(
     Column("price_field", Integer),
     Column("user_id", SQLAlchemyUUID(as_uuid=True), nullable=False),
     Column("category_id", SQLAlchemyUUID(as_uuid=True), nullable=False),
-    Column("created_at", DateTime),
-    Column("updated_at", DateTime),
+    Column("created_at", DateTime(timezone=True)),
+    Column("updated_at", DateTime(timezone=True)),
 )
 
 

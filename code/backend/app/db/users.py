@@ -26,8 +26,8 @@ users = Table(
     Column("date_of_birth", Date),
     Column("email", String),
     Column("color", String),
-    Column("created_at", DateTime),
-    Column("updated_at", DateTime),
+    Column("created_at", DateTime(timezone=True)),
+    Column("updated_at", DateTime(timezone=True)),
 )
 
 
