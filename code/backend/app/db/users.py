@@ -1,5 +1,5 @@
 import logging
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -93,7 +93,7 @@ async def get_users_db(
 
 async def create_user_db(user: UserCreate) -> UserRead:
     try:
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         values: dict[str, str | date | UUID | datetime | None] = {
             "user_id": uuid4(),
             "first_name": user.first_name,
