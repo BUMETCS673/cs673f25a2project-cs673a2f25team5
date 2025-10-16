@@ -32,10 +32,9 @@ event_manager_app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",  # Next.js dev server
-        # add other origins here, or use ["*"] during local testing
     ],
     allow_credentials=True,
-    allow_methods=["*"],  # or enumerate: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
