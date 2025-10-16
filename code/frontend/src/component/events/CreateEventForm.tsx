@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
 import {
   EventFormSchema,
@@ -10,6 +10,8 @@ import {
 import { createEvent } from "@/services/events";
 import { useUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
+import { EventLocationPickerMap } from "./EventLocationPickerMap";
+import { getPublicMapboxToken } from "@/component/map/getPublicMapboxToken";
 
 type SubmissionState = "idle" | "submitting" | "success";
 
@@ -35,6 +37,10 @@ export function CreateEventForm() {
   const [formValues, setFormValues] = useState<EventFormInput>(
     createEmptyFormValues,
   );
+  const [selectedCoordinates, setSelectedCoordinates] = useState<{
+    longitude: number;
+    latitude: number;
+  } | null>(null);
   const [status, setStatus] = useState<SubmissionState>("idle");
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -42,10 +48,19 @@ export function CreateEventForm() {
   const email = user?.primaryEmailAddress?.emailAddress;
   const userId = user?.externalId;
 
-  const updateField = (field: keyof EventFormInput, value: string) => {
+  const mapboxToken = useMemo(() => getPublicMapboxToken(), []);
+
+  const updateField = (
+    field: keyof EventFormInput,
+    value: string,
+    options?: { preserveCoordinates?: boolean },
+  ) => {
     setFormValues((prev) => ({ ...prev, [field]: value }));
     setValidationErrors([]);
     setServerError(null);
+    if (field === "location" && !options?.preserveCoordinates) {
+      setSelectedCoordinates(null);
+    }
     if (status === "success") {
       setStatus("idle");
     }
@@ -78,6 +93,7 @@ export function CreateEventForm() {
       await createEvent(buildEventCreatePayload(valuesWithCategory, userId));
       setStatus("success");
       setFormValues(createEmptyFormValues());
+      setSelectedCoordinates(null);
       setTimeout(() => {
         redirect(`/events`);
       }, 3000);
@@ -92,51 +108,51 @@ export function CreateEventForm() {
   };
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[1.6fr,1fr]">
-      <form
-        onSubmit={handleSubmit}
-        className="rounded-3xl border border-neutral-200/70 bg-white/85 p-8 shadow-xl shadow-amber-500/10 backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/60"
-      >
-        <div className="flex items-start justify-between gap-6">
-          <div>
-            <h2 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
-              Event details
-            </h2>
-            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-              Share the essentials your guests need before you publish.
-            </p>
-          </div>
-          {email ? (
-            <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-              Signed in as {email}
-            </span>
-          ) : null}
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-10 rounded-3xl border border-neutral-200/70 bg-white/85 p-8 shadow-xl shadow-amber-500/10 backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/60"
+    >
+      <div className="flex items-start justify-between gap-6">
+        <div>
+          <h2 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+            Event details
+          </h2>
+          <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+            Share the essentials your guests need before you publish.
+          </p>
         </div>
-
-        {validationErrors.length > 0 ? (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-200">
-            <p className="font-medium">Please fix the following:</p>
-            <ul className="mt-1 list-disc space-y-1 pl-5">
-              {validationErrors.map((error) => (
-                <li key={error}>{error}</li>
-              ))}
-            </ul>
-          </div>
+        {email ? (
+          <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+            Signed in as {email}
+          </span>
         ) : null}
+      </div>
 
-        {serverError ? (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-200">
-            {serverError}
-          </div>
-        ) : null}
+      {validationErrors.length > 0 ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-200">
+          <p className="font-medium">Please fix the following:</p>
+          <ul className="mt-1 list-disc space-y-1 pl-5">
+            {validationErrors.map((error) => (
+              <li key={error}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
-        {status === "success" ? (
-          <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-            New Event Created Successfully!
-          </div>
-        ) : null}
+      {serverError ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-200">
+          {serverError}
+        </div>
+      ) : null}
 
-        <div className="mt-8 grid gap-6">
+      {status === "success" ? (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+          New Event Created Successfully!
+        </div>
+      ) : null}
+
+      <div className="space-y-8">
+        <div className="space-y-6">
           <label className="grid gap-2">
             <span className={labelClass}>Event name</span>
             <input
@@ -215,6 +231,37 @@ export function CreateEventForm() {
             />
           </label>
 
+          <div className="space-y-4 ">
+            <EventLocationPickerMap
+              mapboxToken={mapboxToken}
+              coordinates={selectedCoordinates}
+              onLocationSelect={({ placeName, coordinates }) => {
+                if (placeName) {
+                  updateField("location", placeName, {
+                    preserveCoordinates: true,
+                  });
+                }
+                setSelectedCoordinates(coordinates);
+              }}
+            />
+            <div className="rounded-3xl border border-neutral-200/70 bg-white/85 p-6 shadow-lg shadow-amber-500/10 backdrop-blur dark:border-white/10 dark:bg-neutral-900/60">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-neutral-500 dark:text-neutral-400">
+                Saved address
+              </h3>
+              <p className="mt-2 text-sm text-neutral-700 dark:text-neutral-200">
+                {formValues.location
+                  ? formValues.location
+                  : "Use the search above or the map to pin your event venue."}
+              </p>
+              {selectedCoordinates ? (
+                <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+                  Coordinates: {selectedCoordinates.latitude.toFixed(4)},{" "}
+                  {selectedCoordinates.longitude.toFixed(4)}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
           <div className="grid gap-6 sm:grid-cols-2">
             <label className="grid gap-2">
               <span className={labelClass}>Capacity</span>
@@ -256,18 +303,18 @@ export function CreateEventForm() {
               className={`${inputClass} resize-none`}
             />
           </label>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-            <button
-              type="submit"
-              disabled={status === "submitting"}
-              className="flex items-center justify-center rounded-full bg-gradient-to-r from-amber-300 via-purple-400 to-amber-300 px-6 py-3 text-sm font-semibold text-neutral-900 shadow-sm transition disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {status === "submitting" ? "Creating…" : "Create event"}
-            </button>
-          </div>
         </div>
-      </form>
-    </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+          <button
+            type="submit"
+            disabled={status === "submitting"}
+            className="flex items-center justify-center rounded-full bg-gradient-to-r from-amber-300 via-purple-400 to-amber-300 px-6 py-3 text-sm font-semibold text-neutral-900 shadow-sm transition disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {status === "submitting" ? "Creating…" : "Create event"}
+          </button>
+        </div>
+      </div>
+    </form>
   );
 }

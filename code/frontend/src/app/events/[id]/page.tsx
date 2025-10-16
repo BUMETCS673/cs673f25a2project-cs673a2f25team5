@@ -6,6 +6,7 @@ import { EventDetailHeader } from "@/component/events/event-detail/EventDetailHe
 import { EventHostPanel } from "@/component/events/event-detail/EventHostPanel";
 import { EventPreviewComingSoon } from "@/component/events/event-detail/EventPreviewComingSoon";
 import { EventRegisterCard } from "@/component/events/event-detail/EventRegisterCard";
+import { EventLocationMapCard } from "@/component/events/event-detail/EventLocationMapCard";
 import { buildEventViewModel } from "@/component/events/event-detail/viewModel";
 import { getEvent, getEvents } from "@/services/events";
 import { getUser } from "@/services/users";
@@ -13,9 +14,9 @@ import { getUser } from "@/services/users";
 export default async function EventPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
 
   let event;
   try {
@@ -75,6 +76,7 @@ export default async function EventPage({
               <EventPreviewComingSoon />
             ) : null}
             <EventAboutSection {...viewModel.about} />
+            <EventLocationMapCard location={event.event_location ?? null} />
           </section>
 
           <aside className="space-y-6">
