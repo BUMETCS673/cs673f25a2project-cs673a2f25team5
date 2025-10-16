@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { EventsBrowser } from "@/component/events/EventsBrowser";
 import { getEvents } from "@/services/events";
 

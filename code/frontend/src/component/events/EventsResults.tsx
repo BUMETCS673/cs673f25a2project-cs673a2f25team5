@@ -47,7 +47,7 @@ export function EventsResults({
         <button
           type="button"
           onClick={onRetryRemote}
-          className="mt-4 inline-flex items-center justify-center rounded-full bg-rose-600 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-rose-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300"
+          className="mt-4 inline-flex items-center justify-center rounded-full bg-rose-600 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-rose-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300"
         >
           Try again
         </button>
@@ -75,7 +75,7 @@ export function EventsResults({
         <button
           type="button"
           onClick={onRetryBase}
-          className="mt-4 inline-flex items-center justify-center rounded-full bg-amber-500 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-amber-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200"
+          className="mt-4 inline-flex items-center justify-center rounded-full bg-amber-500 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200"
         >
           Try again
         </button>
