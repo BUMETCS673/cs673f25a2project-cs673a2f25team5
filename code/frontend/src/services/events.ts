@@ -90,7 +90,7 @@ export async function getEvents(
   const url = new URL("/events", API_BASE_URL);
 
   for (const filter of filters ?? []) {
-    url.searchParams.append("filter", filter);
+    url.searchParams.append("filter_expression", filter);
   }
 
   if (typeof offset === "number") {
@@ -100,6 +100,9 @@ export async function getEvents(
   if (typeof limit === "number") {
     url.searchParams.set("limit", limit.toString());
   }
+
+  console.log("filters: ", filters);
+  console.log("url: ", url.toString());
 
   const response = await fetch(url.toString(), {
     method: "GET",
@@ -113,18 +116,4 @@ export async function getEvents(
   }
   const data = await response.json();
   return EventListSchema.parse(data);
-}
-
-export async function getEvent(id: string): Promise<EventResponse> {
-  const response = await fetch(`${API_BASE_URL}/events/${id}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
-  }
-  const data = await response.json();
-  return EventSchema.parse(data);
 }

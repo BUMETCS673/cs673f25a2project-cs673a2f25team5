@@ -10,7 +10,7 @@ import { EventPreviewComingSoon } from "@/component/events/event-detail/EventPre
 import { EventRegisterCard } from "@/component/events/event-detail/EventRegisterCard";
 import { EventLocationMapCard } from "@/component/events/event-detail/EventLocationMapCard";
 import { buildEventViewModel } from "@/component/events/event-detail/viewModel";
-import { getEvent, getEvents } from "@/services/events";
+import { getEvents } from "@/services/events";
 import { getUser } from "@/services/users";
 
 export default async function EventPage({
@@ -22,7 +22,16 @@ export default async function EventPage({
 
   let event;
   try {
-    event = await getEvent(id);
+    console.log(`event_id:eq:${id}`);
+    event = await getEvents({
+      filters: [`event_id:eq:${id}`],
+      limit: 1,
+    });
+    if (event.items.length === 0) {
+      notFound();
+    }
+    event = event.items[0];
+    console.log(event);
   } catch (error) {
     if (error instanceof Error && error.message.includes("404")) {
       notFound();
