@@ -8,7 +8,7 @@ type Props = {
 
 export function FeatureHighlightsSection({ features }: Props) {
   return (
-    <section className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 pb-16 pt-32 sm:px-6 md:pt-40">
+    <section className="mx-auto flex w-full rounded-3xl md:border-0 border border-zinc-200 dark:border-zinc-900 shadow-md max-w-6xl flex-col gap-10 px-4 pb-16 pt-32 sm:px-6 md:pt-40">
       <h1 className="font-atkinson-hyperlegible-next text-5xl font-bold text-neutral-900 dark:text-neutral-100 md:text-6xl">
         Everything you need to launch events
       </h1>

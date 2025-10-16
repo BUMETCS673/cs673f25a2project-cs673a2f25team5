@@ -2,215 +2,175 @@
 
 import { FormEvent, useMemo, useState } from "react";
 
-type EventFormState = {
-  title: string;
+import {
+  EventFormSchema,
+  buildEventCreatePayload,
+  type EventFormInput,
+} from "./createEventSchema";
+import { createEvent } from "@/services/events";
+import { useUser } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
+import { EventLocationPickerMap } from "./EventLocationPickerMap";
+import { getPublicMapboxToken } from "@/component/map/getPublicMapboxToken";
 
-  startDate: string;
-  startTime: string;
-  endDate: string;
-  endTime: string;
-  location: string;
-  capacity: string;
-  price: string;
-  isVirtual: boolean;
-  category: string;
-  description: string;
-  image: File | null;
-};
+type SubmissionState = "idle" | "submitting" | "success";
 
-const SAVE_TIMEOUT = 600;
-
-const INITIAL_FORM: EventFormState = {
-  title: "",
-
+const createEmptyFormValues = (): EventFormInput => ({
+  eventName: "",
   startDate: "",
   startTime: "",
   endDate: "",
   endTime: "",
   location: "",
+  description: "",
+  pictureUrl: "",
   capacity: "",
   price: "",
-  isVirtual: false,
-  category: "",
-  description: "",
-  image: null,
-};
+});
 
-type SubmissionState = "idle" | "submitting" | "success";
+const inputClass =
+  "w-full rounded-2xl border border-neutral-200 bg-white/90 px-4 py-3 text-sm text-neutral-800 shadow-sm transition focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:border-white/10 dark:bg-white/5 dark:text-neutral-100";
 
-export function CreateEventForm({
-  organizerEmail,
-}: {
-  organizerEmail?: string;
-}) {
-  const [formState, setFormState] = useState<EventFormState>(INITIAL_FORM);
+const labelClass = "text-sm font-medium text-neutral-700 dark:text-neutral-200";
+
+export function CreateEventForm() {
+  const [formValues, setFormValues] = useState<EventFormInput>(
+    createEmptyFormValues,
+  );
+  const [selectedCoordinates, setSelectedCoordinates] = useState<{
+    longitude: number;
+    latitude: number;
+  } | null>(null);
   const [status, setStatus] = useState<SubmissionState>("idle");
-  const [errors, setErrors] = useState<string[]>([]);
-  const [lastSaved, setLastSaved] = useState<EventFormState | null>(null);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [serverError, setServerError] = useState<string | null>(null);
+  const { user } = useUser();
+  const email = user?.primaryEmailAddress?.emailAddress;
+  const userId = user?.externalId;
 
-  const inputClass =
-    "w-full rounded-2xl border border-neutral-200 bg-white/90 px-4 py-3 text-sm text-neutral-800 shadow-sm transition focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:border-white/10 dark:bg-white/5 dark:text-neutral-100";
+  const mapboxToken = useMemo(() => getPublicMapboxToken(), []);
 
-  const labelClass =
-    "text-sm font-medium text-neutral-700 dark:text-neutral-200";
-
-  const previewDetails = useMemo(() => {
-    if (!lastSaved) {
-      return [];
+  const updateField = (
+    field: keyof EventFormInput,
+    value: string,
+    options?: { preserveCoordinates?: boolean },
+  ) => {
+    setFormValues((prev) => ({ ...prev, [field]: value }));
+    setValidationErrors([]);
+    setServerError(null);
+    if (field === "location" && !options?.preserveCoordinates) {
+      setSelectedCoordinates(null);
     }
-    const entries: Array<{ label: string; value: string }> = [
-      { label: "Event", value: lastSaved.title },
-      {
-        label: "When",
-        value: `${lastSaved.startDate || "?"} ${
-          lastSaved.startTime || ""
-        } ${lastSaved.endDate ? `→ ${lastSaved.endDate}` : ""} ${
-          lastSaved.endTime || ""
-        }`.trim(),
-      },
-      {
-        label: "Location",
-        value: lastSaved.isVirtual
-          ? `Virtual${lastSaved.location ? ` • ${lastSaved.location}` : ""}`
-          : lastSaved.location || "Not provided",
-      },
-      {
-        label: "Capacity",
-        value: lastSaved.capacity ? `${lastSaved.capacity} guests` : "Open",
-      },
-      {
-        label: "Price",
-        value: lastSaved.price
-          ? `$${Number(lastSaved.price).toFixed(2)}`
-          : "Free",
-      },
-      {
-        label: "Category",
-        value: lastSaved.category || "Not specified",
-      },
-      {
-        label: "Description",
-        value: lastSaved.description || "No description yet.",
-      },
-    ];
-
-    return entries;
-  }, [lastSaved]);
+    if (status === "success") {
+      setStatus("idle");
+    }
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!userId) {
+      setValidationErrors(["You must be logged in to create an event"]);
+      setStatus("idle");
+      return;
+    }
     setStatus("submitting");
+    setValidationErrors([]);
+    setServerError(null);
 
-    const currentErrors: string[] = [];
-    if (!formState.title.trim()) {
-      currentErrors.push("Event name is required.");
-    }
-    if (!formState.startDate) {
-      currentErrors.push("Start date is required.");
-    }
-    if (!formState.startTime) {
-      currentErrors.push("Start time is required.");
-    }
-    if (!formState.location.trim() && !formState.isVirtual) {
-      currentErrors.push("Location is required for in-person events.");
-    }
-
-    if (formState.capacity) {
-      const capacityNum = Number(formState.capacity);
-      if (Number.isNaN(capacityNum)) {
-        currentErrors.push("Capacity must be a valid number.");
-      } else if (capacityNum <= 0) {
-        currentErrors.push("Capacity must be a positive number.");
-      }
-    }
-    if (formState.price) {
-      const priceNum = Number(formState.price);
-      if (Number.isNaN(priceNum)) {
-        currentErrors.push("Ticket price must be a valid number.");
-      } else if (priceNum < 0) {
-        currentErrors.push("Ticket price cannot be negative.");
-      }
-    }
-
-    if (currentErrors.length > 0) {
-      setErrors(currentErrors);
+    const result = EventFormSchema.safeParse(formValues);
+    if (!result.success) {
+      const issues = result.error.issues.map((issue) => issue.message);
+      setValidationErrors(Array.from(new Set(issues)));
       setStatus("idle");
       return;
     }
 
-    setErrors([]);
-    // Simulate a network save so the UI feels responsive.
-    await new Promise((resolve) => setTimeout(resolve, SAVE_TIMEOUT));
-    setLastSaved({ ...formState });
-    setStatus("success");
-  };
-
-  const updateField = <K extends keyof EventFormState>(
-    key: K,
-    value: EventFormState[K],
-  ) => {
-    setFormState((prev) => ({ ...prev, [key]: value }));
-    setStatus("idle");
+    try {
+      const valuesWithCategory = {
+        ...result.data,
+        categoryId: "2db3d8ac-257c-4ff9-ad97-ba96bfbf9bc5",
+      };
+      await createEvent(buildEventCreatePayload(valuesWithCategory, userId));
+      setStatus("success");
+      setFormValues(createEmptyFormValues());
+      setSelectedCoordinates(null);
+      setTimeout(() => {
+        redirect(`/events`);
+      }, 3000);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "We could not save the event. Please try again.";
+      setServerError(message);
+      setStatus("idle");
+    }
   };
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[1.6fr,1fr]">
-      <form
-        onSubmit={handleSubmit}
-        className="rounded-3xl border border-neutral-200/70 bg-white/85 p-8 shadow-xl shadow-amber-500/10 backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/60"
-      >
-        <div className="flex items-start justify-between gap-6">
-          <div>
-            <h2 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
-              Event details
-            </h2>
-            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-              Share what guests need to know about your upcoming experience.
-            </p>
-          </div>
-          {organizerEmail && (
-            <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-              Signed in as {organizerEmail}
-            </span>
-          )}
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-10 rounded-3xl border border-neutral-200/70 bg-white/85 p-8 shadow-xl shadow-amber-500/10 backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/60"
+    >
+      <div className="flex items-start justify-between gap-6">
+        <div>
+          <h2 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+            Event details
+          </h2>
+          <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+            Share the essentials your guests need before you publish.
+          </p>
         </div>
+        {email ? (
+          <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
+            Signed in as {email}
+          </span>
+        ) : null}
+      </div>
 
-        {errors.length > 0 && (
-          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-200">
-            <p className="font-medium">Please fix the following:</p>
-            <ul className="mt-1 list-disc space-y-1 pl-5">
-              {errors.map((error) => (
-                <li key={error}>{error}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+      {validationErrors.length > 0 ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-200">
+          <p className="font-medium">Please fix the following:</p>
+          <ul className="mt-1 list-disc space-y-1 pl-5">
+            {validationErrors.map((error) => (
+              <li key={error}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
-        {status === "success" && (
-          <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-            Event draft saved locally. Connect to your backend to persist it.
-          </div>
-        )}
+      {serverError ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-200">
+          {serverError}
+        </div>
+      ) : null}
 
-        <div className="mt-8 grid gap-6">
+      {status === "success" ? (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200">
+          New Event Created Successfully!
+        </div>
+      ) : null}
+
+      <div className="space-y-8">
+        <div className="space-y-6">
           <label className="grid gap-2">
             <span className={labelClass}>Event name</span>
             <input
-              value={formState.title}
-              onChange={(event) => updateField("title", event.target.value)}
+              value={formValues.eventName}
+              onChange={(event) => updateField("eventName", event.target.value)}
               placeholder="Moonlight Rooftop Concert"
               className={inputClass}
             />
           </label>
+
           <label className="grid gap-2">
-            <span className={labelClass}>Event image</span>
+            <span className={labelClass}>Event image URL</span>
             <input
-              type="file"
+              value={formValues.pictureUrl}
               onChange={(event) =>
-                updateField("image", event.target.files?.[0] ?? null)
+                updateField("pictureUrl", event.target.value)
               }
-              accept="image/*"
-              placeholder="Image"
+              placeholder="https://example.com/event-image.jpg"
               className={inputClass}
             />
           </label>
@@ -220,7 +180,7 @@ export function CreateEventForm({
               <span className={labelClass}>Start date</span>
               <input
                 type="date"
-                value={formState.startDate}
+                value={formValues.startDate}
                 onChange={(event) =>
                   updateField("startDate", event.target.value)
                 }
@@ -231,7 +191,7 @@ export function CreateEventForm({
               <span className={labelClass}>Start time</span>
               <input
                 type="time"
-                value={formState.startTime}
+                value={formValues.startTime}
                 onChange={(event) =>
                   updateField("startTime", event.target.value)
                 }
@@ -245,7 +205,7 @@ export function CreateEventForm({
               <span className={labelClass}>End date</span>
               <input
                 type="date"
-                value={formState.endDate}
+                value={formValues.endDate}
                 onChange={(event) => updateField("endDate", event.target.value)}
                 className={inputClass}
               />
@@ -254,37 +214,52 @@ export function CreateEventForm({
               <span className={labelClass}>End time</span>
               <input
                 type="time"
-                value={formState.endTime}
+                value={formValues.endTime}
                 onChange={(event) => updateField("endTime", event.target.value)}
                 className={inputClass}
               />
             </label>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-            <label className="grid gap-2">
-              <span className={labelClass}>Location</span>
-              <input
-                value={formState.location}
-                onChange={(event) =>
-                  updateField("location", event.target.value)
+          <label className="grid gap-2">
+            <span className={labelClass}>Location</span>
+            <input
+              value={formValues.location}
+              onChange={(event) => updateField("location", event.target.value)}
+              placeholder="123 Main St, Boston, MA"
+              className={inputClass}
+            />
+          </label>
+
+          <div className="space-y-4 ">
+            <EventLocationPickerMap
+              mapboxToken={mapboxToken}
+              coordinates={selectedCoordinates}
+              onLocationSelect={({ placeName, coordinates }) => {
+                if (placeName) {
+                  updateField("location", placeName, {
+                    preserveCoordinates: true,
+                  });
                 }
-                placeholder="123 Main St, Boston, MA"
-                className={inputClass}
-                disabled={formState.isVirtual}
-              />
-            </label>
-            <label className="flex items-center gap-3 text-sm font-medium text-neutral-700 dark:text-neutral-200">
-              <input
-                type="checkbox"
-                checked={formState.isVirtual}
-                onChange={(event) =>
-                  updateField("isVirtual", event.target.checked)
-                }
-                className="h-5 w-5 rounded border-neutral-300 text-amber-400 focus:ring-amber-200"
-              />
-              Virtual event
-            </label>
+                setSelectedCoordinates(coordinates);
+              }}
+            />
+            <div className="rounded-3xl border border-neutral-200/70 bg-white/85 p-6 shadow-lg shadow-amber-500/10 backdrop-blur dark:border-white/10 dark:bg-neutral-900/60">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-neutral-500 dark:text-neutral-400">
+                Saved address
+              </h3>
+              <p className="mt-2 text-sm text-neutral-700 dark:text-neutral-200">
+                {formValues.location
+                  ? formValues.location
+                  : "Use the search above or the map to pin your event venue."}
+              </p>
+              {selectedCoordinates ? (
+                <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+                  Coordinates: {selectedCoordinates.latitude.toFixed(4)},{" "}
+                  {selectedCoordinates.longitude.toFixed(4)}
+                </p>
+              ) : null}
+            </div>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2">
@@ -294,7 +269,7 @@ export function CreateEventForm({
                 type="number"
                 min={1}
                 step={1}
-                value={formState.capacity}
+                value={formValues.capacity}
                 onChange={(event) =>
                   updateField("capacity", event.target.value)
                 }
@@ -308,35 +283,18 @@ export function CreateEventForm({
                 type="number"
                 min={0}
                 step="0.01"
-                value={formState.price}
+                value={formValues.price}
                 onChange={(event) => updateField("price", event.target.value)}
-                placeholder="45"
+                placeholder="45.00"
                 className={inputClass}
               />
             </label>
           </div>
 
           <label className="grid gap-2">
-            <span className={labelClass}>Category</span>
-            <select
-              value={formState.category}
-              onChange={(event) => updateField("category", event.target.value)}
-              className={`${inputClass} appearance-none`}
-            >
-              <option value="">Select a category</option>
-              <option value="music">Music</option>
-              <option value="workshop">Workshop</option>
-              <option value="conference">Conference</option>
-              <option value="social">Social</option>
-              <option value="sports">Sports</option>
-              <option value="fundraiser">Fundraiser</option>
-            </select>
-          </label>
-
-          <label className="grid gap-2">
             <span className={labelClass}>Description</span>
             <textarea
-              value={formState.description}
+              value={formValues.description}
               onChange={(event) =>
                 updateField("description", event.target.value)
               }
@@ -345,59 +303,18 @@ export function CreateEventForm({
               className={`${inputClass} resize-none`}
             />
           </label>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-            <button
-              type="submit"
-              disabled={status === "submitting"}
-              className="flex items-center justify-center rounded-full bg-gradient-to-r from-amber-300 via-purple-400 to-amber-300 px-6 py-3 text-sm font-semibold text-neutral-900 shadow-sm transition disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {status === "submitting" ? "Saving…" : "Save event draft"}
-            </button>
-          </div>
-        </div>
-      </form>
-
-      <section className="flex h-full flex-col justify-between gap-6 rounded-3xl border border-neutral-200/70 bg-white/65 p-6 shadow-lg shadow-purple-500/10 backdrop-blur-md dark:border-white/10 dark:bg-neutral-900/40">
-        <div>
-          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-            Live preview
-          </h3>
-          <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-            This is a quick snapshot of what guests will see. Update your copy
-            on the left to watch it change.
-          </p>
         </div>
 
-        <div className="mt-4 space-y-4">
-          {previewDetails.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-neutral-300 px-4 py-6 text-sm text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
-              Fill out the form to generate a preview summary of your event.
-            </p>
-          ) : (
-            <ul className="space-y-4">
-              {previewDetails.map((item) => (
-                <li
-                  key={item.label}
-                  className="rounded-2xl bg-white/70 p-4 text-sm shadow-sm dark:bg-white/5"
-                >
-                  <p className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                    {item.label}
-                  </p>
-                  <p className="mt-1 text-neutral-900 dark:text-neutral-100">
-                    {item.value}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+          <button
+            type="submit"
+            disabled={status === "submitting"}
+            className="flex items-center justify-center rounded-full bg-gradient-to-r from-amber-300 via-purple-400 to-amber-300 px-6 py-3 text-sm font-semibold text-neutral-900 shadow-sm transition disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {status === "submitting" ? "Creating…" : "Create event"}
+          </button>
         </div>
-
-        <p className="mt-auto text-xs text-neutral-500 dark:text-neutral-400">
-          Need additional fields like ticket tiers or speaker lists? Extend this
-          form and hook it up to your backend API.
-        </p>
-      </section>
-    </div>
+      </div>
+    </form>
   );
 }

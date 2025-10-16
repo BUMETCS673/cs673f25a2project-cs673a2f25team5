@@ -2,7 +2,7 @@ import { BenefitsSection } from "@/component/landing/BenefitsSection";
 import { CallToActionSection } from "@/component/landing/CallToActionSection";
 import { DemoShowcaseSection } from "@/component/landing/DemoShowcaseSection";
 import { FeatureHighlightsSection } from "@/component/landing/FeatureHighlightsSection";
-import { HeroSection } from "@/component/landing/HeroSection";
+import HeroSection from "@/component/landing/HeroSection";
 import {
   featureHighlights,
   workflowSteps,
@@ -15,7 +15,7 @@ export default function Page() {
   return (
     <div>
       <HeroSection />
-      <main className="relative z-10 flex flex-col gap-32 bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
+      <main className="relative z-10 flex rounded-3xl flex-col gap-32 bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
         <FeatureHighlightsSection features={featureHighlights} />
         <WorkflowStepsSection steps={workflowSteps} />
         <BenefitsSection benefits={benefits} />

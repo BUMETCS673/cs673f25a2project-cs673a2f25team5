@@ -111,7 +111,7 @@ async def get_events_db(
 async def create_event_db(event: EventCreate) -> EventRead:
     """Create a new event in the database."""
     try:
-        now = datetime.now(UTC)
+        now = datetime.now(UTC).replace(tzinfo=None)
         values: dict[str, str | int | datetime | UUID | None] = {
             "event_id": uuid4(),
             "event_name": event.event_name,

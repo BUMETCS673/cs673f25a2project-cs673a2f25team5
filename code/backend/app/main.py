@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.db import db
@@ -25,6 +26,17 @@ event_manager_app = FastAPI(
     description="Track, plan, and manage events",
     version="0.1.0",
     lifespan=lifespan,
+)
+
+event_manager_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # Next.js dev server
+        # add other origins here, or use ["*"] during local testing
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # or enumerate: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
+    allow_headers=["*"],
 )
 
 # Include routers for different endpoints
