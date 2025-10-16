@@ -1,3 +1,11 @@
+"""
+AI-generated code: 90%
+
+Human code: 10%
+
+Framework-generated code: 0%
+"""
+
 from uuid import UUID
 
 import pytest

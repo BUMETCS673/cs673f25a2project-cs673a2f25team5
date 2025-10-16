@@ -1,3 +1,11 @@
+"""
+AI-generated code: 100%
+
+Human code: 0%
+
+Framework-generated code: 0%
+"""
+
 from typing import Any
 
 from app.models.exceptions import InvalidFilterFormatError

@@ -1,3 +1,11 @@
+"""
+AI-generated code: 0%
+
+Human code: 100%
+
+Framework-generated code: 0%
+"""
+
 from typing import Any
 from uuid import UUID
 

@@ -1,3 +1,11 @@
+"""
+AI-generated code: 0%
+
+Human code: 100%
+
+Framework-generated code: 0%
+"""
+
 from datetime import datetime
 from enum import Enum
 from uuid import UUID

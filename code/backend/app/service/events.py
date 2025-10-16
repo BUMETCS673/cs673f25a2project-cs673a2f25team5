@@ -1,3 +1,11 @@
+"""
+AI-generated code: 80%
+
+Human code: 20%
+
+Framework-generated code: 0%
+"""
+
 import logging
 from uuid import UUID
 

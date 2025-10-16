@@ -1,3 +1,11 @@
+"""
+AI-generated code: 90%
+
+Human code: 10%
+
+Framework-generated code: 0%
+"""
+
 import os
 import tempfile
 from collections.abc import AsyncGenerator, Generator
