@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
-from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.db import db
@@ -35,7 +35,7 @@ event_manager_app.add_middleware(
         # add other origins here, or use ["*"] during local testing
     ],
     allow_credentials=True,
-    allow_methods=["*"],   # or enumerate: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
+    allow_methods=["*"],  # or enumerate: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
     allow_headers=["*"],
 )
 
