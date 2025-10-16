@@ -1,7 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
-
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -33,7 +32,6 @@ event_manager_app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",  # Next.js dev server
-        "*"
         # add other origins here, or use ["*"] during local testing
     ],
     allow_credentials=True,

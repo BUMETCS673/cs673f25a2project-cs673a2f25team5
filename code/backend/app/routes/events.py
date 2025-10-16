@@ -105,26 +105,6 @@ async def list_events(
 async def create_event(event: models_events.EventCreate) -> models_events.EventRead:
     return await events_service.create_event_service(event)
 
-@router.get(
-    "/events/{event_id}",
-    response_model=models_events.EventRead,
-    summary="Get a single event by ID",
-    tags=["Events"],
-    responses={
-        200: {"description": "Event retrieved"},
-        404: {
-            "description": "Event not found",
-            "content": {"application/json": {"example": {"detail": "Event not found"}}},
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
-)
-async def retrieve_event(event_id: UUID) -> models_events.EventRead:
-    return await events_service.get_event_service(event_id)
-
 
 @router.patch(
     "/events",
