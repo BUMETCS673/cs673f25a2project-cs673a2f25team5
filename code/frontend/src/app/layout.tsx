@@ -1,3 +1,12 @@
+/*
+
+ AI-generated code:  0%) 
+
+ Human code: 8% (functions: RootLayout, metadata, ClerkProvider, Geist, Geist_Mono, globals.css, Header) 
+
+ Framework-generated code: 92% (tool: Next.js, framework: Next.js) 
+
+*/
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";

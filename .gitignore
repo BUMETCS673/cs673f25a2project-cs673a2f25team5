@@ -78,3 +78,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# docker compose files
+db/db-docker-compose.yaml

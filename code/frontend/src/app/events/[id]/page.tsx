@@ -1,3 +1,12 @@
+/*
+
+ AI-generated code:  77% (tool: Codex - GPT-5, modified and adapted, functions: EventPage) 
+
+ Human code: 23% (functions: EventPage, setting up filters to get the event and passing params to the getEvents function) 
+
+ No framework-generated code.
+
+*/
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
