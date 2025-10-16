@@ -6,34 +6,20 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """Application settings with environment variable support.
-    
+
     Settings can be configured via environment variables or a .env file.
     Environment variables take precedence over .env file values.
     """
-    
+
     # Database settings with sensible defaults
-    POSTGRES_USER: str = Field(
-        default="postgres",
-        description="PostgreSQL username"
-    )
-    POSTGRES_PASSWORD: str = Field(
-        default="postgres1234",
-        description="PostgreSQL password"
-    )
-    POSTGRES_HOST: str = Field(
-        default="localhost",
-        description="PostgreSQL host address"
-    )
+    POSTGRES_USER: str = Field(default="postgres", description="PostgreSQL username")
+    POSTGRES_PASSWORD: str = Field(default="postgres1234", description="PostgreSQL password")
+    POSTGRES_HOST: str = Field(default="localhost", description="PostgreSQL host address")
     POSTGRES_PORT: int = Field(
-        default=5432,
-        ge=1,
-        le=65535,
-        description="PostgreSQL port number"
+        default=5432, ge=1, le=65535, description="PostgreSQL port number"
     )
     POSTGRES_DB: str = Field(
-        default="event_manager",
-        min_length=1,
-        description="PostgreSQL database name"
+        default="event_manager", min_length=1, description="PostgreSQL database name"
     )
 
     @field_validator("POSTGRES_PASSWORD")
@@ -51,17 +37,15 @@ class Settings(BaseSettings):
         if not v or len(v.strip()) == 0:
             raise ValueError("Database name cannot be empty")
         # PostgreSQL database names cannot contain certain characters
-        invalid_chars = [' ', '/', '\\', '\n', '\r', '\t']
+        invalid_chars = [" ", "/", "\\", "\n", "\r", "\t"]
         if any(char in v for char in invalid_chars):
-            raise ValueError(
-                f"Database name contains invalid characters: {invalid_chars}"
-            )
+            raise ValueError(f"Database name contains invalid characters: {invalid_chars}")
         return v.strip()
 
     @property
     def DATABASE_URL(self) -> str:
         """Construct the database URL from individual components.
-        
+
         Returns:
             str: PostgreSQL connection string for asyncpg
         """
@@ -75,7 +59,7 @@ class Settings(BaseSettings):
         env_file=str(Path(__file__).parent.parent.parent.parent / ".env"),
         env_file_encoding="utf-8",
         case_sensitive=True,
-        extra="ignore",         # Ignore extra fields from .env file
+        extra="ignore",  # Ignore extra fields from .env file
         validate_default=True,  # Validate default values
     )
 
