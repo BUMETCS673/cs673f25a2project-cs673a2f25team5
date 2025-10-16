@@ -1,3 +1,12 @@
+/*
+
+ AI-generated code:  100% (tool: Codex - GPT-5, Generated SVG icons, functions: EventAboutSection, EventMetadataGrid, InfoTile, renderIcon) 
+
+ Human code: 00% (functions: EventAboutSection, EventMetadataGrid, InfoTile, renderIcon) 
+
+ No framework-generated code.
+
+*/
 import type { EventAboutData, EventMetadataItem } from "./viewModel";
 
 type EventAboutSectionProps = EventAboutData;

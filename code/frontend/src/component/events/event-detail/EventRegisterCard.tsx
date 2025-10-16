@@ -1,3 +1,11 @@
+/*
+ AI-generated code:  0%) 
+
+ Human code: 100% (functions: EventRegisterCard, EventRegisterData) 
+
+ No framework-generated code.
+
+*/
 import type { EventRegisterData } from "./viewModel";
 
 type EventRegisterCardProps = EventRegisterData;
