@@ -162,7 +162,92 @@ cs673f25a2project-cs673a2f25team5/
 - **uv** (`pip install uv`) (Backend)
 - **Docker** (optional, for containerized runs)
 
-## Overall Quick Setup and Run - TODO
+## Overall Quick Setup and Run
+
+### Local Without Docker Containers
+
+Let's start by clarifying that when we mention without docker containers we mean that the frontend and backend won't be running in docker containers but that the database will be running in a docker container.
+
+1. Export the needed env variables to start the postgres instance to your environment
+```bash
+export POSTGRES_USER=test
+POSTGRES_PASSWORD=test1234
+POSTGRES_PORT=5432
+POSTGRES_HOST=localhost
+POSTGRES_DB=event_manager
+PGADMIN_DEFAULT_EMAIL=admin@example.com
+PGADMIN_DEFAULT_PASSWORD=adminpass
+```
+
+2. Start the postgres instance with the event_manager database (from the root dir)
+```bash
+docker compose -f db/db-docker-compose.yaml --env-file .env up -d --wait
+```
+
+3. Start the backend fastapi application (from the code/backend dir)
+```bash
+uv run uvicorn app.main:event_manager_app --reload
+```
+
+4. Start the frotend next.js application (from the code/frontend dir)
+```bash
+npm ci        # install dependencies
+npm run dev
+```
+
+5. 
+
+### Local With Docker Containers
+
+1. Export the needed env variables to start the postgres instance to your environment
+```bash
+export POSTGRES_USER=test
+POSTGRES_PASSWORD=test1234
+POSTGRES_PORT=5432
+POSTGRES_HOST=localhost
+POSTGRES_DB=event_manager
+PGADMIN_DEFAULT_EMAIL=admin@example.com
+PGADMIN_DEFAULT_PASSWORD=adminpass
+```
+
+2. Start the docker container with the postgres instance and event_manager database (from the root dir)
+```bash
+docker compose -f db/db-docker-compose.yaml --env-file .env up -d --wait
+```
+
+3. Build the latest version of your backend image (from the root dir)
+```bash
+docker build -f Dockerfile.backend -t event-manager-backend:latest .
+```
+
+4. Start the docker backend container which runs the fastapi application (from the root dir)
+```bash
+docker run -p 8000:8000 \
+  -e POSTGRES_HOST=host.docker.internal \
+  -e POSTGRES_USER=$POSTGRES_USER \
+  -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+  -e POSTGRES_DB=$POSTGRES_DB \
+  -e POSTGRES_PORT=$POSTGRES_PORT \
+  event-manager-backend:latest
+```
+
+5. Build the latest version of your frontend image (from the root dir)
+```bash
+docker build -f Dockerfile.frontend \
+  --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="<your_publishable_key>" \
+  -t event-manager-frontend:latest .
+```
+
+6. Start the docker frontend container which runs the next.js application (from the root dir)
+```bash
+docker run --rm -it -p 3000:3000 \
+  -e CLERK_SECRET_KEY="<your_secret_key>" \
+  -e CLERK_WEBHOOK_SIGNING_SECRET="<your_webhook_secret>" \
+  -e CLERK_JWKS_URL="<your_jwks_url>" \
+  -e BACKEND_URL="http://backend:8000" \
+  event-manager-frontend:latest
+```
+
 
 ## Frontend Setup
 
