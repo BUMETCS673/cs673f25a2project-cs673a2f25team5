@@ -189,13 +189,12 @@ docker compose -f db/db-docker-compose.yaml --env-file .env up -d --wait
 uv run uvicorn app.main:event_manager_app --reload
 ```
 
-4. Start the frotend next.js application (from the code/frontend dir)
+4. Start the frontend next.js application (from the code/frontend dir)
 ```bash
 npm ci        # install dependencies
 npm run dev
 ```
 
-5. 
 
 ### Local With Docker Containers
 
