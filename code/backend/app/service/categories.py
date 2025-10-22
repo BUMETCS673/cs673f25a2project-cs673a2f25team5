@@ -35,9 +35,9 @@ async def get_categories_service(
         raise HTTPException(status_code=400, detail="Invalid column name") from e
     except ValueError as e:
         # Database errors
-        logger.error(f"Database error while retrieving events: {str(e)}")
+        logger.error(f"Database error while retrieving categories: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error") from e
     except Exception as e:
         # Unexpected errors
-        logger.error(f"Unexpected error while retrieving events: {str(e)}")
+        logger.error(f"Unexpected error while retrieving categories: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error") from e
