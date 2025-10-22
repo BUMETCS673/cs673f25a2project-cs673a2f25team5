@@ -14,6 +14,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.db import db
 from app.routes import attendees as route_attendees
+from app.routes import categories as route_categories
 from app.routes import db as route_db
 from app.routes import events as route_events
 from app.routes import users as route_users
@@ -48,6 +49,7 @@ event_manager_app.add_middleware(
 
 # Include routers for different endpoints
 event_manager_app.include_router(route_attendees.router)
+event_manager_app.include_router(route_categories.router)
 event_manager_app.include_router(route_events.router)
 event_manager_app.include_router(route_users.router)
 

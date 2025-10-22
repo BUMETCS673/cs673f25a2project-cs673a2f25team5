@@ -10,13 +10,23 @@ import logging
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, MetaData, String, Table, Text, and_, select
+from sqlalchemy import (
+    Column,
+    MetaData,
+    String,
+    Table,
+    Text,
+    and_,
+    func,
+    select,
+)
 from sqlalchemy.dialects.postgresql import UUID as SQLAlchemyUUID
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.db.db import engine
 from app.db.filters import FilterOperation
+from app.models.categories import CategoryRead
 from app.models.exceptions import InvalidColumnError
 
 logger = logging.getLogger(__name__)
@@ -34,10 +44,12 @@ categories = Table(
 
 async def get_categories_db(
     filters: list[FilterOperation] | None = None,
+    offset: int = 0,
     limit: int = 100,
-) -> list[dict[str, Any]]:
+) -> tuple[list[CategoryRead], int]:
     try:
         query = select(categories)
+        count_query = select(func.count()).select_from(categories)
 
         if filters:
             conditions: list[ColumnElement[Any]] = []
@@ -67,13 +79,20 @@ async def get_categories_db(
             if conditions:
                 where_clause = and_(*conditions)
                 query = query.where(where_clause)
+                count_query = count_query.where(where_clause)
 
-        query = query.limit(limit)
+        # Add a stable ORDER BY to ensure deterministic paging
+        query = query.order_by(categories.c.category_id).offset(offset).limit(limit)
 
         async with engine.begin() as conn:
             result = await conn.execute(query)
             rows = result.mappings().all()
-            return [dict(row) for row in rows]
+            categories_list = [CategoryRead.model_validate(dict(row)) for row in rows]
+
+            count_result = await conn.scalar(count_query)
+            total_count = 0 if count_result is None else int(count_result)
+
+            return categories_list, total_count
 
     except InvalidColumnError:
         raise
