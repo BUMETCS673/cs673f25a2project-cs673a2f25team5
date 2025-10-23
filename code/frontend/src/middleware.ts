@@ -11,6 +11,9 @@ const isProtectedRoute = createRouteMatcher([
 const shouldBypassAuth = createRouteMatcher(["/api/webhooks/clerk(.*)"]);
 
 export default clerkMiddleware(async (auth, request) => {
+  if (process.env.NEXT_PUBLIC_E2E === "1") {
+    return NextResponse.next();
+  }
   if (shouldBypassAuth(request)) {
     return NextResponse.next();
   }

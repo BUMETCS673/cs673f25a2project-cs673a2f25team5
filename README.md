@@ -64,6 +64,8 @@ cs673f25a2project-cs673a2f25team5/
 │   │   ├── tox.ini                                   # tox environment definitions
 │   │   └── uv.lock                                   # uv overall definitions
 │   └── frontend/                                     # event manager frontend code
+│       ├── __mocks__/                                # static assets
+│       │    └── fileMock.js                          # file icon asset
 │       ├── public/                                   # static assets
 │       │   ├── file.svg                              # file icon asset
 │       │   ├── globe.svg                             # globe icon asset

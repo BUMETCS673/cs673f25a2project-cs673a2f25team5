@@ -20,6 +20,60 @@ export default async function EventPage({
 }) {
   const { id } = await params;
 
+  if (process.env.NEXT_PUBLIC_E2E === "1") {
+    // Minimal static model for E2E (no SSR network)
+    const event = {
+      event_id: id,
+      event_name: "E2E Event",
+      event_datetime: "2025-10-01T10:00:00Z",
+      event_endtime: "2025-10-01T12:00:00Z",
+      event_location: "Addis Ababa",
+      description: "Stubbed description",
+      picture_url: null,
+      capacity: 10,
+      price_field: 0,
+      user_id: "00000000-0000-0000-0000-000000000000",
+      category_id: "00000000-0000-0000-0000-000000000000",
+      created_at: "2025-09-01T00:00:00Z",
+      updated_at: "2025-09-01T00:00:00Z",
+    };
+    const viewModel = buildEventViewModel({
+      event,
+      host: null,
+      hostEvents: [],
+    });
+
+    return (
+      <main className="relative min-h-screen overflow-hidden bg-neutral-50/80 px-4 py-16 sm:px-6 lg:px-16 dark:bg-neutral-950">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-12">
+          <nav>
+            <Link
+              href="/events"
+              className="inline-flex items-center gap-2 text-sm font-medium"
+            >
+              Back to events
+            </Link>
+          </nav>
+          <article className="grid gap-12 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
+            <section className="space-y-8">
+              <EventDetailHeader {...viewModel.header} />
+              <EventPreviewComingSoon />
+              <EventAboutSection {...viewModel.about} />
+              <EventLocationMapCard location={event.event_location} />
+            </section>
+            <aside className="space-y-6">
+              <EventRegisterCard {...viewModel.register} />
+              <EventHostPanel
+                host={viewModel.hostCard}
+                relatedEvents={viewModel.relatedEvents}
+              />
+            </aside>
+          </article>
+        </div>
+      </main>
+    );
+  }
+
   let event;
   try {
     console.log(`event_id:eq:${id}`);
