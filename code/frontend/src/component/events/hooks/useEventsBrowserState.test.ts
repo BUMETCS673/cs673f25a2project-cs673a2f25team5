@@ -1,3 +1,11 @@
+/*
+AI-generated code: 100%
+
+Human code: 0%
+
+Framework-generated code: 0%
+
+*/
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useEventsBrowserState } from "./useEventsBrowserState";
 import type { EventListResponse } from "@/services/events";

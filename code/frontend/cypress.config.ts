@@ -1,3 +1,12 @@
+/*
+AI-generated code: 0%
+
+Human code: 10%
+
+Framework-generated code: 90%
+
+*/
+
 import { defineConfig } from "cypress";
 
 export default defineConfig({

@@ -1,3 +1,11 @@
+/*
+AI-generated code: 0%
+
+Human code: 100%
+
+Framework-generated code: 0%
+
+*/
 describe("Smoke test", () => {
   it("loads home and shows header links", () => {
     cy.visit("/");

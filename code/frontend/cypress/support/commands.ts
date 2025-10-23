@@ -1,3 +1,11 @@
+/*
+AI-generated code: 0%
+
+Human code: 0%
+
+Framework-generated code: 100%
+
+*/
 /// <reference types="cypress" />
 // ***********************************************
 // This example commands.ts shows you how to
