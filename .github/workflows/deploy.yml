@@ -1,0 +1,64 @@
+name: Deploy Kickaas App
+run-name: Deploy - ${{ github.event.head_commit.message }}
+
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Pull images and deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check required secrets
+        run: |
+          : "${{ secrets.EC2_HOST }}" || (echo "Missing EC2_HOST secret" && exit 1)
+          : "${{ secrets.EC2_USER }}" || (echo "Missing EC2_USER secret" && exit 1)
+          : "${{ secrets.SSH_PRIVATE_KEY }}" || (echo "Missing SSH_PRIVATE_KEY secret" && exit 1)
+          : "${{ secrets.DEPLOY_DIR }}" || (echo "Missing DEPLOY_DIR secret" && exit 1)
+          : "${{ secrets.DOCKER_USERNAME }}" || (echo "Missing DOCKER_USERNAME secret" && exit 1)
+          : "${{ secrets.DOCKER_ACCESS_TOKEN }}" || (echo "Missing DOCKER_ACCESS_TOKEN secret" && exit 1)
+        shell: bash
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup deployment environment on EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT || '22' }}
+          source: "cd/"
+          target: ${{ secrets.DEPLOY_DIR }}
+          strip_components: 1
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v0.1.12
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT || '22' }}
+          script: |
+            set -euo pipefail
+            chmod +x "${{ secrets.DEPLOY_DIR }}/deploy-kickaas.sh"
+            # Execute the script in the deploy dir so relative paths in the script behave consistently
+            cd "${{ secrets.DEPLOY_DIR }}"
+            ./deploy-kickaas.sh
+        env:
+          # Allow overriding tag at workflow runtime by setting repository secret IMAGE_TAG
+          # IMAGE_TAG (optional) else 'latest
+          IMAGE_TAG: ${{ secrets.IMAGE_TAG || 'latest' }}
+          # make BACKEND_IMAGE/FRONTEND_IMAGE and DEPLOY_DIR available in remote shell
+          BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/event-manager-backend
+          FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/event-manager-frontend
+          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
+          # export registry creds into remote env if available (used by docker login)
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
