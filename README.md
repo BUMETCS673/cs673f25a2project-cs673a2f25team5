@@ -307,7 +307,7 @@ shell) and mirror them into your CI secrets:
 
 - `npm run test` to run jest unit tests
 - `npm run test:watch` to watch the tests are they run
-- ` npm cypress:open` to open cypress Electron or chromium application
+- `npm cypress:open` to open cypress Electron or chromium application
 
 ---
 
