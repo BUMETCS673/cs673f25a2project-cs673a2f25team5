@@ -47,6 +47,7 @@ jobs:
       CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
       CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
       BACKEND_URL: ${{ secrets.BACKEND_URL }}
+      NEXT_PUBLIC_MAP_BOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAP_BOX_TOKEN }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -81,8 +82,10 @@ jobs:
       CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
       BACKEND_URL: ${{ secrets.BACKEND_URL }}
       CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      NEXT_PUBLIC_MAP_BOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAP_BOX_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Log in to DockerHub
         uses: docker/login-action@v3
@@ -99,7 +102,7 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/event-manager-frontend:latest
           build-args: |
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-
+            NEXT_PUBLIC_MAP_BOX_TOKEN=${{ secrets.NEXT_PUBLIC_MAP_BOX_TOKEN }}
   semgrep:
     name: Semgrep
     runs-on: ubuntu-latest
