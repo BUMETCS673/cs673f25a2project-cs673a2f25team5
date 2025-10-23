@@ -216,9 +216,13 @@ npm run dev
    assets embed the correct client-side configuration.
 
 ```bash
-docker build -f Dockerfile.frontend \
-  --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="<your_publishable_key>" \
-  -t event-manager-frontend:latest .
+docker run --rm -it -p 3000:3000 \
+  -e CLERK_SECRET_KEY="<your_secret_key>" \
+  -e CLERK_WEBHOOK_SIGNING_SECRET="<your_webhook_secret>" \
+  -e CLERK_JWKS_URL="<your_jwks_url>" \
+  -e BACKEND_URL="http://backend:8000" \
+  -e NEXT_PUBLIC_MAPBOX_TOKEN="<your_public_mapbox_token>" \
+  event-manager-frontend:latest
 ```
 
 2. Run docker container using the image that was just built
@@ -268,6 +272,8 @@ shell) and mirror them into your CI secrets:
   `.env.local` and replace the secret values with keys from your Clerk project
   before running the app. `.env.local` is git-ignored—keep real secrets out of the
   repository.
+- `NEXT_PUBLIC_MAPBOX_TOKEN` – public Mapbox access token used by map components.
+- `NEXT_PUBLIC_E2E` – set to "1" in CI/e2e to bypass route protection in `src/middleware.ts`.
 
 ---
 
