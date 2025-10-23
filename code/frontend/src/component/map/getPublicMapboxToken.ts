@@ -1,3 +1,3 @@
 export function getPublicMapboxToken(): string {
-  return process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
+  return process.env.NEXT_PUBLIC_MAP_BOX_TOKEN ?? "";
 }

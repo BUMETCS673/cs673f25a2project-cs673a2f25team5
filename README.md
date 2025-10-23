@@ -233,7 +233,7 @@ docker run --rm -it -p 3000:3000 \
   -e CLERK_WEBHOOK_SIGNING_SECRET="<your_webhook_secret>" \
   -e CLERK_JWKS_URL="<your_jwks_url>" \
   -e BACKEND_URL="http://backend:8000" \
-  -e NEXT_PUBLIC_MAPBOX_TOKEN="<your_public_mapbox_token>" \
+  -e NEXT_PUBLIC_MAP_BOX_TOKEN="<your_public_map_box_token>" \
   event-manager-frontend:latest
 ```
 
@@ -284,7 +284,7 @@ shell) and mirror them into your CI secrets:
   `.env.local` and replace the secret values with keys from your Clerk project
   before running the app. `.env.local` is git-ignored—keep real secrets out of the
   repository.
-- `NEXT_PUBLIC_MAPBOX_TOKEN` – public Mapbox access token used by map components.
+- `NEXT_PUBLIC_MAP_BOX_TOKEN` – public Mapbox access token used by map components.
 - `NEXT_PUBLIC_E2E` – set to "1" in CI/e2e to bypass route protection in `src/middleware.ts`.
 
 ---
