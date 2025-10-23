@@ -1,20 +1,24 @@
-# Database Design
+# Database Guide
+
+## Database Design
 
 The Event Manager application's backend leverages a relational database model implemented with PostgreSQL to ensure data integrity, scalability, and efficient query performance. The database schema is designed to support core functionalities such as user management, event creation, categorization, and attendee registration, while maintaining clear relationships and enforcing referential integrity through foreign key constraints.
 
 The design follows industry best practices for normalized relational schemas, enabling flexible querying, easy future extensibility, and robust transaction support. Database migrations and schema evolution are managed through SQL scripts and SQLAlchemy ORM definitions, ensuring consistency across development and production environments.
 
 
-## Entity Relationship Diagram (ERD)
+### Entity Relationship Diagram (ERD)
 
 The following ERD illustrates the primary tables and their relationships within the system:
 
 ![Database ERD Diagram](./../docs/Diagrams/Database%20ERD%20Diagram.png)
 
+---
 
-## Tables and Relationships
 
-### Users
+### Tables and Relationships
+
+#### Users
 
 The `Users` table stores all registered user profiles, capturing essential information such as name, email, date of birth, and profile attributes.
 
@@ -28,8 +32,10 @@ The `Users` table stores all registered user profiles, capturing essential infor
 
 Each user may create multiple events and register for any event as an attendee.
 
+---
 
-### Events
+
+#### Events
 
 The `Events` table records all planned events, linking each event to its creator (organizer) and its category.
 
@@ -44,8 +50,10 @@ The `Events` table records all planned events, linking each event to its creator
 
 Events are uniquely identified and connected to both their organizer and a category, supporting efficient filtering and search.
 
+---
 
-### EventAttendees
+
+#### EventAttendees
 
 The `EventAttendees` table tracks attendee registrations for each event, enabling RSVP functionality and capturing attendance status.
 
@@ -58,8 +66,10 @@ The `EventAttendees` table tracks attendee registrations for each event, enablin
 
 This junction table establishes a many-to-many relationship between users and events, allowing users to register for multiple events and events to have multiple attendees.
 
+---
 
-### Categories
+
+#### Categories
 
 The `Categories` table enables event categorization, supporting search and organization.
 
@@ -70,25 +80,31 @@ The `Categories` table enables event categorization, supporting search and organ
 
 Categories provide a way to group and filter events by type or theme.
 
+---
 
-## Referential Integrity and Constraints
+
+### Referential Integrity and Constraints
 
 - Foreign key constraints are enforced on `event_id`, `user_id`, and `category_id` fields to maintain data consistency.
 - Cascading rules ensure that deleting a user or event appropriately updates related records.
 - Unique constraints on primary keys and certain fields (e.g., `email`) prevent duplication.
 
+---
 
-## Design Considerations
+
+### Design Considerations
 
 - **Scalability**: UUIDs are used as primary keys for distributed scalability and uniqueness.
 - **Extensibility**: The schema allows for easy addition of new fields, such as event analytics, ticketing, or payment integration.
 
 The database design ensures reliable data storage and efficient access for all application features, while supporting future enhancements and integrations.
 
+---
 
-# Database Setup
 
-## Database Initialization Files
+## Database Setup
+
+### Database Initialization Files
 
 Database initialization and migrations are managed through SQL scripts located in the `db/init/` directory of the repository. These files are executed during the database setup process, typically as part of the Docker Compose workflow, ensuring all required extensions and tables are created with the proper schema.
 
