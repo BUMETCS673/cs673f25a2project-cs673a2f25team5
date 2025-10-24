@@ -1,4 +1,5 @@
 /*
+
  AI-generated code:  100% (tool: Codex - GPT-5, modified and adapted, functions: sortEventsByDate, PaginationState, EventsBrowserState, useEventsBrowserState, REMOTE_SEARCH_PAGE_SIZE) 
 
  Human code: 0% 
