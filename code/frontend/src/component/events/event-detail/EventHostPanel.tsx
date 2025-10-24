@@ -1,12 +1,13 @@
 /*
 
- AI-generated code:  20% (tool: Codex - GPT-5, HostCardData, RelatedEventItem, EventHostPanel, HostDetailsCard, hasRelatedEvents, relatedEvents, map, Link) 
+ AI-generated code: 20% (tool: Codex - GPT-5, HostCardData, RelatedEventItem, EventHostPanel, HostDetailsCard, hasRelatedEvents, relatedEvents, map, Link) 
 
  Human code: 72% (functions: EventHostPanel, HostDetailsCard, hasRelatedEvents, relatedEvents, map, Link) 
 
  Framework-generated code: 8% (tool: Next.js, framework: Next.js) 
 
 */
+
 import Link from "next/link";
 
 import type { HostCardData, RelatedEventItem } from "./viewModel";

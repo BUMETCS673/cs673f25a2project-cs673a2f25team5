@@ -1,12 +1,13 @@
 /*
 
- AI-generated code:  20% (tool: Codex - GPT-5, modified and adapted, functions: POST, verifyWebhook) 
+ AI-generated code: 20% (tool: Codex - GPT-5, modified and adapted, functions: POST, verifyWebhook) 
 
  Human code: 72% (functions: POST, verifyWebhook, clerkClient, NextRequest, NextResponse) 
 
  Framework-generated code: 8% (tool: Next.js, framework: Next.js) 
 
 */
+
 import { NextRequest, NextResponse } from "next/server";
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { clerkClient } from "@clerk/nextjs/server";

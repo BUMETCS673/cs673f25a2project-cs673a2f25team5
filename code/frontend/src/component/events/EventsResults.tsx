@@ -1,12 +1,13 @@
 /*
 
- AI-generated code:  80% (tool: Codex - GPT-5, events, hasQuery, trimmedQuery, shouldFetchRemoteSearch, showEmptyState, remoteError, baseError, isRemoteLoading, isBaseLoading, pagination, onPreviousPage, onNextPage, onRetryBase, onRetryRemote  ) 
+ AI-generated code: 80% (tool: Codex - GPT-5, events, hasQuery, trimmedQuery, shouldFetchRemoteSearch, showEmptyState, remoteError, baseError, isRemoteLoading, isBaseLoading, pagination, onPreviousPage, onNextPage, onRetryBase, onRetryRemote  ) 
  
  Human code: 20% (functions: EventsResults, EventsResultsProps) 
 
  No framework-generated code.
 
 */
+
 import type { EventResponse } from "@/services/events";
 
 import { EventCard } from "./EventCard";
