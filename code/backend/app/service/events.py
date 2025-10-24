@@ -32,10 +32,10 @@ async def get_events_service(
         return PaginatedEvents(items=events, total=total, offset=offset, limit=limit)
 
     except InvalidFilterFormatError as e:
-        logger.error(f"Invalid filter format: {str(e)}")
-        raise HTTPException(status_code=400, detail="Invalid filter format") from e
+        logger.error(f"Invalid filter_expression format: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid filter_expression format") from e
     except InvalidColumnError as e:
-        logger.error(f"Invalid column name in filter expression: {str(e)}")
+        logger.error(f"Invalid column name in filter_expression: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid column name") from e
     except ValueError as e:
         # Database errors

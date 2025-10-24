@@ -18,7 +18,7 @@ def test_parse_filter_invalid_format():
     """Test parsing a filter string with invalid format."""
     with pytest.raises(InvalidFilterFormatError) as exc_info:
         parse_filter("email:test")
-    assert "Invalid filter format" in str(exc_info.value)
+    assert "Invalid filter_expression format" in str(exc_info.value)
 
 
 def test_parse_filter_invalid_operator():
@@ -50,4 +50,4 @@ def test_parse_filter_general_error():
     # Test with an empty string value which should raise a general error
     with pytest.raises(InvalidFilterFormatError) as exc_info:
         parse_filter("")
-    assert "Invalid filter format" in str(exc_info.value)
+    assert "Invalid filter_expression format" in str(exc_info.value)

@@ -240,7 +240,7 @@ async def test_list_events_invalid_filter_format(test_client: AsyncClient):
     """Test that invalid filter format returns 400."""
     response = await test_client.get("/events", params={"filter_expression": "invalid_format"})
     assert response.status_code == 400
-    assert "filter format" in response.json()["detail"].lower()
+    assert "filter_expression format" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio

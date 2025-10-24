@@ -93,7 +93,7 @@ async def test_list_categories_invalid_filter_format(test_client: AsyncClient):
         "/categories", params={"filter_expression": "invalid_format"}
     )
     assert response.status_code == 400
-    assert "filter format" in response.json()["detail"].lower()
+    assert "filter_expression format" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio
@@ -103,7 +103,7 @@ async def test_list_categories_invalid_filter_no_colon(test_client: AsyncClient)
         "/categories", params={"filter_expression": "category_name_eq_Sports"}
     )
     assert response.status_code == 400
-    assert "filter format" in response.json()["detail"].lower()
+    assert "filter_expression format" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio
@@ -113,7 +113,7 @@ async def test_list_categories_invalid_filter_too_few_parts(test_client: AsyncCl
         "/categories", params={"filter_expression": "category_name:eq"}
     )
     assert response.status_code == 400
-    assert "filter format" in response.json()["detail"].lower()
+    assert "filter_expression format" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio

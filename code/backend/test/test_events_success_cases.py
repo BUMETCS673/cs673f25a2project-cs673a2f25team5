@@ -249,7 +249,9 @@ async def test_list_events_with_filter_eq(
 
     await test_client.post("/events", json=event.model_dump(mode="json"))
 
-    response = await test_client.get("/events", params={"filter": "event_name:eq:Party Event"})
+    response = await test_client.get(
+        "/events", params={"filter_expression": "event_name:eq:Party Event"}
+    )
     assert response.status_code == 200
 
     data = response.json()
@@ -280,7 +282,9 @@ async def test_list_events_with_filter_ilike(
 
     await test_client.post("/events", json=event.model_dump(mode="json"))
 
-    response = await test_client.get("/events", params={"filter": "event_name:ilike:party%"})
+    response = await test_client.get(
+        "/events", params={"filter_expression": "event_name:ilike:party%"}
+    )
     assert response.status_code == 200
 
     data = response.json()
@@ -305,7 +309,7 @@ async def test_delete_event_success(test_client: AsyncClient, valid_event_data: 
     assert data["event_name"] == valid_event_data.event_name
 
     list_response = await test_client.get(
-        "/events", params={"filter": f"event_id:eq:{event_id}"}
+        "/events", params={"filter_expression": f"event_id:eq:{event_id}"}
     )
     assert list_response.status_code == 200
     assert len(list_response.json()["items"]) == 0

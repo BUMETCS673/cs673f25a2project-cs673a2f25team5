@@ -32,12 +32,11 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of users to 
     summary="Get a paginated list of users",
     description=(
         "Get users with optional filters using the format `field:operator:value`. "
-        "Multiple filters can be combined using multiple filter parameters.\n\n"
+        "Multiple filters can be combined using multiple filter_expression parameters.\n\n"
         "Available operators: eq, neq, gt, gte, lt, lte, like, ilike\n\n"
         "Pagination is supported via offset and limit parameters.\n\n"
         "Examples:\n"
-        "- `/users?filter=email:eq:john@example.com`\n"
-        "- `/users?filter=created_at:gt:2023-01-01&filter=first_name:ilike:John%`\n"
+        "- `/users?filter_expression=email:eq:john@example.com`\n"
         "- `/users?offset=20&limit=10` (get third page of 10 users)"
     ),
     tags=["Users"],
@@ -49,8 +48,8 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of users to 
                 "application/json": {
                     "examples": {
                         "InvalidFilterFormat": {
-                            "summary": "Invalid filter format",
-                            "value": {"detail": "Invalid filter format"},
+                            "summary": "Invalid filter_expression format",
+                            "value": {"detail": "Invalid filter_expression format"},
                         },
                         "InvalidColumnName": {
                             "summary": "Invalid column name",
