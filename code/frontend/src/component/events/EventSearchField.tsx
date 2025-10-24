@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 0%
+
+ Human code: 100% (functions: EventSearchField, EventSearchFieldProps) 
+
+ No framework-generated code.
+
+*/
+
 type EventSearchFieldProps = {
   query: string;
   onQueryChange: (value: string) => void;

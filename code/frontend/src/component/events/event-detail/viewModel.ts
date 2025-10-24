@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 100% (tool: Codex - GPT-5, modified and adapted, functions: EventStatusTone, EventHeaderData, EventHeroMediaData, EventMetadataItem, EventAboutData, EventRegisterData, HostProfileTheme, HostCardData, RelatedEventItem, EventViewModel, BuildViewModelOptions, parseDate, formatLongDate, formatShortDateTime, formatShortDate, formatMetaLine, formatPrice, formatCapacity, getInitials, getDescriptionParagraphs, parseHexColor, mixRgb, rgbToCss, rgbaToCss, getRelativeLuminance, createHostProfileTheme, findEvent, longDateTimeFormatter, shortDateTimeFormatter, shortDateFormatter) 
+
+ Human code: 0% 
+ 
+ No framework-generated code.
+
+*/
+
 import type { CSSProperties } from "react";
 
 import type { EventResponse } from "@/services/events";

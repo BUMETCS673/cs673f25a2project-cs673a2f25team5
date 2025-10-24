@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 0%
+
+ Human code: 100% (functions: Page) 
+
+ No framework-generated code.
+
+*/
+
 import { BenefitsSection } from "@/component/landing/BenefitsSection";
 import { CallToActionSection } from "@/component/landing/CallToActionSection";
 import { DemoShowcaseSection } from "@/component/landing/DemoShowcaseSection";

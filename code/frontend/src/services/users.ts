@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 100% (tool: Codex - GPT-5, UserSchema, UserResponse, UserListSchema, UserListResponse, getUser) 
+
+ Human code: 0%
+
+ No framework-generated code.
+
+*/
+
 import { z } from "zod";
 
 import { API_BASE_URL } from "./config";
@@ -25,7 +35,7 @@ const UserListSchema = z.object({
 export async function getUser(id: string): Promise<UserResponse> {
   const userId = z.string().uuid().parse(id);
   const url = new URL("/users", API_BASE_URL);
-  url.searchParams.append("filter", `user_id:eq:${userId}`);
+  url.searchParams.append("filter_expression", `user_id:eq:${userId}`);
   url.searchParams.set("limit", "1");
 
   const response = await fetch(url.toString(), {

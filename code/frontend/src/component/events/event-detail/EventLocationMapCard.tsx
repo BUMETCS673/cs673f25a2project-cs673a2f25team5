@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 50% (tool: Codex - GPT-5, Coordinates, EventLocationMapCardProps, GeocodeFeature, GeocodeResponse, getPublicMapboxToken, React, Map) 
+
+ Human code: 50% (functions: EventLocationMapCard, Coordinates, EventLocationMapCardProps, GeocodeFeature, GeocodeResponse, getPublicMapboxToken, React, Map) 
+
+ No framework-generated code.
+
+*/
+
 "use client";
 
 import { getPublicMapboxToken } from "@/component/map/getPublicMapboxToken";
