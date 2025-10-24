@@ -32,12 +32,11 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of events to
     summary="Get a paginated list of events",
     description=(
         "Get events with optional filters using the format `field:operator:value`. "
-        "Multiple filters can be combined using multiple filter parameters.\n\n"
+        "Multiple filters can be combined using multiple filter_expression parameters.\n\n"
         "Available operators: eq, neq, gt, gte, lt, lte, like, ilike\n\n"
         "Pagination is supported via offset and limit parameters.\n\n"
         "Examples:\n"
-        "- `/events?filter=event_name:ilike:Party%`\n"
-        "- `/events?filter=event_datetime:gt:2024-01-01&filter=capacity:gte:50`\n"
+        "- `/events?filter_expression=event_name:ilike:Party%`\n"
         "- `/events?offset=20&limit=10` (get third page of 10 events)"
     ),
     tags=["Events"],
@@ -49,8 +48,8 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of events to
                 "application/json": {
                     "examples": {
                         "InvalidFilterFormat": {
-                            "summary": "Invalid filter format",
-                            "value": {"detail": "Invalid filter format"},
+                            "summary": "Invalid filter_expression format",
+                            "value": {"detail": "Invalid filter_expression format"},
                         },
                         "InvalidColumnName": {
                             "summary": "Invalid column name",

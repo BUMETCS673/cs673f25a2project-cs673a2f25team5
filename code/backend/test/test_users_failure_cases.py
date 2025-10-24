@@ -135,15 +135,15 @@ async def test_get_users_invalid_filter_format(test_client: AsyncClient):
     """Test getting users with invalid filter_expression format."""
     response = await test_client.get("/users", params={"filter_expression": "email"})
     assert response.status_code == 400
-    assert "invalid filter format" in response.json()["detail"].lower()
+    assert "invalid filter_expression format" in response.json()["detail"].lower()
 
     response = await test_client.get("/users", params={"filter_expression": "email:eq"})
     assert response.status_code == 400
-    assert "invalid filter format" in response.json()["detail"].lower()
+    assert "invalid filter_expression format" in response.json()["detail"].lower()
 
     response = await test_client.get("/users", params={"filter_expression": ""})
     assert response.status_code == 400
-    assert "invalid filter format" in response.json()["detail"].lower()
+    assert "invalid filter_expression format" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio
@@ -153,7 +153,7 @@ async def test_get_users_invalid_filter_operator(test_client: AsyncClient):
         "/users", params={"filter_expression": "email:invalid:test@example.com"}
     )
     assert response.status_code == 400
-    assert "invalid filter format" in response.json()["detail"].lower()
+    assert "invalid filter_expression format" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio

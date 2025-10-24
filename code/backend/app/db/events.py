@@ -69,7 +69,7 @@ async def get_events_db(
             for f in filters:
                 column = getattr(events.c, f.field, None)
                 if column is None:
-                    logger.error(f"Invalid filter field: {f.field}")
+                    logger.error(f"Invalid filter_expression field: {f.field}")
                     raise InvalidColumnError(f"Invalid column name: {f.field}")
 
                 if f.op == "=":
