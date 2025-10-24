@@ -229,11 +229,11 @@ npm run dev
 # Database Configuration
 POSTGRES_USER="<your_postgres_username>"
 POSTGRES_PASSWORD="<your_postgres_password>"
+POSTGRES_HOST="host.docker.internal"                        # use this host to allow the backend container to access the database running on the host machine
 POSTGRES_PORT="<your_postgres_port>"
-POSTGRES_HOST="host.docker.internal"                        # must be this host since there is a separate docker container running the postgres instance
 POSTGRES_DB="<your_database_name>"
 
-# Clerck Configuration
+# Clerk Configuration
 CLERK_SECRET_KEY="<your_secret_key>"
 CLERK_WEBHOOK_SIGNING_SECRET="<your_webhook_secret>"
 CLERK_JWKS_URL="<your_jwks_url>"
