@@ -1,12 +1,13 @@
 /*
 
- AI-generated code:  30% (tool: Codex - GPT-5, dateFormatter, formatDateRange) 
+ AI-generated code: 30% (tool: Codex - GPT-5, dateFormatter, formatDateRange) 
 
  Human code: 70% (functions: dateFormatter, formatDateRange, EventCard, EventCardProps) 
 
  No framework-generated code.
 
 */
+
 import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
 

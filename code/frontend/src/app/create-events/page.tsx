@@ -1,12 +1,13 @@
 /*
 
- AI-generated code:  0%
+ AI-generated code: 0%
 
  Human code: 100% (functions: CreateEventsPage) 
 
  No framework-generated code.
 
 */
+
 import { CreateEventForm } from "@/component/events/CreateEventForm";
 export default async function CreateEventsPage() {
   return (

@@ -1,6 +1,6 @@
 /*
 
- AI-generated code:  63% (tool: Codex - GPT-5, modified and adapted, functions: createEmptyFormValues, inputClass, labelClass, CreateEventForm, SubmissionState, createEmptyFormValues, updateField, handleSubmit, mapboxToken) 
+ AI-generated code: 63% (tool: Codex - GPT-5, modified and adapted, functions: createEmptyFormValues, inputClass, labelClass, CreateEventForm, SubmissionState, createEmptyFormValues, updateField, handleSubmit, mapboxToken) 
   EventFormSchema,
   buildEventCreatePayload,
   type EventFormInput,
@@ -15,6 +15,7 @@
  No framework-generated code.
 
 */
+
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";

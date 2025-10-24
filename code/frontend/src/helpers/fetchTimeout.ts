@@ -1,12 +1,13 @@
 /*
 
- AI-generated code:  0% 
+ AI-generated code: 0% 
 
  Human code: 100% (functions: fetchWithTimeout, FETCH_TIMEOUT_MS) 
 
  No framework-generated code.
 
 */
+
 const FETCH_TIMEOUT_MS = 5_000;
 
 export async function fetchWithTimeout(
