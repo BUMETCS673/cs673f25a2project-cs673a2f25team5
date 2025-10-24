@@ -1,17 +1,18 @@
 """
-AI-generated code: 0%
+AI-generated code: 10%
 
-Human code: 100%
+Human code: 90%
 
 Framework-generated code: 0%
 """
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
+from app.auth import get_current_user
 from app.db import db
 from app.routes import attendees as route_attendees
 from app.routes import categories as route_categories
@@ -35,6 +36,9 @@ event_manager_app = FastAPI(
     description="Track, plan, and manage events",
     version="0.1.0",
     lifespan=lifespan,
+    # Apply authentication globally to all routes
+    # This ensures every endpoint requires a valid Google OAuth token
+    dependencies=[Depends(get_current_user)],
 )
 
 event_manager_app.add_middleware(
@@ -53,10 +57,20 @@ event_manager_app.include_router(route_categories.router)
 event_manager_app.include_router(route_events.router)
 event_manager_app.include_router(route_users.router)
 
-# Health check endpoint
-event_manager_app.include_router(route_db.router)
-
-# Setup Prometheus instrumentation
-instrumentator.instrument(event_manager_app).expose(
-    event_manager_app, include_in_schema=True, tags=["Monitor"]
+# Create a separate app for public routes (no authentication required)
+public_app = FastAPI(
+    title="Event Manager Public API",
+    description="Public endpoints that don't require authentication",
+    version="0.1.0",
 )
+
+# Health check endpoint (public - no authentication)
+public_app.include_router(route_db.router)
+
+# Setup Prometheus instrumentation (public - no authentication)
+instrumentator.instrument(public_app).expose(
+    public_app, include_in_schema=False, tags=["Monitor"]
+)
+
+# Mount the public app at the root (it will handle public routes first)
+event_manager_app.mount("/", public_app)

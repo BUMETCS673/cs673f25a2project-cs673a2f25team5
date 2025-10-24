@@ -6,6 +6,8 @@ jsonpatch
 prometheus_fastapi_instrumentator
 pydantic
 pydantic-settings
+pyjwt
+requests
 sqlalchemy
 uv
 uvicorn
