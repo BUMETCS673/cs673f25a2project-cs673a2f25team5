@@ -1,4 +1,5 @@
 /*
+
  AI-generated code:  100% (tool: Codex - GPT-5, modified and adapted, functions: Coordinates, EventLocationPickerMapProps, DEFAULT_CENTER, DEFAULT_ZOOM, EventLocationPickerMap, mapboxStyles) 
 
  Human code: 0% 
