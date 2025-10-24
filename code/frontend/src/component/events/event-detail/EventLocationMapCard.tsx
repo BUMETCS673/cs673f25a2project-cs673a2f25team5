@@ -1,6 +1,5 @@
 "use client";
 
-import { getPublicMapboxToken } from "@/component/map/getPublicMapboxToken";
 import * as React from "react";
 import Map from "react-map-gl/mapbox";
 
@@ -24,7 +23,7 @@ type GeocodeResponse = {
 };
 
 export function EventLocationMapCard({ location }: EventLocationMapCardProps) {
-  const mapboxToken = getPublicMapboxToken();
+  const mapboxToken = process.env.NEXT_PUBLIC_MAP_BOX_TOKEN;
 
   const [coordinates, setCoordinates] = React.useState<Coordinates | null>(
     null,
