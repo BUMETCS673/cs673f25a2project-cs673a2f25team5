@@ -1,6 +1,6 @@
 services:
   backend:
-    image: javi99est/event-manager-backend:latest
+    image: ${DOCKER_USERNAME}/event-manager-backend:${IMAGE_TAG}
     container_name: event-manager-backend-prod
     restart: unless-stopped
     ports:
@@ -13,6 +13,9 @@ services:
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_DB: ${POSTGRES_DB}
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      # Google OAuth configuration
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_OAUTH_ENABLED: ${GOOGLE_OAUTH_ENABLED}
       # Other environment variables
       ENVIRONMENT: production
       LOG_LEVEL: info
@@ -26,26 +29,24 @@ services:
       start_period: 40s
 
   frontend:
-    image: javi99est/event-manager-frontend:latest
+    image: ${DOCKER_USERNAME}/event-manager-frontend:${IMAGE_TAG}
     container_name: event-manager-frontend-prod
     restart: unless-stopped
     ports:
       - "3000"
     environment:
       # Backend API URL (internal docker network)
-      BACKEND_URL: http://backend:8000
+      BACKEND_URL: ${BACKEND_URL}
       # Clerk configuration
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
       CLERK_WEBHOOK_SIGNING_SECRET: ${CLERK_WEBHOOK_SIGNING_SECRET}
+      CLERK_JWKS_URL: ${CLERK_JWKS_URL}
+      NEXT_PUBLIC_MAP_BOX_TOKEN: ${NEXT_PUBLIC_MAP_BOX_TOKEN}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       # Other environment variables
       NODE_ENV: production
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
     depends_on:
       backend:
         condition: service_healthy
@@ -58,7 +59,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
     networks:
       - app-network
