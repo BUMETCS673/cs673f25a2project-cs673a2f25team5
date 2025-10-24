@@ -13,6 +13,18 @@ jobs:
     name: Pull images and deploy to EC2
     runs-on: ubuntu-latest
 
+    env:
+      # Allow overriding tag at workflow runtime by setting repository secret IMAGE_TAG
+      # IMAGE_TAG (optional) else 'latest'
+      IMAGE_TAG: ${{ secrets.IMAGE_TAG || 'latest' }}
+      # make BACKEND_IMAGE/FRONTEND_IMAGE and DEPLOY_DIR available in remote shell
+      BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/event-manager-backend
+      FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/event-manager-frontend
+      DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
+      # export registry creds into remote env if available (used by docker login)
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
     steps:
       - name: Check required secrets
         run: |
@@ -39,7 +51,7 @@ jobs:
           strip_components: 1
 
       - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@v0.1.12
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
@@ -51,14 +63,3 @@ jobs:
             # Execute the script in the deploy dir so relative paths in the script behave consistently
             cd "${{ secrets.DEPLOY_DIR }}"
             ./deploy-kickaas.sh
-        env:
-          # Allow overriding tag at workflow runtime by setting repository secret IMAGE_TAG
-          # IMAGE_TAG (optional) else 'latest
-          IMAGE_TAG: ${{ secrets.IMAGE_TAG || 'latest' }}
-          # make BACKEND_IMAGE/FRONTEND_IMAGE and DEPLOY_DIR available in remote shell
-          BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/event-manager-backend
-          FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/event-manager-frontend
-          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
-          # export registry creds into remote env if available (used by docker login)
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}

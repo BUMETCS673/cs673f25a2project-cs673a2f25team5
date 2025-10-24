@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 # Remote deploy script to be copied to the EC2 host and executed there.
 # Expects the following env vars to be present (set by the GitHub Action):
