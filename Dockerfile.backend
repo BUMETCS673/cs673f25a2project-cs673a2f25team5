@@ -6,7 +6,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /code/backend
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential gcc \
+    build-essential gcc curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY code/backend/requirements.txt .
