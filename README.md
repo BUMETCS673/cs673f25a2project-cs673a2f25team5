@@ -228,13 +228,7 @@ npm run dev
    assets embed the correct client-side configuration.
 
 ```bash
-docker run --rm -it -p 3000:3000 \
-  -e CLERK_SECRET_KEY="<your_secret_key>" \
-  -e CLERK_WEBHOOK_SIGNING_SECRET="<your_webhook_secret>" \
-  -e CLERK_JWKS_URL="<your_jwks_url>" \
-  -e BACKEND_URL="http://backend:8000" \
-  -e NEXT_PUBLIC_MAP_BOX_TOKEN="<your_public_map_box_token>" \
-  event-manager-frontend:latest
+docker build -f Dockerfile.frontend -t event-manager-frontend:latest .
 ```
 
 2. Run docker container using the image that was just built
