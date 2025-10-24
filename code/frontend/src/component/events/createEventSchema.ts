@@ -1,6 +1,6 @@
 /*
 
- AI-generated code:  100% (tool: Codex - GPT-5, trimmedString, parseDateTime, EventFormSchema, EventFormInput, EventFormData, buildEventCreatePayload) 
+ AI-generated code:  88% (tool: Codex - GPT-5, trimmedString, parseDateTime, EventFormSchema, EventFormInput, EventFormData, buildEventCreatePayload) 
 
  Human code: 12% (functions: trimmedString, parseDateTime, EventFormSchema) 
 

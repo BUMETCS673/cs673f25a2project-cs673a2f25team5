@@ -13,7 +13,7 @@
  Human code: 37% (functions: createEmptyFormValues, inputClass, labelClass, CreateEventForm, SubmissionState, createEmptyFormValues, updateField, handleSubmit, mapboxToken) 
 
  No framework-generated code.
- 
+
 */
 "use client";
 
@@ -248,7 +248,7 @@ export function CreateEventForm() {
             />
           </label>
 
-          <div className="space-y-4 bg-red-400">
+          <div className="space-y-4">
             <EventLocationPickerMap
               mapboxToken={mapboxToken}
               coordinates={selectedCoordinates}
