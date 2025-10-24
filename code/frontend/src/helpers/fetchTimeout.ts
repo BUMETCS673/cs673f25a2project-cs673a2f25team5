@@ -1,5 +1,7 @@
 /*
+
  AI-generated code:  0% 
+ 
  Human code:100% (functions: fetchWithTimeout, FETCH_TIMEOUT_MS) 
 
  No framework-generated code.

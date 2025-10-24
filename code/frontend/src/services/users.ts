@@ -1,5 +1,7 @@
 /*
+
  AI-generated code:  100% (tool: Codex - GPT-5, UserSchema, UserResponse, UserListSchema, UserListResponse, getUser) 
+ 
  Human code: 0%
 
  No framework-generated code.

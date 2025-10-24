@@ -1,6 +1,10 @@
 /*
+
  AI-generated code:  40% (tool: Codex - GPT-5, rangeStart, rangeEnd, totalCount, currentPage, totalPages, disablePrevious, disableNext, onPrevious, onNext  ) 
+ 
  Human code: 60% (functions: EventsPaginationBanner) 
+
+ No framework-generated code.
 
 */
 type EventsPaginationBannerProps = {
