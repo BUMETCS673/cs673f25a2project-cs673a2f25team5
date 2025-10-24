@@ -1,5 +1,7 @@
 /*
+
  AI-generated code:  0%
+ 
  Human code: 100% (functions: getPublicMapboxToken) 
 
  No framework-generated code.

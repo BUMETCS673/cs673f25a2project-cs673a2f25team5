@@ -1,6 +1,6 @@
 /*
 
- AI-generated code:  0%) 
+ AI-generated code:  0%
 
  Human code: 8% (functions: RootLayout, metadata, ClerkProvider, Geist, Geist_Mono, globals.css, Header) 
 

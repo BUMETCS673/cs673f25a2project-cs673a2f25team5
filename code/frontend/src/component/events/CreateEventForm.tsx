@@ -1,4 +1,5 @@
 /*
+
  AI-generated code:  63% (tool: Codex - GPT-5, modified and adapted, functions: createEmptyFormValues, inputClass, labelClass, CreateEventForm, SubmissionState, createEmptyFormValues, updateField, handleSubmit, mapboxToken) 
   EventFormSchema,
   buildEventCreatePayload,
@@ -7,10 +8,12 @@
   useUser,
   redirect,
   EventLocationPickerMap,
-  getPublicMapboxToken,
+  getPublicMapboxToken
+
  Human code: 37% (functions: createEmptyFormValues, inputClass, labelClass, CreateEventForm, SubmissionState, createEmptyFormValues, updateField, handleSubmit, mapboxToken) 
 
  No framework-generated code.
+ 
 */
 "use client";
 

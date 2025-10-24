@@ -1,5 +1,6 @@
 /*
- AI-generated code:  0%) 
+
+ AI-generated code:  0%
 
  Human code: 100% (functions: EventRegisterCard, EventRegisterData) 
 

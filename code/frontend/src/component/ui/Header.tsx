@@ -1,7 +1,11 @@
 /*
+
  AI-generated code:  0%
+
  Human code: 0%
+
 framework-generated code: 100% (functions: Disclosure, DisclosureButton, DisclosurePanel, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, Link, usePathname, FaBars, FaTimes) from tailwindcss/ui
+
 */
 "use client";
 import {

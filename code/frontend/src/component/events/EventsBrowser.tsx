@@ -1,5 +1,7 @@
 /*
+
  AI-generated code:  65% (tool: Codex - GPT-5, query, setQuery, trimmedQuery, hasQuery, shouldFetchRemoteSearch, eventsToRender, isRemoteLoading, isBaseLoading, baseError, remoteError, showEmptyState, pagination, handlePreviousPage, handleNextPage, handleBaseRetry, handleRemoteRetry, useEventsBrowserState, initialResult) 
+ 
  Human code: 35% (functions: EventsBrowser, EventsBrowserProps, useEventsBrowserState) 
 
  No framework-generated code.
