@@ -7,6 +7,7 @@ Framework-generated code: 0%
 """
 
 import logging
+import time
 from typing import Annotated, Any
 
 import jwt
@@ -21,6 +22,10 @@ logger = logging.getLogger(__name__)
 
 # Security scheme for Bearer token
 security = HTTPBearer(auto_error=False)
+
+# Google public keys cache
+_google_keys_cache: dict[str, Any] = {}
+_google_keys_cache_expiry: float = 0
 
 
 class GoogleTokenPayload:
@@ -38,6 +43,72 @@ class GoogleTokenPayload:
         self.aud: str = payload.get("aud", "")
 
 
+async def get_google_public_keys() -> dict[str, Any]:
+    """
+    Fetch Google's public keys with caching.
+
+    Google's public keys change infrequently (every 24-48 hours typically).
+    We cache them for 1 hour by default, but respect the max-age from
+    Google's cache-control header if provided.
+
+    Returns:
+        dict: Google's public keys in JWK format
+
+    Raises:
+        requests.RequestException: If unable to fetch keys
+    """
+    global _google_keys_cache, _google_keys_cache_expiry
+
+    current_time = time.time()
+
+    # Check if we have valid cached keys
+    if _google_keys_cache and current_time < _google_keys_cache_expiry:
+        logger.debug("Using cached Google public keys")
+        return _google_keys_cache
+
+    logger.debug("Fetching fresh Google public keys")
+
+    # Fetch fresh keys from Google
+    response = requests.get("https://www.googleapis.com/oauth2/v3/certs", timeout=10)
+    response.raise_for_status()
+    google_keys = response.json()
+
+    # Determine cache TTL from Google's response headers
+    cache_ttl = 3600  # Default: 1 hour
+
+    cache_control = response.headers.get("cache-control", "")
+    if "max-age=" in cache_control:
+        try:
+            # Extract max-age value from cache-control header
+            max_age_str = cache_control.split("max-age=")[1].split(",")[0].strip()
+            google_max_age = int(max_age_str)
+            # Use Google's max-age but cap at 24 hours for safety
+            cache_ttl = min(google_max_age, 24 * 3600)
+            logger.debug(f"Using Google's cache TTL: {cache_ttl} seconds")
+        except (ValueError, IndexError):
+            logger.warning("Failed to parse max-age from cache-control, using default TTL")
+
+    # Update cache
+    _google_keys_cache = google_keys
+    _google_keys_cache_expiry = current_time + cache_ttl
+
+    logger.info(f"Cached Google public keys for {cache_ttl} seconds")
+    return google_keys
+
+
+def clear_google_keys_cache() -> None:
+    """
+    Clear the Google public keys cache.
+
+    This can be useful for testing or if you want to force
+    a fresh fetch of the keys.
+    """
+    global _google_keys_cache, _google_keys_cache_expiry
+    _google_keys_cache.clear()
+    _google_keys_cache_expiry = 0
+    logger.info("Google public keys cache cleared")
+
+
 async def verify_google_token(token: str) -> GoogleTokenPayload:
     """
     Verify a Google OAuth token and return the user information.
@@ -52,10 +123,8 @@ async def verify_google_token(token: str) -> GoogleTokenPayload:
         HTTPException: If token is invalid or verification fails
     """
     try:
-        # Get Google's public keys for token verification
-        response = requests.get("https://www.googleapis.com/oauth2/v3/certs", timeout=5)
-        response.raise_for_status()
-        google_keys = response.json()
+        # Get Google's public keys (cached)
+        google_keys = await get_google_public_keys()
 
         # Decode the token header to get the key ID (kid)
         unverified_header = jwt.get_unverified_header(token)
@@ -69,14 +138,14 @@ async def verify_google_token(token: str) -> GoogleTokenPayload:
             )
 
         # Find the public key that matches the token's key ID
-        public_key = None
+        jwk_key = None
         for key in google_keys["keys"]:
             if key["kid"] == kid:
-                # Convert the JWK to PEM format for PyJWT
-                public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key)
+                # Use PyJWT's PyJWK class for proper JWK handling
+                jwk_key = jwt.PyJWK(key)
                 break
 
-        if not public_key:
+        if not jwk_key:
             logger.error(f"Unable to find public key for kid: {kid}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -87,7 +156,7 @@ async def verify_google_token(token: str) -> GoogleTokenPayload:
         # PyJWT will validate signature, expiration, audience, and issuer
         payload = jwt.decode(
             token,
-            public_key,
+            jwk_key.key,
             algorithms=["RS256"],
             audience=settings.GOOGLE_CLIENT_ID,
             issuer="https://accounts.google.com",

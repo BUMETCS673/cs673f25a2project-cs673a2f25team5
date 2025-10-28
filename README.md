@@ -549,14 +549,16 @@ If you have your frontend running with Google OAuth:
 3. **Go to the Console tab**
 4. **Get the token**:
    ```javascript
-   // If using Clerk
-   await window.Clerk.session.getToken()
-   
-   // If using direct Google OAuth
-   // The token is usually in localStorage or sessionStorage
-   localStorage.getItem('token')
-   // or
-   sessionStorage.getItem('token')
+    // The backend expects a Google OAuth ID token (JWT).
+    // If you are using direct Google OAuth, retrieve the token as follows:
+    // The token is usually in localStorage or sessionStorage
+    localStorage.getItem('token')
+    // or
+    sessionStorage.getItem('token')
+    // 
+    // If you are using Clerk, note: Clerk tokens are NOT supported by the backend unless explicitly configured.
+    await window.Clerk.session.getToken()
+   // Use Google OAuth and ensure you provide a Google-issued ID token.
    ```
 5. **Copy the token** from the console output
 6. **Test with curl**:
