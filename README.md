@@ -162,7 +162,127 @@ cs673f25a2project-cs673a2f25team5/
 - **uv** (`pip install uv`) (Backend)
 - **Docker** (optional, for containerized runs)
 
-## Overall Quick Setup and Run - TODO
+## Overall Quick Setup and Run
+
+### Local Without Docker Containers
+
+Let's start by clarifying that when we mention without docker containers we mean that the frontend and backend won't be running in docker containers but that the database will be running in a docker container.
+
+1. Create an env file with the following env vars:
+```bash
+# Database Configuration
+POSTGRES_USER="<your_postgres_username>"
+POSTGRES_PASSWORD="<your_postgres_password>"
+POSTGRES_PORT="<your_postgres_port>"
+POSTGRES_HOST=localhost
+POSTGRES_DB="<your_database_name>"
+
+# Clerk Configuration
+CLERK_SECRET_KEY="<your_secret_key>"
+CLERK_WEBHOOK_SIGNING_SECRET="<your_webhook_secret>"
+CLERK_JWKS_URL="<your_jwks_url>"
+NEXT_PUBLIC_MAP_BOX_TOKEN="<your_publishable_token>"
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="<your_publishable_key>"
+
+# Docker Configuration
+DOCKER_USERNAME=javi99est
+BACKEND_URL="http://127.0.0.1:8000"
+
+# Google OAuth Configuration
+# Get your Client ID from: https://console.cloud.google.com/apis/credentials
+GOOGLE_CLIENT_ID="<your_google_client_id>"
+# Enable/disable OAuth verification
+GOOGLE_OAUTH_ENABLED=false
+
+# Miscellaneous
+IMAGE_TAG=latest
+```
+
+2. Export the env vars in the env file:
+```bash
+export $(grep -v '^#' .env | xargs)
+```
+
+3. Start the postgres instance with the event_manager database (from the root dir)
+```bash
+docker compose -f db/db-docker-compose.yaml --env-file .env up -d --wait
+```
+
+4. Start the backend fastapi application (from the code/backend dir)
+```bash
+uv run uvicorn app.main:event_manager_app --reload
+```
+
+5. Start the frontend next.js application (from the code/frontend dir)
+```bash
+npm ci        # install dependencies
+npm run dev
+```
+
+---
+
+
+### Local With Docker Containers
+
+1. Create an env file with the following env vars:
+```bash
+# Database Configuration
+POSTGRES_USER="<your_postgres_username>"
+POSTGRES_PASSWORD="<your_postgres_password>"
+POSTGRES_HOST="host.docker.internal"                        # use this host to allow the backend container to access the database running on the host machine
+POSTGRES_PORT="<your_postgres_port>"
+POSTGRES_DB="<your_database_name>"
+
+# Clerk Configuration
+CLERK_SECRET_KEY="<your_secret_key>"
+CLERK_WEBHOOK_SIGNING_SECRET="<your_webhook_secret>"
+CLERK_JWKS_URL="<your_jwks_url>"
+NEXT_PUBLIC_MAP_BOX_TOKEN="<your_publishable_token>"
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="<your_publishable_key>"
+
+# Docker Configuration
+DOCKER_USERNAME=javi99est
+IMAGE_TAG=latest
+
+# Google OAuth Configuration
+# Get your Client ID from: https://console.cloud.google.com/apis/credentials
+GOOGLE_CLIENT_ID="<your_google_client_id>"
+# Enable/disable OAuth verification
+GOOGLE_OAUTH_ENABLED=false
+
+# Miscellaneous
+BACKEND_URL="http://backend:8000"
+```
+
+2. Export the env vars in the env file:
+```bash
+export $(grep -v '^#' .env | xargs)
+```
+
+3. Start the docker container with the postgres instance and event_manager database (from the root dir)
+```bash
+docker compose -f db/db-docker-compose.yaml --env-file .env up -d --wait
+```
+
+4. Build the latest version of your backend image (from the root dir)
+```bash
+docker build -f Dockerfile.backend -t $DOCKER_USERNAME/event-manager-backend:$IMAGE_TAG .
+```
+
+5. Build the latest version of your frontend image (from the root dir)
+```bash
+docker build -f Dockerfile.frontend \
+  --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
+  -t $DOCKER_USERNAME/event-manager-frontend:$IMAGE_TAG .
+```
+
+6. Start the docker frontend and backend containers
+```bash
+docker compose -f docker-compose.dev.yaml up -d
+```
+
+---
+
 
 ## Frontend Setup
 
