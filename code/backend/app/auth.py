@@ -10,8 +10,8 @@ import logging
 import time
 from typing import Annotated, Any
 
+import httpx
 import jwt
-import requests
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt.exceptions import InvalidTokenError
@@ -61,21 +61,18 @@ async def get_google_public_keys() -> dict[str, Any]:
 
     current_time = time.time()
 
-    # Check if we have valid cached keys
     if _google_keys_cache and current_time < _google_keys_cache_expiry:
         logger.debug("Using cached Google public keys")
         return _google_keys_cache
 
     logger.debug("Fetching fresh Google public keys")
 
-    # Fetch fresh keys from Google
-    response = requests.get("https://www.googleapis.com/oauth2/v3/certs", timeout=10)
-    response.raise_for_status()
-    google_keys = response.json()
+    async with httpx.AsyncClient() as client:
+        response = await client.get("https://www.googleapis.com/oauth2/v3/certs", timeout=10)
+        response.raise_for_status()
+        google_keys = response.json()
 
-    # Determine cache TTL from Google's response headers
-    cache_ttl = 3600  # Default: 1 hour
-
+    cache_ttl = 3600
     cache_control = response.headers.get("cache-control", "")
     if "max-age=" in cache_control:
         try:
@@ -184,9 +181,8 @@ async def verify_google_token(token: str) -> GoogleTokenPayload:
         logger.error(f"JWT verification failed: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
         ) from e
-    except requests.RequestException as e:
+    except httpx.HTTPError as e:
         logger.error(f"Failed to fetch Google public keys: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
