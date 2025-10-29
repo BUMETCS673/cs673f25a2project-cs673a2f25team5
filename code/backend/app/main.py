@@ -68,7 +68,7 @@ public_app = FastAPI(
 public_app.include_router(route_db.router)
 
 # Setup Prometheus instrumentation (public - no authentication)
-instrumentator.instrument(public_app).expose(
+instrumentator.instrument(event_manager_app).expose(
     public_app, include_in_schema=False, tags=["Monitor"]
 )
 
