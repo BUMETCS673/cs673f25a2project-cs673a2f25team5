@@ -122,8 +122,6 @@ async def patch_users_service(request: PatchRequest) -> dict[UUID, UserRead]:
 
     except HTTPException:
         raise
-    except ValidateFieldError:
-        raise
     except UnsupportedPatchOperationError as e:
         logger.error(f"Unsupported patch operation: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e)) from e
@@ -136,6 +134,9 @@ async def patch_users_service(request: PatchRequest) -> dict[UUID, UserRead]:
     except NotFoundError as e:
         logger.error(f"User not found during batch update: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e)) from e
+    except ValidateFieldError as e:
+        logger.error(f"Field validation error during batch update: {str(e)}")
+        raise HTTPException(status_code=422, detail=str(e)) from e
     except ValidationError as e:
         logger.error(f"Validation error during batch update: {str(e)}")
         raise HTTPException(status_code=422, detail=str(e)) from e
