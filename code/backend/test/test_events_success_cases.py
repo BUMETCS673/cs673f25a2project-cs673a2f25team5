@@ -10,6 +10,7 @@ import os
 import tempfile
 from collections.abc import AsyncGenerator, Generator
 from datetime import UTC, date, datetime, timedelta
+from typing import Any
 from uuid import UUID
 
 import pytest
@@ -290,6 +291,204 @@ async def test_list_events_with_filter_ilike(
     data = response.json()
     assert len(data["items"]) == 1
     assert data["items"][0]["event_name"] == "Party Event"
+
+
+@pytest.mark.asyncio
+async def test_patch_event_single_field_name(
+    test_client: AsyncClient, valid_event_data: EventCreate
+):
+    """Test patching a single event field - event_name."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    patch_data = {
+        "patch": {
+            event_id: {"op": "replace", "path": "/event_name", "value": "Updated Event Name"}
+        }
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert event_id in data
+    assert data[event_id]["event_name"] == "Updated Event Name"
+    assert data[event_id]["event_location"] == valid_event_data.event_location
+
+
+@pytest.mark.asyncio
+async def test_patch_event_single_field_location(
+    test_client: AsyncClient, valid_event_data: EventCreate
+):
+    """Test patching a single event field - event_location."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    patch_data = {
+        "patch": {
+            event_id: {
+                "op": "replace",
+                "path": "/event_location",
+                "value": "Updated Event Location",
+            }
+        }
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data[event_id]["event_location"] == "Updated Event Location"
+    assert data[event_id]["event_name"] == valid_event_data.event_name  # Unchanged
+
+
+@pytest.mark.asyncio
+async def test_patch_event_description(
+    test_client: AsyncClient, valid_event_data: EventCreate
+):
+    """Test patching event description."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    patch_data = {
+        "patch": {
+            event_id: {
+                "op": "replace",
+                "path": "/description",
+                "value": "This is an updated event description",
+            }
+        }
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data[event_id]["description"] == "This is an updated event description"
+
+
+@pytest.mark.asyncio
+async def test_patch_event_capacity_and_price(
+    test_client: AsyncClient, valid_event_data: EventCreate
+):
+    """Test patching event capacity and price field."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    patch_data: dict[str, Any] = {
+        "patch": {event_id: {"op": "replace", "path": "/capacity", "value": 500}}
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data[event_id]["capacity"] == 500
+
+    patch_data: dict[str, Any] = {
+        "patch": {event_id: {"op": "replace", "path": "/price_field", "value": 76}}
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data[event_id]["price_field"] == 76
+
+
+@pytest.mark.asyncio
+async def test_patch_event_dates(test_client: AsyncClient, valid_event_data: EventCreate):
+    """Test patching event dates."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    new_start_date = datetime.now(UTC) + timedelta(days=14)
+    new_end_date = new_start_date + timedelta(hours=3)
+
+    patch_data = {
+        "patch": {
+            event_id: {
+                "op": "replace",
+                "path": "/event_endtime",
+                "value": new_end_date.isoformat(),
+            }
+        }
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 200
+
+    patch_data = {
+        "patch": {
+            event_id: {
+                "op": "replace",
+                "path": "/event_datetime",
+                "value": new_start_date.isoformat(),
+            }
+        }
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 200
+
+    data = response.json()
+    returned_start = datetime.fromisoformat(data[event_id]["event_datetime"])
+    returned_end = datetime.fromisoformat(data[event_id]["event_endtime"])
+
+    if returned_start.tzinfo is None:
+        expected_start = new_start_date.replace(tzinfo=None)
+        expected_end = new_end_date.replace(tzinfo=None)
+    else:
+        expected_start = new_start_date
+        expected_end = new_end_date
+
+    assert returned_start == expected_start
+    assert returned_end == expected_end
+
+
+@pytest.mark.asyncio
+async def test_patch_multiple_events(test_client: AsyncClient, valid_event_data: EventCreate):
+    """Test patching multiple events in a single request."""
+    event1_data = valid_event_data.model_copy()
+    event1_data.event_name = "Event 1"
+    event1_data.capacity = 100
+
+    event2_data = valid_event_data.model_copy()
+    event2_data.event_name = "Event 2"
+    event2_data.capacity = 200
+
+    response1 = await test_client.post("/events", json=event1_data.model_dump(mode="json"))
+    response2 = await test_client.post("/events", json=event2_data.model_dump(mode="json"))
+    assert response1.status_code == 201
+    assert response2.status_code == 201
+
+    event1 = response1.json()
+    event2 = response2.json()
+
+    patch_data: dict[str, Any] = {
+        "patch": {
+            event1["event_id"]: {"op": "replace", "path": "/capacity", "value": 150},
+            event2["event_id"]: {"op": "replace", "path": "/capacity", "value": 250},
+        }
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert len(data) == 2
+    assert data[event1["event_id"]]["capacity"] == 150
+    assert data[event2["event_id"]]["capacity"] == 250
 
 
 @pytest.mark.asyncio

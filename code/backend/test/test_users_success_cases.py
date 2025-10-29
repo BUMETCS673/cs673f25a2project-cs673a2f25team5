@@ -10,6 +10,7 @@ import os
 import tempfile
 from collections.abc import AsyncGenerator, Generator
 from datetime import date, datetime
+from typing import Any
 
 import pytest
 import pytest_asyncio
@@ -168,6 +169,121 @@ async def test_get_users_pagination(test_client: AsyncClient, valid_user_data: U
     assert data["total"] == 5
     assert data["offset"] == 1
     assert data["limit"] == 2
+
+
+@pytest.mark.asyncio
+async def test_patch_user_single_field_first_name(
+    test_client: AsyncClient, valid_user_data: UserCreate
+):
+    """Test patching a single user field - first_name."""
+    response = await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    user = response.json()
+    user_id = user["user_id"]
+
+    patch_data = {
+        "patch": {user_id: {"op": "replace", "path": "/first_name", "value": "Jane"}}
+    }
+
+    response = await test_client.patch("/users", json=patch_data)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert user_id in data
+    assert data[user_id]["first_name"] == "Jane"
+    assert data[user_id]["last_name"] == valid_user_data.last_name
+    assert data[user_id]["email"] == valid_user_data.email
+
+
+@pytest.mark.asyncio
+async def test_patch_user_single_field_email(
+    test_client: AsyncClient, valid_user_data: UserCreate
+):
+    """Test patching a single user field - email."""
+    response = await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    user = response.json()
+    user_id = user["user_id"]
+
+    patch_data = {
+        "patch": {
+            user_id: {"op": "replace", "path": "/email", "value": "jane.doe@example.com"}
+        }
+    }
+
+    response = await test_client.patch("/users", json=patch_data)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert user_id in data
+    assert data[user_id]["email"] == "jane.doe@example.com"
+    assert data[user_id]["first_name"] == valid_user_data.first_name
+
+
+@pytest.mark.asyncio
+async def test_patch_user_color_to_none(test_client: AsyncClient, valid_user_data: UserCreate):
+    """Test patching user color to None."""
+    user_data_with_color = valid_user_data.model_copy()
+    user_data_with_color.color = "blue"
+
+    response = await test_client.post(
+        "/users", json=user_data_with_color.model_dump(mode="json")
+    )
+    assert response.status_code == 201
+    user = response.json()
+    user_id = user["user_id"]
+
+    patch_data: dict[str, Any] = {
+        "patch": {user_id: {"op": "replace", "path": "/color", "value": None}}
+    }
+
+    response = await test_client.patch("/users", json=patch_data)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data[user_id]["color"] is None
+
+
+@pytest.mark.asyncio
+async def test_patch_multiple_users(test_client: AsyncClient):
+    """Test patching multiple users in a single request."""
+    user1_data = UserCreate(
+        first_name="User1",
+        last_name="Test",
+        email="user1@example.com",
+        date_of_birth=date(1990, 1, 1),
+        color="red",
+    )
+    user2_data = UserCreate(
+        first_name="User2",
+        last_name="Test",
+        email="user2@example.com",
+        date_of_birth=date(1991, 1, 1),
+        color="green",
+    )
+
+    response1 = await test_client.post("/users", json=user1_data.model_dump(mode="json"))
+    response2 = await test_client.post("/users", json=user2_data.model_dump(mode="json"))
+    assert response1.status_code == 201
+    assert response2.status_code == 201
+
+    user1 = response1.json()
+    user2 = response2.json()
+
+    patch_data = {
+        "patch": {
+            user1["user_id"]: {"op": "replace", "path": "/color", "value": "purple"},
+            user2["user_id"]: {"op": "replace", "path": "/color", "value": "orange"},
+        }
+    }
+
+    response = await test_client.patch("/users", json=patch_data)
+    assert response.status_code == 200
+
+    data = response.json()
+    assert len(data) == 2
+    assert data[user1["user_id"]]["color"] == "purple"
+    assert data[user2["user_id"]]["color"] == "orange"
 
 
 @pytest.mark.asyncio
