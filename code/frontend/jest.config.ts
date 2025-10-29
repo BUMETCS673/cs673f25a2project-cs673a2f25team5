@@ -1,4 +1,5 @@
 /*
+
 AI-generated code: 0%
 
 Human code: 0%
@@ -6,6 +7,7 @@ Human code: 0%
 Framework-generated code: 100%
 
 */
+
 import type { Config } from "jest";
 import nextJest from "next/jest.js";
 

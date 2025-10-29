@@ -1,4 +1,5 @@
 /*
+
 AI-generated code: 100%
 
 Human code: 0%
@@ -6,6 +7,7 @@ Human code: 0%
 Framework-generated code: 0%
 
 */
+
 import { renderHook, act } from "@testing-library/react";
 import { useEventsBrowserState } from "./hooks/useEventsBrowserState";
 import * as eventsSvc from "@/services/events";

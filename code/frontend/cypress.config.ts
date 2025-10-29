@@ -1,4 +1,5 @@
 /*
+
 AI-generated code: 0%
 
 Human code: 10%
@@ -19,6 +20,13 @@ export default defineConfig({
     },
     setupNodeEvents(on, config) {
       // implement node event listeners here
+      on("task", {
+        log(message) {
+          console.log(message);
+          return null;
+        },
+      });
+      return config;
     },
   },
 });
