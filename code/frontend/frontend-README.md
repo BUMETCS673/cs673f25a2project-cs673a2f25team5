@@ -139,3 +139,15 @@ Guidelines:
 - **Environment**: The frontend lives under `code/frontend`. Use `npm` for dependency management.
 - **Assets**: Add static assets under `public/`; import with `/` URLs inside components.
 - **State**: Prefer React state/hooks. Introduce data libraries (TanStack Query, Zustand) only after alignment with the team.
+
+## Environment variables
+
+Set in `code/frontend/.env.local` for local dev and as repo secrets for CI:
+
+- NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+- CLERK_SECRET_KEY
+- CLERK_JWKS_URL
+- CLERK_WEBHOOK_SIGNING_SECRET
+- BACKEND_URL
+- NEXT_PUBLIC_MAP_BOX_TOKEN
+- NEXT_PUBLIC_E2E (optional; set to "1" to bypass auth in tests)
