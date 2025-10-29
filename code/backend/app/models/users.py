@@ -68,12 +68,16 @@ class UserBase(BaseModel):
 
     @classmethod
     async def validate_email_uniqueness(cls, email: str, user_id: UUID | None = None) -> None:
-        """Business logic validation - check email uniqueness."""
+        """
+        Business logic validation - check email uniqueness.
+        When user_id is provided, excludes that user from the uniqueness check (for updates).
+        """
         import app.db.users as users_db
         from app.db.filters import FilterOperation
 
+        normalized_email = email.strip().lower()
         existing_users, _ = await users_db.get_users_db(
-            [FilterOperation("email", "eq", email)], limit=1
+            [FilterOperation("email", "eq", normalized_email)], limit=1
         )
         if user_id:
             existing_users = [user for user in existing_users if user.user_id != user_id]

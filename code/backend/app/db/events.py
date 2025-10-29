@@ -182,7 +182,7 @@ async def batch_update_events_db(updates: dict[UUID, dict[str, Any]]) -> dict[UU
 
                 if update_result.rowcount != 1:
                     logger.error(
-                        f"Failed to update event {event_id}: {update_result.rowcount}"
+                        f"Failed to update event {event_id}: {update_result.rowcount} "
                         "rows affected"
                     )
                     raise ValueError(
