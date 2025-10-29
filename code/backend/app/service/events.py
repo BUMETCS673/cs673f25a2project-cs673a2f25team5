@@ -32,10 +32,10 @@ async def get_events_service(
         return PaginatedEvents(items=events, total=total, offset=offset, limit=limit)
 
     except InvalidFilterFormatError as e:
-        logger.error(f"Invalid filter format: {str(e)}")
-        raise HTTPException(status_code=400, detail="Invalid filter format") from e
+        logger.error(f"Invalid filter_expression format: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid filter_expression format") from e
     except InvalidColumnError as e:
-        logger.error(f"Invalid column name in filter expression: {str(e)}")
+        logger.error(f"Invalid column name in filter_expression: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid column name") from e
     except ValueError as e:
         # Database errors
@@ -56,7 +56,7 @@ async def create_event_service(event: EventCreate) -> EventRead:
             logger.warning(f"User with user_id '{event.user_id}' does not exist.")
             raise HTTPException(status_code=404, detail="No such user exists")
 
-        existing_categories = await categories_db.get_categories_db(
+        existing_categories, _ = await categories_db.get_categories_db(
             [FilterOperation("category_id", "eq", event.category_id)], limit=1
         )
         if not existing_categories:

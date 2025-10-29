@@ -1,3 +1,13 @@
+/*  
+
+ AI-generated code: 100% (tool: Codex - GPT-5, :global(.mapboxgl-ctrl-top-left), :global(.mapboxgl-ctrl-geocoder), :global(.mapboxgl-ctrl-geocoder:hover), :global(.mapboxgl-ctrl-geocoder:focus-within), :global(.mapboxgl-ctrl-geocoder--input), :global(.mapboxgl-ctrl-geocoder--icon), :global(.mapboxgl-ctrl-geocoder .mapboxgl-ctrl-geocoder--button), :global(.mapboxgl-ctrl-geocoder .mapboxgl-ctrl-geocoder--button:hover), :global(.mapboxgl-ctrl-geocoder .suggestions-wrapper), :global(.mapboxgl-ctrl-geocoder--suggestion-title), :global(.mapboxgl-ctrl-geocoder--suggestion-address), :global(.mapboxgl-ctrl-geocoder--suggestion), :global(.mapboxgl-ctrl-geocoder--suggestion.mapboxgl-ctrl-geocoder--suggestion-active), :global(.mapboxgl-ctrl-bottom-right .mapboxgl-ctrl), :global(.mapboxgl-ctrl-bottom-right button), .mapFullHeight, .mapCard, :global(.mapboxgl-map), :global(.mapboxgl-marker svg)) 
+ 
+ Human code: 0%
+
+ No framework-generated code.
+
+*/
+
 :global(.mapboxgl-ctrl-top-left) {
   padding: 1rem;
 }

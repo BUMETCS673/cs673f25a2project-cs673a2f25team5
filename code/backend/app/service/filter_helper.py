@@ -19,7 +19,7 @@ def parse_filter(filter_str: str) -> FilterOperation:
     parts = filter_str.split(":")
     if len(parts) != 3:
         raise InvalidFilterFormatError(
-            "Invalid filter format. Expected format: field:operator:value"
+            "Invalid filter_expression format. Expected format: field:operator:value"
         )
 
     field, op, value = parts

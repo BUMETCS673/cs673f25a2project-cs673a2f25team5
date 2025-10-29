@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 20% (tool: Codex - GPT-5, modified and adapted, functions: POST, verifyWebhook) 
+
+ Human code: 72% (functions: POST, verifyWebhook, clerkClient, NextRequest, NextResponse) 
+
+ Framework-generated code: 8% (tool: Next.js, framework: Next.js) 
+
+*/
+
 import { NextRequest, NextResponse } from "next/server";
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
 import { clerkClient } from "@clerk/nextjs/server";
@@ -29,8 +39,8 @@ export async function POST(req: NextRequest) {
     first_name: user.first_name || "Unknown",
     last_name: user.last_name || "Unknown",
     email: email || "unknown@example.com",
-    date_of_birth: "2000-01-01", // Default or replace with actual DOB field if available
-    color: "blue", // Optional placeholder or map from metadata if present
+    date_of_birth: "2000-01-01",
+    color: "blue",
   };
 
   console.log("[Webhook] Sending payload to backend:", payload);
