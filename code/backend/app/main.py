@@ -8,11 +8,13 @@ Framework-generated code: 0%
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.db import db
+from app.models.exceptions import ValidateFieldError
 from app.routes import attendees as route_attendees
 from app.routes import categories as route_categories
 from app.routes import db as route_db
@@ -36,6 +38,16 @@ event_manager_app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+
+# Exception handlers for custom validation errors
+@event_manager_app.exception_handler(ValidateFieldError)
+async def validate_field_error_handler(request: Request, exc: ValidateFieldError):
+    """Handle custom validation field errors and return 422 status."""
+    return JSONResponse(
+        status_code=422, content={"detail": [{"type": "value_error", "msg": str(exc)}]}
+    )
+
 
 event_manager_app.add_middleware(
     CORSMiddleware,

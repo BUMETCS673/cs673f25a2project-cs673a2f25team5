@@ -10,13 +10,23 @@ import logging
 from uuid import UUID
 
 from fastapi import HTTPException
+from pydantic import ValidationError
 
 import app.db.categories as categories_db
 import app.db.events as events_db
 import app.db.users as users_db
 from app.db.filters import FilterOperation
-from app.models.events import EventCreate, EventRead, PaginatedEvents
-from app.models.exceptions import InvalidColumnError, InvalidFilterFormatError, NotFoundError
+from app.models.events import EventBase, EventCreate, EventRead, PaginatedEvents
+from app.models.exceptions import (
+    DuplicateResourceError,
+    InvalidColumnError,
+    InvalidFilterFormatError,
+    InvalidPathError,
+    NotFoundError,
+    UnsupportedPatchOperationError,
+    ValidateFieldError,
+)
+from app.models.patch import PatchRequest
 from app.service.filter_helper import parse_filter
 
 logger = logging.getLogger(__name__)
@@ -113,4 +123,44 @@ async def delete_event_service(event_id: UUID) -> EventRead:
     except Exception as e:
         # Unexpected errors
         logger.error(f"Unexpected error while deleting event: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
+
+
+async def patch_events_service(request: PatchRequest) -> dict[UUID, EventRead]:
+    try:
+        validated_updates = await EventBase.validate_patch_operations(request.patch)
+
+        result = await events_db.batch_update_events_db(validated_updates)
+
+        logger.info(f"Successfully updated {len(result)} events in batch operation")
+        return result
+
+    except HTTPException:
+        raise
+    except ValidateFieldError:
+        raise
+    except UnsupportedPatchOperationError as e:
+        logger.error(f"Unsupported patch operation: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except DuplicateResourceError as e:
+        logger.error(f"Duplicate resource error during batch update: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except InvalidPathError as e:
+        logger.error(f"Invalid path in patch operation: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except NotFoundError as e:
+        logger.error(f"Event not found during batch update: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except ValidationError as e:
+        logger.error(f"Validation error during batch update: {str(e)}")
+        raise HTTPException(status_code=422, detail=str(e)) from e
+    except ValueError as e:
+        # Database errors from the db layer
+        logger.error(f"Database error during batch update: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Failed to update events: Database error"
+        ) from e
+    except Exception as e:
+        # Unexpected errors
+        logger.error(f"Unexpected error in patch_events_service: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error") from e
