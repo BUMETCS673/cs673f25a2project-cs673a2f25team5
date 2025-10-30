@@ -99,7 +99,7 @@ async def test_create_user_duplicate_email(
 
     response = await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
     assert response.status_code == 400
-    assert "email already exists" in response.json()["detail"].lower()
+    assert "is already in use" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio
@@ -153,7 +153,7 @@ async def test_get_users_invalid_filter_operator(test_client: AsyncClient):
         "/users", params={"filter_expression": "email:invalid:test@example.com"}
     )
     assert response.status_code == 400
-    assert "invalid filter_expression format" in response.json()["detail"].lower()
+    assert "invalid operator" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio
@@ -179,6 +179,160 @@ async def test_get_users_invalid_pagination(test_client: AsyncClient):
     assert response.status_code == 422
 
     response = await test_client.get("/users", params={"offset": "invalid"})
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_patch_user_nonexistent_id(test_client: AsyncClient):
+    """Test patching a non-existent user."""
+    fake_uuid = "12345678-1234-4321-1234-123456789012"
+    patch_data = {
+        "patch": {fake_uuid: {"op": "replace", "path": "/first_name", "value": "Jane"}}
+    }
+
+    response = await test_client.patch("/users", json=patch_data)
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_patch_user_invalid_field_path(
+    test_client: AsyncClient, valid_user_data: UserCreate
+):
+    """Test patching with invalid field path."""
+    response = await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    user = response.json()
+    user_id = user["user_id"]
+
+    patch_data = {
+        "patch": {user_id: {"op": "replace", "path": "/invalid_field", "value": "some_value"}}
+    }
+
+    response = await test_client.patch("/users", json=patch_data)
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_patch_user_invalid_email_format(
+    test_client: AsyncClient, valid_user_data: UserCreate
+):
+    """Test patching with invalid email format."""
+    response = await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    user = response.json()
+    user_id = user["user_id"]
+
+    patch_data = {
+        "patch": {
+            user_id: {"op": "replace", "path": "/email", "value": "invalid-email-format"}
+        }
+    }
+
+    response = await test_client.patch("/users", json=patch_data)
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_patch_user_duplicate_email(test_client: AsyncClient):
+    """Test patching with an email that already exists."""
+    user1_data = UserCreate(
+        first_name="User1",
+        last_name="Test",
+        email="user1@example.com",
+        date_of_birth=date(1990, 1, 1),
+        color=None,
+    )
+    user2_data = UserCreate(
+        first_name="User2",
+        last_name="Test",
+        email="user2@example.com",
+        date_of_birth=date(1991, 1, 1),
+        color=None,
+    )
+
+    response1 = await test_client.post("/users", json=user1_data.model_dump(mode="json"))
+    response2 = await test_client.post("/users", json=user2_data.model_dump(mode="json"))
+    assert response1.status_code == 201
+    assert response2.status_code == 201
+
+    user2 = response2.json()
+
+    patch_data = {
+        "patch": {
+            user2["user_id"]: {"op": "replace", "path": "/email", "value": "user1@example.com"}
+        }
+    }
+
+    response = await test_client.patch("/users", json=patch_data)
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_patch_user_invalid_date_format(
+    test_client: AsyncClient, valid_user_data: UserCreate
+):
+    """Test patching with invalid date format."""
+    response = await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    user = response.json()
+    user_id = user["user_id"]
+
+    patch_data = {
+        "patch": {
+            user_id: {"op": "replace", "path": "/date_of_birth", "value": "invalid-date"}
+        }
+    }
+
+    response = await test_client.patch("/users", json=patch_data)
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_patch_user_empty_first_name(
+    test_client: AsyncClient, valid_user_data: UserCreate
+):
+    """Test patching with empty first name."""
+    response = await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    user = response.json()
+    user_id = user["user_id"]
+
+    patch_data = {"patch": {user_id: {"op": "replace", "path": "/first_name", "value": ""}}}
+
+    response = await test_client.patch("/users", json=patch_data)
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_patch_user_invalid_operation(
+    test_client: AsyncClient, valid_user_data: UserCreate
+):
+    """Test patching with unsupported operation."""
+    response = await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    user = response.json()
+    user_id = user["user_id"]
+
+    patch_data = {"patch": {user_id: {"op": "add", "path": "/first_name", "value": "Jane"}}}
+
+    response = await test_client.patch("/users", json=patch_data)
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_patch_user_malformed_patch_data(test_client: AsyncClient):
+    """Test patching with malformed patch data."""
+    patch_data = {
+        "patch": {
+            "some-id": {
+                "path": "/first_name",
+                "value": "Jane",
+                # Missing "op" field
+            }
+        }
+    }
+
+    response = await test_client.patch("/users", json=patch_data)
     assert response.status_code == 422
 
 

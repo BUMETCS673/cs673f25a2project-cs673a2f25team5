@@ -293,6 +293,203 @@ async def test_list_events_limit_exceeds_maximum(test_client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_patch_event_nonexistent_id(test_client: AsyncClient):
+    """Test patching a non-existent event."""
+    fake_uuid = "12345678-1234-4321-1234-123456789012"
+    patch_data = {
+        "patch": {fake_uuid: {"op": "replace", "path": "/event_name", "value": "Updated Name"}}
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_patch_event_invalid_field_path(
+    test_client: AsyncClient, valid_event_data: EventCreate
+):
+    """Test patching with invalid field path."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    patch_data = {
+        "patch": {event_id: {"op": "replace", "path": "/invalid_field", "value": "some_value"}}
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_patch_event_invalid_user_id(
+    test_client: AsyncClient, valid_event_data: EventCreate
+):
+    """Test patching with non-existent user_id."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    fake_user_uuid = "12345678-1234-4321-1234-123456789012"
+    patch_data = {
+        "patch": {event_id: {"op": "replace", "path": "/user_id", "value": fake_user_uuid}}
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_patch_event_invalid_category_id(
+    test_client: AsyncClient, valid_event_data: EventCreate
+):
+    """Test patching with non-existent category_id."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    fake_category_id = "12345678-1234-4321-1234-123456789012"
+    patch_data = {
+        "patch": {
+            event_id: {"op": "replace", "path": "/category_id", "value": fake_category_id}
+        }
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_patch_event_invalid_date_format(
+    test_client: AsyncClient, valid_event_data: EventCreate
+):
+    """Test patching with invalid date format."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    patch_data = {
+        "patch": {
+            event_id: {"op": "replace", "path": "/start_date", "value": "invalid-date-format"}
+        }
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_patch_event_negative_capacity(
+    test_client: AsyncClient, valid_event_data: EventCreate
+):
+    """Test patching with negative capacity."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    patch_data: dict[str, Any] = {
+        "patch": {event_id: {"op": "replace", "path": "/capacity", "value": -10}}
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_patch_event_negative_price(
+    test_client: AsyncClient, valid_event_data: EventCreate
+):
+    """Test patching with negative price."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    patch_data: dict[str, Any] = {
+        "patch": {event_id: {"op": "replace", "path": "/price_field", "value": -5.99}}
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_patch_event_empty_name(test_client: AsyncClient, valid_event_data: EventCreate):
+    """Test patching with empty event name."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    patch_data = {"patch": {event_id: {"op": "replace", "path": "/event_name", "value": ""}}}
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_patch_event_end_date_before_start_date(
+    test_client: AsyncClient, valid_event_data: EventCreate
+):
+    """Test patching with end date before start date."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    past_date = datetime.now(UTC) - timedelta(days=1)
+
+    patch_data = {
+        "patch": {
+            event_id: {"op": "replace", "path": "/end_date", "value": past_date.isoformat()}
+        }
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_patch_event_invalid_operation(
+    test_client: AsyncClient, valid_event_data: EventCreate
+):
+    """Test patching with unsupported operation."""
+    response = await test_client.post("/events", json=valid_event_data.model_dump(mode="json"))
+    assert response.status_code == 201
+    event = response.json()
+    event_id = event["event_id"]
+
+    patch_data = {
+        "patch": {event_id: {"op": "add", "path": "/event_name", "value": "New Name"}}
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_patch_event_malformed_patch_data(test_client: AsyncClient):
+    """Test patching with malformed patch data."""
+    patch_data = {
+        "patch": {
+            "some-id": {
+                "path": "/event_name",
+                "value": "New Name",
+                # Missing "op" field
+            }
+        }
+    }
+
+    response = await test_client.patch("/events", json=patch_data)
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
 async def test_delete_nonexistent_event(test_client: AsyncClient):
     """Test deleting a non-existent event returns 404."""
     non_existent_id = uuid4()
