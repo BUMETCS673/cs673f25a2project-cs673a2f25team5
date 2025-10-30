@@ -378,44 +378,7 @@ The frontend Dockerfile uses Next.js output: "standalone" to copy only the minim
 
 ---
 
-### Authentication Setup (Clerk)
-
-#### Required environment variables
-
-Set the following values in `code/frontend/.env.local` (or export them in your
-shell) and mirror them into your CI secrets:
-
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` – public key for rendering Clerk widgets.
-- `CLERK_SECRET_KEY` – backend API key used by Next.js server components and the
-  webhook handler.
-- `CLERK_JWKS_URL` – JWKS endpoint for token validation (Clerk dashboard → API
-  Keys).
-- `CLERK_WEBHOOK_SIGNING_SECRET` – secret provided when you create the webhook
-  endpoint inside Clerk.
-- `BACKEND_URL` – base URL for the FastAPI service that receives user sync
-  requests.
-  `code/frontend/.env` contains local development defaults. Copy it to
-  `.env.local` and replace the secret values with keys from your Clerk project
-  before running the app. `.env.local` is git-ignored—keep real secrets out of the
-  repository.
-- `NEXT_PUBLIC_MAP_BOX_TOKEN` – public Mapbox access token used by map components.
-- `NEXT_PUBLIC_E2E` – set to "1" in CI/e2e to bypass route protection in `src/middleware.ts`.
-
----
-
-#### Webhook flow
-
-- Clerk sends `user.created` events to `POST /api/webhooks/clerk`.
-- The handler verifies the signature with `verifyWebhook` using
-  `CLERK_WEBHOOK_SIGNING_SECRET` and logs errors for invalid payloads.
-- Valid events trigger a POST to `${BACKEND_URL}/create-user/` with the user's
-  name and primary email to keep the backend in sync.
-- Ensure your FastAPI service exposes this endpoint; the webhook responds with a
-  `500` status if the sync call fails.
-
----
-
-#### Testing
+### Testing
 
 - `npm run test` to run jest unit tests
 - `npm run test:watch` to watch as tests run
@@ -461,27 +424,6 @@ shell) and mirror them into your CI secrets:
 ```
 
 ---
-
-#### Route protection
-
-`code/frontend/src/middleware.ts` uses `clerkMiddleware` to guard `/discover`
-and `/onboarding` while leaving `/api/webhooks/clerk` and static assets
-unauthenticated. The global layout (`code/frontend/src/app/layout.tsx`) renders
-sign-in/up buttons for unauthenticated visitors and a `UserButton` once signed
-in.
-
----
-
-#### GitHub Actions secrets
-
-`.github/workflows/frontend-ci.yml` now pulls Clerk secrets during the `check`
-and `docker` jobs. Populate the following repository secrets so CI can build and
-publish the frontend image:
-
-- `CLERK_JWKS_URL`
-- `CLERK_SECRET_KEY`
-- `CLERK_WEBHOOK_SIGNING_SECRET`
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
 
 ## Backend Setup
 
@@ -614,6 +556,342 @@ docker compose -f db/db-docker-compose.yaml --env-file .env up -d --wait
 
 ```bash
 docker compose -f db/db-docker-compose.yaml down -v
+```
+
+
+## Authentication Setup
+
+### Required environment variables
+
+Set the following values in `code/frontend/.env.local` (or export them in your
+shell) and mirror them into your CI secrets:
+
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` – public key for rendering Clerk widgets.
+- `CLERK_SECRET_KEY` – backend API key used by Next.js server components and the
+  webhook handler.
+- `CLERK_JWKS_URL` – JWKS endpoint for token validation (Clerk dashboard → API
+  Keys).
+- `CLERK_WEBHOOK_SIGNING_SECRET` – secret provided when you create the webhook
+  endpoint inside Clerk.
+- `BACKEND_URL` – base URL for the FastAPI service that receives user sync
+  requests.
+  `code/frontend/.env` contains local development defaults. Copy it to
+  `.env.local` and replace the secret values with keys from your Clerk project
+  before running the app. `.env.local` is git-ignored—keep real secrets out of the
+  repository.
+
+---
+
+### Webhook flow
+
+- Clerk sends `user.created` events to `POST /api/webhooks/clerk`.
+- The handler verifies the signature with `verifyWebhook` using
+  `CLERK_WEBHOOK_SIGNING_SECRET` and logs errors for invalid payloads.
+- Valid events trigger a POST to `${BACKEND_URL}/create-user/` with the user's
+  name and primary email to keep the backend in sync.
+- Ensure your FastAPI service exposes this endpoint; the webhook responds with a
+  `500` status if the sync call fails.
+
+---
+
+### Route protection
+
+`code/frontend/src/middleware.ts` uses `clerkMiddleware` to guard `/discover`
+and `/onboarding` while leaving `/api/webhooks/clerk` and static assets
+unauthenticated. The global layout (`code/frontend/src/app/layout.tsx`) renders
+sign-in/up buttons for unauthenticated visitors and a `UserButton` once signed
+in.
+
+---
+
+### GitHub Actions secrets
+
+`.github/workflows/frontend-ci.yml` now pulls Clerk secrets during the `check`
+and `docker` jobs. Populate the following repository secrets so CI can build and
+publish the frontend image:
+
+- `CLERK_JWKS_URL`
+- `CLERK_SECRET_KEY`
+- `CLERK_WEBHOOK_SIGNING_SECRET`
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+
+---
+
+### Backend Authentication Guide
+
+The Event Manager API uses **Google OAuth 2.0** for authentication. All API endpoints (except health checks and metrics) require a valid Google OAuth token in the `Authorization` header.
+
+---
+
+
+#### Authentication Flow
+
+1. **Frontend**: User logs in with Google OAuth (handled by your frontend)
+2. **Frontend**: Receives a JWT token from Google
+3. **Frontend**: Includes token in API requests: `Authorization: Bearer <token>`
+4. **Backend**: Verifies token with Google's public keys
+5. **Backend**: Extracts user information and processes request
+
+---
+
+
+#### Configuration
+
+##### Environment Variables
+
+Add these to your `.env` file:
+
+```bash
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_OAUTH_ENABLED=true  # Set to false for local development without auth
+```
+
+---
+
+
+##### Development Mode
+
+For local development without Google OAuth:
+
+```bash
+GOOGLE_OAUTH_ENABLED=false
+```
+
+When disabled, the API accepts all requests with a mock development user.
+
+---
+
+
+#### Making Authenticated Requests (Testing)
+
+##### Method 1: Google OAuth 2.0 Playground (Recommended for Testing)
+
+1. **Go to Google OAuth Playground**
+   - Visit: https://developers.google.com/oauthplayground/
+
+2. **Configure the Playground**
+   - Click the ⚙️ (gear icon) in the top right
+   - Check "Use your own OAuth credentials"
+   - Enter your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+   - Close the configuration
+
+3. **Select Scopes**
+   - In "Step 1 - Select & authorize APIs"
+   - **Option A: Search and Select** (Recommended)
+     - Scroll down to find **"Google OAuth2 API v2"** and expand it
+     - Check these boxes:
+       - ✅ `https://www.googleapis.com/auth/userinfo.email`
+       - ✅ `https://www.googleapis.com/auth/userinfo.profile`
+     - Scroll to find **"OpenID Connect"** section
+     - Check: ✅ `openid`
+   
+   - **Option B: Manual Entry** (Easier)
+     - At the bottom of "Step 1", find the "Input your own scopes" text box
+     - Paste this: `openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile`
+   
+   - Click "Authorize APIs"
+
+4. **Sign in with Google**
+   - Log in with your Google account
+   - Grant permissions
+
+5. **Exchange Authorization Code**
+   - Click "Exchange authorization code for tokens"
+   - You'll see an `id_token` in the response
+
+6. **Copy the ID Token**
+   - Copy the entire `id_token` value (it's a long JWT string)
+   - This is your test token!
+
+7. **Test Your API**
+   ```bash
+   # Set your token
+   TOKEN="your-id-token-here"
+   
+   # Test an endpoint
+   curl -H "Authorization: Bearer $TOKEN" \
+        http://localhost:8000/events
+   ```
+
+---
+
+##### Method 2: Frontend Integration (Production Way)
+
+If you have your frontend running with Google OAuth:
+
+###### Using Browser DevTools
+
+1. **Log in to your frontend** with Google OAuth
+2. **Open Browser DevTools** (F12 or Right-click → Inspect)
+3. **Go to the Console tab**
+4. **Get the token**:
+   ```javascript
+    // The backend expects a Google OAuth ID token (JWT).
+    // If you are using direct Google OAuth, retrieve the token as follows:
+    // The token is usually in localStorage or sessionStorage
+    localStorage.getItem('token')
+    // or
+    sessionStorage.getItem('token')
+    // 
+    // If you are using Clerk, note: Clerk tokens are NOT supported by the backend unless explicitly configured.
+    await window.Clerk.session.getToken()
+   // Use Google OAuth and ensure you provide a Google-issued ID token.
+   ```
+5. **Copy the token** from the console output
+6. **Test with curl**:
+   ```bash
+   TOKEN="your-token-from-console"
+   curl -H "Authorization: Bearer $TOKEN" \
+        http://localhost:8000/events
+   ```
+
+---
+
+##### Quick Test Checklist
+
+✅ Set `GOOGLE_OAUTH_ENABLED=true` in `.env`
+✅ Set correct `GOOGLE_CLIENT_ID` in `.env`
+✅ Get a valid Google OAuth token
+✅ Start FastAPI server: `uv run uvicorn app.main:event_manager_app --reload`
+
+---
+
+
+#### Protected Endpoints
+
+All endpoints under these routes require authentication:
+- `/users/*` - User management
+- `/events/*` - Event management
+- `/categories/*` - Category management
+- `/attendees/*` - Attendee management
+
+---
+
+
+#### Public Endpoints
+
+These endpoints do NOT require authentication:
+- `/dbHealth` - Database health check
+- `/metrics` - Prometheus metrics
+
+---
+
+
+#### Token Structure
+
+Google OAuth tokens contain:
+- `email`: User's email address
+- `email_verified`: Whether email is verified
+- `name`: Full name
+- `given_name`: First name
+- `family_name`: Last name
+- `picture`: Profile picture URL
+- `sub`: Google user ID (unique identifier)
+
+---
+
+
+#### Error Responses
+
+##### 401 Unauthorized
+```json
+{
+  "detail": "Not authenticated"
+}
+```
+
+Occurs when:
+- No `Authorization` header provided
+- Invalid token format
+- Token has expired
+- Token signature verification fails
+
+---
+
+
+##### 503 Service Unavailable
+```json
+{
+  "detail": "Authentication service unavailable"
+}
+```
+
+Occurs when:
+- Cannot reach Google's authentication servers
+- Network issues
+
+---
+
+
+#### Security Considerations
+
+1. **Token Validation**: Every request validates the token signature with Google's public keys
+2. **Email Verification**: Only tokens with verified emails are accepted
+3. **Audience Check**: Tokens must be issued for your specific Google Client ID
+4. **Issuer Check**: Tokens must come from Google's issuer
+5. **HTTPS**: Always use HTTPS in production to prevent token interception
+
+---
+
+
+#### Testing
+
+Authentication is disabled in tests by default
+
+---
+
+
+#### Troubleshooting
+
+##### "Not authenticated" error
+- Check that `Authorization` header is present
+- Verify token format: `Bearer <token>`
+- Ensure token hasn't expired (Google tokens typically last 1 hour)
+
+---
+
+
+##### "Invalid token" error
+- Verify `GOOGLE_CLIENT_ID` matches your frontend configuration
+- Check that token is from Google OAuth (not another provider)
+- Ensure user's email is verified
+
+---
+
+
+##### "Authentication service unavailable" error
+- Check internet connectivity
+- Verify Google's authentication services are operational
+- Check firewall/proxy settings
+
+---
+
+
+#### Frontend Integration (Clerk Example)
+
+If using Clerk for Google OAuth:
+
+```typescript
+import { useAuth } from '@clerk/nextjs';
+
+export function useApiRequest() {
+  const { getToken } = useAuth();
+
+  async function apiRequest(endpoint: string, options: RequestInit = {}) {
+    const token = await getToken();
+    
+    return fetch(`http://localhost:8000${endpoint}`, {
+      ...options,
+      headers: {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+  }
+
+  return { apiRequest };
+}
 ```
 
 ## Security Setup
