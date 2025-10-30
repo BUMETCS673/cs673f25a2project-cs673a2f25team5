@@ -121,6 +121,14 @@ cs673f25a2project-cs673a2f25team5/
 │       │   │   ├── events.ts                         # events API service functions
 │       │   │   └── users.ts                          # users API service functions
 │       │   └── middleware.ts                         # run code before a request is completed (used for protected/public routes)
+│       ├── tests/                                    # folder for all
+│       │   ├── config.test.ts                        # tests for config file
+│       │   ├── createEventSchema.tests.ts            # tests for creating event schema
+│       │   ├── events.test.ts                        # tests for events
+│       │   ├── EventSearchField.test.tsx             # tests for searching events
+│       │   ├── Header.test.tsx                       # test for viewing header
+│       │   ├── useEventsBrowserState.test.ts         # test for events browser
+│       │   └── user.test.ts                          # tests for user
 │       ├── cypress.config.ts                         # cypress config
 │       ├── eslint.config.mjs                         # configuration file for ESLint and prettier
 │       ├── frontend-README.md                        # detailed frontend documentation
@@ -183,6 +191,7 @@ cs673f25a2project-cs673a2f25team5/
 Let's start by clarifying that when we mention without docker containers we mean that the frontend and backend won't be running in docker containers but that the database will be running in a docker container.
 
 1. Create an env file with the following env vars:
+
 ```bash
 # Database Configuration
 POSTGRES_USER="<your_postgres_username>"
@@ -213,21 +222,25 @@ IMAGE_TAG=latest
 ```
 
 2. Export the env vars in the env file:
+
 ```bash
 export $(grep -v '^#' .env | xargs)
 ```
 
 3. Start the postgres instance with the event_manager database (from the root dir)
+
 ```bash
 docker compose -f db/db-docker-compose.yaml --env-file .env up -d --wait
 ```
 
 4. Start the backend fastapi application (from the code/backend dir)
+
 ```bash
 uv run uvicorn app.main:event_manager_app --reload
 ```
 
 5. Start the frontend next.js application (from the code/frontend dir)
+
 ```bash
 npm ci        # install dependencies
 npm run dev
@@ -235,10 +248,10 @@ npm run dev
 
 ---
 
-
 ### Local With Docker Containers
 
 1. Create an env file with the following env vars:
+
 ```bash
 # Database Configuration
 POSTGRES_USER="<your_postgres_username>"
@@ -269,21 +282,25 @@ BACKEND_URL="http://backend:8000"
 ```
 
 2. Export the env vars in the env file:
+
 ```bash
 export $(grep -v '^#' .env | xargs)
 ```
 
 3. Start the docker container with the postgres instance and event_manager database (from the root dir)
+
 ```bash
 docker compose -f db/db-docker-compose.yaml --env-file .env up -d --wait
 ```
 
 4. Build the latest version of your backend image (from the root dir)
+
 ```bash
 docker build -f Dockerfile.backend -t $DOCKER_USERNAME/event-manager-backend:$IMAGE_TAG .
 ```
 
 5. Build the latest version of your frontend image (from the root dir)
+
 ```bash
 docker build -f Dockerfile.frontend \
   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY \
@@ -291,12 +308,12 @@ docker build -f Dockerfile.frontend \
 ```
 
 6. Start the docker frontend and backend containers
+
 ```bash
 docker compose -f docker-compose.dev.yaml up -d
 ```
 
 ---
-
 
 ## Frontend Setup
 
@@ -558,7 +575,6 @@ docker compose -f db/db-docker-compose.yaml --env-file .env up -d --wait
 docker compose -f db/db-docker-compose.yaml down -v
 ```
 
-
 ## Authentication Setup
 
 ### Required environment variables
@@ -623,7 +639,6 @@ The Event Manager API uses **Google OAuth 2.0** for authentication. All API endp
 
 ---
 
-
 #### Authentication Flow
 
 1. **Frontend**: User logs in with Google OAuth (handled by your frontend)
@@ -633,7 +648,6 @@ The Event Manager API uses **Google OAuth 2.0** for authentication. All API endp
 5. **Backend**: Extracts user information and processes request
 
 ---
-
 
 #### Configuration
 
@@ -649,7 +663,6 @@ GOOGLE_OAUTH_ENABLED=true  # Set to false for local development without auth
 
 ---
 
-
 ##### Development Mode
 
 For local development without Google OAuth:
@@ -662,53 +675,61 @@ When disabled, the API accepts all requests with a mock development user.
 
 ---
 
-
 #### Making Authenticated Requests (Testing)
 
 ##### Method 1: Google OAuth 2.0 Playground (Recommended for Testing)
 
 1. **Go to Google OAuth Playground**
+
    - Visit: https://developers.google.com/oauthplayground/
 
 2. **Configure the Playground**
+
    - Click the ⚙️ (gear icon) in the top right
    - Check "Use your own OAuth credentials"
    - Enter your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
    - Close the configuration
 
 3. **Select Scopes**
+
    - In "Step 1 - Select & authorize APIs"
    - **Option A: Search and Select** (Recommended)
+
      - Scroll down to find **"Google OAuth2 API v2"** and expand it
      - Check these boxes:
        - ✅ `https://www.googleapis.com/auth/userinfo.email`
        - ✅ `https://www.googleapis.com/auth/userinfo.profile`
      - Scroll to find **"OpenID Connect"** section
      - Check: ✅ `openid`
-   
+
    - **Option B: Manual Entry** (Easier)
+
      - At the bottom of "Step 1", find the "Input your own scopes" text box
      - Paste this: `openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile`
-   
+
    - Click "Authorize APIs"
 
 4. **Sign in with Google**
+
    - Log in with your Google account
    - Grant permissions
 
 5. **Exchange Authorization Code**
+
    - Click "Exchange authorization code for tokens"
    - You'll see an `id_token` in the response
 
 6. **Copy the ID Token**
+
    - Copy the entire `id_token` value (it's a long JWT string)
    - This is your test token!
 
 7. **Test Your API**
+
    ```bash
    # Set your token
    TOKEN="your-id-token-here"
-   
+
    # Test an endpoint
    curl -H "Authorization: Bearer $TOKEN" \
         http://localhost:8000/events
@@ -727,15 +748,15 @@ If you have your frontend running with Google OAuth:
 3. **Go to the Console tab**
 4. **Get the token**:
    ```javascript
-    // The backend expects a Google OAuth ID token (JWT).
-    // If you are using direct Google OAuth, retrieve the token as follows:
-    // The token is usually in localStorage or sessionStorage
-    localStorage.getItem('token')
-    // or
-    sessionStorage.getItem('token')
-    // 
-    // If you are using Clerk, note: Clerk tokens are NOT supported by the backend unless explicitly configured.
-    await window.Clerk.session.getToken()
+   // The backend expects a Google OAuth ID token (JWT).
+   // If you are using direct Google OAuth, retrieve the token as follows:
+   // The token is usually in localStorage or sessionStorage
+   localStorage.getItem("token");
+   // or
+   sessionStorage.getItem("token");
+   //
+   // If you are using Clerk, note: Clerk tokens are NOT supported by the backend unless explicitly configured.
+   await window.Clerk.session.getToken();
    // Use Google OAuth and ensure you provide a Google-issued ID token.
    ```
 5. **Copy the token** from the console output
@@ -757,10 +778,10 @@ If you have your frontend running with Google OAuth:
 
 ---
 
-
 #### Protected Endpoints
 
 All endpoints under these routes require authentication:
+
 - `/users/*` - User management
 - `/events/*` - Event management
 - `/categories/*` - Category management
@@ -768,19 +789,19 @@ All endpoints under these routes require authentication:
 
 ---
 
-
 #### Public Endpoints
 
 These endpoints do NOT require authentication:
+
 - `/dbHealth` - Database health check
 - `/metrics` - Prometheus metrics
 
 ---
 
-
 #### Token Structure
 
 Google OAuth tokens contain:
+
 - `email`: User's email address
 - `email_verified`: Whether email is verified
 - `name`: Full name
@@ -791,10 +812,10 @@ Google OAuth tokens contain:
 
 ---
 
-
 #### Error Responses
 
 ##### 401 Unauthorized
+
 ```json
 {
   "detail": "Not authenticated"
@@ -802,6 +823,7 @@ Google OAuth tokens contain:
 ```
 
 Occurs when:
+
 - No `Authorization` header provided
 - Invalid token format
 - Token has expired
@@ -809,8 +831,8 @@ Occurs when:
 
 ---
 
-
 ##### 503 Service Unavailable
+
 ```json
 {
   "detail": "Authentication service unavailable"
@@ -818,11 +840,11 @@ Occurs when:
 ```
 
 Occurs when:
+
 - Cannot reach Google's authentication servers
 - Network issues
 
 ---
-
 
 #### Security Considerations
 
@@ -834,58 +856,56 @@ Occurs when:
 
 ---
 
-
 #### Testing
 
 Authentication is disabled in tests by default
 
 ---
 
-
 #### Troubleshooting
 
 ##### "Not authenticated" error
+
 - Check that `Authorization` header is present
 - Verify token format: `Bearer <token>`
 - Ensure token hasn't expired (Google tokens typically last 1 hour)
 
 ---
 
-
 ##### "Invalid token" error
+
 - Verify `GOOGLE_CLIENT_ID` matches your frontend configuration
 - Check that token is from Google OAuth (not another provider)
 - Ensure user's email is verified
 
 ---
 
-
 ##### "Authentication service unavailable" error
+
 - Check internet connectivity
 - Verify Google's authentication services are operational
 - Check firewall/proxy settings
 
 ---
 
-
 #### Frontend Integration (Clerk Example)
 
 If using Clerk for Google OAuth:
 
 ```typescript
-import { useAuth } from '@clerk/nextjs';
+import { useAuth } from "@clerk/nextjs";
 
 export function useApiRequest() {
   const { getToken } = useAuth();
 
   async function apiRequest(endpoint: string, options: RequestInit = {}) {
     const token = await getToken();
-    
+
     return fetch(`http://localhost:8000${endpoint}`, {
       ...options,
       headers: {
         ...options.headers,
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
   }

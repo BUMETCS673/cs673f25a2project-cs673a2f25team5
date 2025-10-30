@@ -11,7 +11,7 @@ Framework-generated code: 0%
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { EventSearchField } from "./EventSearchField";
+import { EventSearchField } from "../src/component/events/EventSearchField";
 
 function Controlled({ onChange }: { onChange: (v: string) => void }) {
   const [q, setQ] = React.useState("");

@@ -7,7 +7,7 @@ Framework-generated code: 0%
 
 */
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { useEventsBrowserState } from "./useEventsBrowserState";
+import { useEventsBrowserState } from "../src/component/events/hooks/useEventsBrowserState";
 import type { EventListResponse } from "@/services/events";
 
 jest.mock("@/services/events", () => {

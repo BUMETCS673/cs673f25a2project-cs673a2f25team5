@@ -9,7 +9,7 @@ Framework-generated code: 0%
 */
 
 import { renderHook, act } from "@testing-library/react";
-import { useEventsBrowserState } from "./hooks/useEventsBrowserState";
+import { useEventsBrowserState } from "../src/component/events/hooks/useEventsBrowserState";
 import * as eventsSvc from "@/services/events";
 import { EventListResponse } from "@/services/events";
 
