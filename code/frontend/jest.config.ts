@@ -26,7 +26,10 @@ const config: Config = {
     "^.+\\.(css|sass|scss)$": "identity-obj-proxy",
     "^.+\\.(svg|png|jpg|gif)$": "<rootDir>/__mocks__/fileMock.js",
   },
-  testMatch: ["<rootDir>/src/**/*.test.(ts|tsx)"],
+  testMatch: [
+    "<rootDir>/src/**/*.test.(ts|tsx)",
+    "<rootDir>/tests/**/*.test.(ts|tsx)",
+  ],
   clearMocks: true,
 };
 

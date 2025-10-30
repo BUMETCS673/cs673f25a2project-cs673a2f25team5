@@ -11,6 +11,7 @@
 import type { CSSProperties } from "react";
 
 import type { EventResponse } from "@/services/events";
+import { decodeEventLocation } from "@/helpers/locationCodec";
 import type { UserResponse } from "@/services/users";
 
 export type EventStatusTone = "past" | "live" | "upcoming";
@@ -126,7 +127,8 @@ export function buildEventViewModel({
   const startLabel = formatLongDate(event.event_datetime);
   const endLabel = formatLongDate(event.event_endtime);
   const shortStartLabel = formatShortDateTime(event.event_datetime);
-  const locationLabel = event.event_location ?? "Location to be announced";
+  const decodedLocation = decodeEventLocation(event.event_location);
+  const locationLabel = decodedLocation?.address ?? "Location to be announced";
   const priceLabel = formatPrice(event.price_field);
   const capacityLabel = formatCapacity(event.capacity);
 

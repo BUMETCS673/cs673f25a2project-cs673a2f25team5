@@ -12,6 +12,7 @@ import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
 
 import type { EventResponse } from "@/services/events";
+import { decodeEventLocation } from "@/helpers/locationCodec";
 
 type EventCardProps = {
   event: EventResponse;
@@ -56,6 +57,8 @@ export function EventCard({
   ...rest
 }: EventCardProps) {
   const dateLabel = formatDateRange(event);
+  const decodedLocation = decodeEventLocation(event.event_location);
+  const locationLabel = decodedLocation?.address ?? "Location to be announced";
 
   return (
     <Link
@@ -100,7 +103,7 @@ export function EventCard({
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z" />
               <circle cx="12" cy="10" r="3" />
             </svg>
-            {event.event_location ?? "Location TBA"}
+            {locationLabel}
           </span>
           <span className="font-medium text-amber-600 transition group-hover:text-amber-500 dark:text-amber-300">
             View details &gt;

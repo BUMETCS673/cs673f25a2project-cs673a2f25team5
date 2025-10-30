@@ -15,6 +15,7 @@ import {
   type EventListResponse,
   type EventResponse,
 } from "@/services/events";
+import { decodeEventLocation } from "@/helpers/locationCodec";
 
 const REMOTE_SEARCH_PAGE_SIZE = 9;
 
@@ -126,9 +127,10 @@ export function useEventsBrowserState(
     }
 
     return baseEvents.filter((event) => {
+      const decodedLocation = decodeEventLocation(event.event_location);
       const haystack = [
         event.event_name,
-        event.event_location ?? "",
+        decodedLocation?.address ?? "",
         event.description ?? "",
       ]
         .join(" ")

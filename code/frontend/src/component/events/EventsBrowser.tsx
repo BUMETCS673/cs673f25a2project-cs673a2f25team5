@@ -15,6 +15,7 @@ import type { EventListResponse } from "@/services/events";
 import { EventSearchField } from "./EventSearchField";
 import { EventsResults } from "./EventsResults";
 import { useEventsBrowserState } from "./hooks/useEventsBrowserState";
+import { MapDiscoveryModalTrigger } from "./MapDiscoveryModal";
 
 type EventsBrowserProps = {
   initialResult: EventListResponse;
@@ -42,10 +43,16 @@ export function EventsBrowser({ initialResult }: EventsBrowserProps) {
 
   return (
     <div className="space-y-8">
-      <EventSearchField
-        query={query}
-        onQueryChange={(value) => setQuery(value)}
-      />
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="w-full lg:max-w-[540px]">
+          <EventSearchField
+            query={query}
+            onQueryChange={(value) => setQuery(value)}
+          />
+        </div>
+
+        <MapDiscoveryModalTrigger initialEvents={initialResult.items} />
+      </div>
 
       <EventsResults
         events={eventsToRender}

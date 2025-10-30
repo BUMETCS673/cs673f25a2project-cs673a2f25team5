@@ -13,6 +13,9 @@
 import * as React from "react";
 import Map from "react-map-gl/mapbox";
 
+import { getPublicMapboxToken } from "@/component/map/getPublicMapboxToken";
+import { decodeEventLocation } from "@/helpers/locationCodec";
+
 type Coordinates = {
   longitude: number;
   latitude: number;
@@ -33,10 +36,24 @@ type GeocodeResponse = {
 };
 
 export function EventLocationMapCard({ location }: EventLocationMapCardProps) {
-  const mapboxToken = process.env.NEXT_PUBLIC_MAP_BOX_TOKEN;
+  const mapboxToken = getPublicMapboxToken();
+  const decoded = React.useMemo(
+    () => decodeEventLocation(location),
+    [location],
+  );
+  const locationLabel = decoded?.address ?? location ?? "To be announced";
+  const decodedCoordinates = React.useMemo(() => {
+    if (decoded && decoded.longitude != null && decoded.latitude != null) {
+      return {
+        longitude: decoded.longitude,
+        latitude: decoded.latitude,
+      };
+    }
+    return null;
+  }, [decoded]);
 
   const [coordinates, setCoordinates] = React.useState<Coordinates | null>(
-    null,
+    decodedCoordinates,
   );
   const [status, setStatus] = React.useState<
     "idle" | "loading" | "success" | "error"
@@ -44,14 +61,21 @@ export function EventLocationMapCard({ location }: EventLocationMapCardProps) {
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (!location || !mapboxToken) {
+    if (!locationLabel || !mapboxToken) {
       setCoordinates(null);
-      setStatus(location ? "error" : "idle");
+      setStatus(locationLabel ? "error" : "idle");
       setErrorMessage(
         mapboxToken
           ? "Location is not available for this event yet."
           : "Mapbox token missing. Add it to view event maps.",
       );
+      return;
+    }
+
+    if (decodedCoordinates) {
+      setCoordinates(decodedCoordinates);
+      setStatus("success");
+      setErrorMessage(null);
       return;
     }
 
@@ -62,7 +86,7 @@ export function EventLocationMapCard({ location }: EventLocationMapCardProps) {
         setErrorMessage(null);
 
         const url = new URL(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json`,
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(locationLabel)}.json`,
         );
         url.searchParams.set("limit", "1");
         url.searchParams.set("access_token", mapboxToken);
@@ -104,7 +128,7 @@ export function EventLocationMapCard({ location }: EventLocationMapCardProps) {
     void fetchCoordinates();
 
     return () => controller.abort();
-  }, [location, mapboxToken]);
+  }, [decodedCoordinates, locationLabel, mapboxToken]);
 
   return (
     <section className="space-y-4 rounded-3xl border border-neutral-200/70 bg-white/85 p-6 shadow-lg shadow-amber-100/30 dark:border-white/10 dark:bg-neutral-900/60 dark:shadow-neutral-900/40">
@@ -113,7 +137,7 @@ export function EventLocationMapCard({ location }: EventLocationMapCardProps) {
           Event location
         </h3>
         <p className="text-xs uppercase tracking-[0.26em] text-neutral-500 dark:text-neutral-400">
-          {location ?? "To be announced"}
+          {locationLabel}
         </p>
       </header>
 
