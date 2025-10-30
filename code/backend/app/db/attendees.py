@@ -12,14 +12,13 @@ from uuid import UUID, uuid4
 from sqlalchemy import (
     Column,
     DateTime,
-    MetaData,
-    String,
     Table,
     and_,
     func,
     select,
 )
-from sqlalchemy.dialects.postgresql import UUID as SQLAlchemyUUID, ENUM as PG_ENUM
+from sqlalchemy.dialects.postgresql import ENUM as PG_ENUM
+from sqlalchemy.dialects.postgresql import UUID as SQLAlchemyUUID
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -104,7 +103,9 @@ async def get_attendees_db(
                     {
                         **dict(row),
                         # Ensure enum is serialized as our AttendeeStatus
-                        "status": AttendeeStatus(row["status"]) if row["status"] is not None else AttendeeStatus.RSVPED,
+                        "status": AttendeeStatus(row["status"])
+                        if row["status"] is not None
+                        else AttendeeStatus.RSVPED,
                     }
                 )
                 for row in rows
@@ -168,7 +169,9 @@ async def delete_attendee_db(attendee_id: UUID) -> None:
     Deletes attendee by primary key; mirrors delete_user_db/delete_event_db.
     """
     try:
-        delete_stmt = eventattendees.delete().where(eventattendees.c.attendee_id == attendee_id)
+        delete_stmt = eventattendees.delete().where(
+            eventattendees.c.attendee_id == attendee_id
+        )
 
         async with engine.begin() as conn:
             result = await conn.execute(delete_stmt)

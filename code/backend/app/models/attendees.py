@@ -8,12 +8,12 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-
 from pydantic import BaseModel, Field, field_validator
 
 
 class AttendeeStatus(str, Enum):
     """Enumeration for possible attendee statuses."""
+
     RSVPED = "RSVPed"
     MAYBE = "Maybe"
     NOT_GOING = "Not Going"
@@ -21,6 +21,7 @@ class AttendeeStatus(str, Enum):
 
 class AttendeeBase(BaseModel):
     """Shared attributes for Attendee create/read models."""
+
     event_id: UUID = Field(..., description="ID of the event being attended")
     user_id: UUID = Field(..., description="ID of the user attending the event")
     status: AttendeeStatus | None = Field(
@@ -36,11 +37,13 @@ class AttendeeBase(BaseModel):
 
 class AttendeeCreate(AttendeeBase):
     """Model for creating a new attendee."""
+
     pass
 
 
 class AttendeeRead(AttendeeBase):
     """Model for reading attendee data."""
+
     attendee_id: UUID = Field(..., description="Unique ID for the attendee")
     created_at: datetime = Field(..., description="Timestamp of creation")
     updated_at: datetime = Field(..., description="Timestamp of last update")
@@ -48,6 +51,7 @@ class AttendeeRead(AttendeeBase):
 
 class PaginatedAttendees(BaseModel):
     """Paginated response for attendee listings."""
+
     items: list[AttendeeRead]
     total: int
     offset: int

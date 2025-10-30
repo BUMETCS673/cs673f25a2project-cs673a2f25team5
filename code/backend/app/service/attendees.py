@@ -81,9 +81,12 @@ async def create_attendee_service(att: AttendeeCreate) -> AttendeeRead:
         )
         if existing_attendees:
             logger.info(
-                f"Duplicate registration blocked for user_id='{att.user_id}' on event_id='{att.event_id}'"
+                "Duplicate registration blocked for "
+                f"user_id='{att.user_id}' on event_id='{att.event_id}'"
             )
-            raise HTTPException(status_code=409, detail="User already registered for this event")
+            raise HTTPException(
+                status_code=409, detail="User already registered for this event"
+            )
 
         # DB will default status to RSVPed if not provided (enum default in schema)
         sanitized = AttendeeCreate(

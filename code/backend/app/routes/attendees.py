@@ -5,7 +5,8 @@ Framework-generated code: 0%
 """
 
 from uuid import UUID
-from fastapi import APIRouter, HTTPException, Query, status
+
+from fastapi import APIRouter, Query, status
 
 from app.models import attendees as models_attendees
 from app.service import attendees as attendees_service
@@ -23,7 +24,7 @@ FILTER_QUERY = Query(
     ],
 )
 OFFSET_QUERY = Query(0, ge=0, description="Number of records to skip")
-LIMIT_QUERY  = Query(100, ge=1, le=1000, description="Maximum number of attendees to return")
+LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of attendees to return")
 
 
 @router.get(
@@ -62,7 +63,7 @@ LIMIT_QUERY  = Query(100, ge=1, le=1000, description="Maximum number of attendee
         500: {
             "description": "Internal server error",
             "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        }
+        },
     },
 )
 async def list_attendees(
@@ -82,12 +83,14 @@ async def list_attendees(
     status_code=status.HTTP_201_CREATED,
     responses={
         201: {"description": "Attendee created"},
-        404: {"description": "Attendee not found",
-            "content": {"application/json": {"example": {"detail": "Attendee not found"}}},},
+        404: {
+            "description": "Attendee not found",
+            "content": {"application/json": {"example": {"detail": "Attendee not found"}}},
+        },
         500: {
             "description": "Internal server error",
             "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        }
+        },
     },
 )
 async def create_attendee(
