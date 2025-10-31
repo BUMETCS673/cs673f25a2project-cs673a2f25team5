@@ -18,17 +18,16 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from app.db import db
 from app.db import attendees as attendees_db
+from app.db import categories as categories_db
+from app.db import db
 from app.db import events as events_db
 from app.db import users as users_db
-from app.db import categories as categories_db
 from app.db.attendees import metadata as attendees_md
+from app.db.categories import metadata as categories_md
 from app.db.events import metadata as events_md
 from app.db.users import metadata as users_md
-from app.db.categories import metadata as categories_md
 from app.main import event_manager_app
-
 
 
 @pytest.fixture(scope="session")
@@ -149,7 +148,6 @@ async def _seed_event(client: AsyncClient, user_id: UUID, category_id: UUID) -> 
     )
     assert r.status_code in (200, 201)
     return UUID(r.json()["event_id"])
-
 
 
 @pytest.mark.asyncio

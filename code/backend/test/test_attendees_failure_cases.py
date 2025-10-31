@@ -17,15 +17,15 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from app.db import db
 from app.db import attendees as attendees_db
+from app.db import categories as categories_db
+from app.db import db
 from app.db import events as events_db
 from app.db import users as users_db
-from app.db import categories as categories_db
 from app.db.attendees import metadata as attendees_md
+from app.db.categories import metadata as categories_md
 from app.db.events import metadata as events_md
 from app.db.users import metadata as users_md
-from app.db.categories import metadata as categories_md
 from app.main import event_manager_app
 
 
@@ -117,7 +117,7 @@ async def test_create_attendee_404_missing_refs(client: AsyncClient):
     assert r.status_code == 404
     detail = r.json().get("detail", "")
     assert detail, "Expected error detail message"
-    
+
     assert "no such" in detail.lower(), f"Unexpected detail: {detail}"
 
 
@@ -161,7 +161,7 @@ async def test_duplicate_attendee_409(client: AsyncClient):
     assert r2.status_code == 409
     detail = r2.json().get("detail", "")
     assert detail
-    
+
     assert any(k in detail.lower() for k in ["already", "duplicate", "exists"]), detail
 
 
