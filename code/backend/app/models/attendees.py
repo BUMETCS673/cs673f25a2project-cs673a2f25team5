@@ -1,6 +1,8 @@
 """
 AI-generated code: 70%
+
 Human code: 30%
+
 Framework-generated code: 0%
 """
 
@@ -31,8 +33,8 @@ class AttendeeBase(BaseModel):
     @field_validator("status")
     @classmethod
     def validate_status(cls, v: AttendeeStatus | None) -> AttendeeStatus:
-        """Default to RSVPed if no status is given."""
-        return v or AttendeeStatus.RSVPED
+        """Return None if no status is provided, meaning the invite is pending."""
+        return v
 
 
 class AttendeeCreate(AttendeeBase):

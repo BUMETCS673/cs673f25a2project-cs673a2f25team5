@@ -1,6 +1,8 @@
 """
 AI-generated code: 80%
+
 Human code: 20%
+
 Framework-generated code: 0%
 """
 

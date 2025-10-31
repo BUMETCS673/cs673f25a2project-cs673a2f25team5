@@ -1,6 +1,8 @@
 """
 AI-generated code: 80%
+
 Human code: 20%
+
 Framework-generated code: 0%
 """
 
@@ -55,9 +57,6 @@ async def get_attendees_db(
     offset: int = 0,
     limit: int = 100,
 ) -> tuple[list[AttendeeRead], int]:
-    """
-    Returns attendees using the same filtering/paging pattern as users/events.
-    """
     try:
         query = select(eventattendees)
         count_query = select(func.count()).select_from(eventattendees)
@@ -105,7 +104,7 @@ async def get_attendees_db(
                         # Ensure enum is serialized as our AttendeeStatus
                         "status": AttendeeStatus(row["status"])
                         if row["status"] is not None
-                        else AttendeeStatus.RSVPED,
+                        else None,
                     }
                 )
                 for row in rows
@@ -127,17 +126,13 @@ async def get_attendees_db(
 
 
 async def create_attendee_db(att: AttendeeCreate) -> AttendeeRead:
-    """
-    Creates an attendee row; mirrors create_user_db/create_event_db.
-    DB has defaults for status (nullable → default NULL; we prefer explicit).
-    """
     try:
         now = datetime.now(UTC)
         values: dict[str, Any] = {
             "attendee_id": uuid4(),
             "event_id": att.event_id,
             "user_id": att.user_id,
-            "status": (att.status.value if att.status else AttendeeStatus.RSVPED.value),
+            "status": att.status.value if att.status else None,
             "created_at": now,
             "updated_at": now,
         }
@@ -153,7 +148,9 @@ async def create_attendee_db(att: AttendeeCreate) -> AttendeeRead:
                 raise ValueError("Failed to create attendee: Database error")
 
             data = dict(row)
-            data["status"] = AttendeeStatus(data["status"])
+            data["status"] = (
+                AttendeeStatus(data["status"]) if data["status"] is not None else None
+            )
             return AttendeeRead.model_validate(data)
 
     except SQLAlchemyError as e:
@@ -165,9 +162,6 @@ async def create_attendee_db(att: AttendeeCreate) -> AttendeeRead:
 
 
 async def delete_attendee_db(attendee_id: UUID) -> None:
-    """
-    Deletes attendee by primary key; mirrors delete_user_db/delete_event_db.
-    """
     try:
         delete_stmt = eventattendees.delete().where(
             eventattendees.c.attendee_id == attendee_id

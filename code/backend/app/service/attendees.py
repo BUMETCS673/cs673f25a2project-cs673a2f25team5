@@ -1,6 +1,8 @@
 """
 AI-generated code: 80%
+
 Human code: 20%
+
 Framework-generated code: 0%
 """
 
@@ -23,10 +25,6 @@ logger = logging.getLogger(__name__)
 async def get_attendees_service(
     filter_expression: list[str] | None = None, offset: int = 0, limit: int = 100
 ) -> PaginatedAttendees:
-    """
-    List attendees with optional filters. Filters use "field:op:value" syntax.
-    Example: ["event_id:eq:<uuid>", "user_id:eq:<uuid>"]
-    """
     try:
         filters = [parse_filter(f) for f in (filter_expression or [])]
 
@@ -48,12 +46,6 @@ async def get_attendees_service(
 
 
 async def create_attendee_service(att: AttendeeCreate) -> AttendeeRead:
-    """
-    Register a user for an event.
-    - Validates event exists
-    - Validates user exists
-    - Prevents duplicate registration for (event_id, user_id)
-    """
     try:
         # ensure event exists
         existing_events, _ = await events_db.get_events_db(
@@ -88,6 +80,8 @@ async def create_attendee_service(att: AttendeeCreate) -> AttendeeRead:
                 status_code=409, detail="User already registered for this event"
             )
 
+            # DB will default status to NULL if not provided (meaning no response yet)
+
         # DB will default status to RSVPed if not provided (enum default in schema)
         sanitized = AttendeeCreate(
             event_id=att.event_id,
@@ -108,10 +102,6 @@ async def create_attendee_service(att: AttendeeCreate) -> AttendeeRead:
 
 
 async def delete_attendee_service(attendee_id: UUID) -> AttendeeRead:
-    """
-    Delete (unregister) an attendee by attendee_id.
-    Returns the deleted attendee (for parity with users/events services).
-    """
     try:
         to_delete, _ = await attendees_db.get_attendees_db(
             [FilterOperation("attendee_id", "eq", attendee_id)], limit=1

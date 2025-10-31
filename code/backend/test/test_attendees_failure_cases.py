@@ -122,20 +122,48 @@ async def test_create_attendee_404_missing_refs(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_duplicate_attendee_409(client: AsyncClient):
-    """Checks that registering same user twice causes 409 conflict"""
+async def test_post_attendee_missing_refs_404(client: AsyncClient):
+    """Nonexistent event_id/user_id → 404"""
+    r = await client.post(
+        "/attendees",
+        json={"event_id": str(uuid4()), "user_id": str(uuid4()), "status": "RSVPed"},
+    )
+    assert r.status_code == 404
+    detail = r.json().get("detail", "")
+    assert detail and "no such" in detail.lower()
+
+
+@pytest.mark.asyncio
+async def test_post_attendee_invalid_uuid_422(client: AsyncClient):
+    """Invalid UUIDs in body → 422"""
+    r = await client.post(
+        "/attendees",
+        json={"event_id": "not-a-uuid", "user_id": "123", "status": "RSVPed"},
+    )
+    assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_post_attendee_missing_fields_422(client: AsyncClient):
+    """Missing required fields → 422"""
+    r = await client.post("/attendees", json={})
+    assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_post_attendee_duplicate_409(client: AsyncClient):
+    """Same (event_id, user_id) twice → 409"""
+    # seed a valid user + event
     ur = await client.post(
         "/users",
         json={
             "first_name": "Bob",
             "last_name": "Dup",
-            "email": "bob.dup@example.com",
+            "email": "dup@example.com",
             "date_of_birth": "1990-01-01",
         },
     )
-    assert ur.status_code in (200, 201)
     uid = ur.json()["user_id"]
-
     cat_id = await categories_db.create_category_db("General", "General")
     er = await client.post(
         "/events",
@@ -147,7 +175,6 @@ async def test_duplicate_attendee_409(client: AsyncClient):
             "category_id": str(cat_id),
         },
     )
-    assert er.status_code in (200, 201)
     eid = er.json()["event_id"]
 
     r1 = await client.post(
@@ -160,68 +187,36 @@ async def test_duplicate_attendee_409(client: AsyncClient):
     )
     assert r2.status_code == 409
     detail = r2.json().get("detail", "")
-    assert detail
-
-    assert any(k in detail.lower() for k in ["already", "duplicate", "exists"]), detail
+    assert detail and any(k in detail.lower() for k in ["already", "duplicate", "exists"])
 
 
 @pytest.mark.asyncio
-async def test_list_attendees_invalid_filter_400(client: AsyncClient):
+async def test_get_attendees_invalid_filter_400(client: AsyncClient):
     """Tests invalid filter expression in query params"""
     r = await client.get("/attendees", params={"filter_expression": "invalid"})
     assert r.status_code == 400
 
 
 @pytest.mark.asyncio
-async def test_delete_attendee_404(client: AsyncClient):
-    """Checks deleting a non-existent attendee returns 404"""
-    r = await client.delete(f"/attendees/{uuid4()}")
-    assert r.status_code == 404
-    detail = r.json().get("detail", "")
-    assert detail
-    assert any(k in detail.lower() for k in ["no such", "not found", "does not"]), detail
+async def test_get_attendees_bad_pagination_types_422(client: AsyncClient):
+    """Non-integer offset/limit → 422"""
+    r1 = await client.get("/attendees", params={"offset": "oops"})
+    r2 = await client.get("/attendees", params={"limit": "NaN"})
+    assert r1.status_code == 422
+    assert r2.status_code == 422
 
 
 @pytest.mark.asyncio
-async def test_attendee_create_wrong_expectation_demo(client: AsyncClient):
-    """
-    Intentional failing test for testing purpose.
-    We create a valid user/event, then create an attendee but ASSERT the wrong status.
-    API returns 200/201 for this — we assert 404 to make it fail on purpose.
-    """
-    # valid user
-    ur = await client.post(
-        "/users",
-        json={
-            "first_name": "Fail",
-            "last_name": "Demo",
-            "email": "fail.demo@example.com",
-            "date_of_birth": "1990-01-01",
-        },
-    )
-    assert ur.status_code in (200, 201)
-    uid = ur.json()["user_id"]
+async def test_delete_attendee_invalid_uuid_422(client: AsyncClient):
+    """Invalid path UUID → 422"""
+    r = await client.delete("/attendees/not-a-uuid")
+    assert r.status_code == 422
 
-    # valid event
-    cat_id = await categories_db.create_category_db("DemoFail", "Purposeful fail")
-    er = await client.post(
-        "/events",
-        json={
-            "event_name": "Attendee Fail Demo",
-            "event_datetime": "2099-01-01T10:00:00Z",
-            "event_endtime": "2099-01-01T12:00:00Z",
-            "user_id": uid,
-            "category_id": str(cat_id),
-        },
-    )
-    assert er.status_code in (200, 201)
-    eid = er.json()["event_id"]
 
-    # create attendee (this succeeds but we assert the WRONG thing to force a fail)
-    r = await client.post(
-        "/attendees",
-        json={"event_id": eid, "user_id": uid, "status": "RSVPed"},
-    )
-
-    # Intentional wrong expectation:
-    assert r.status_code == 404, f"Expected 404 to demo failure, got {r.status_code}"
+@pytest.mark.asyncio
+async def test_delete_attendee_nonexistent_404(client: AsyncClient):
+    """Nonexistent attendee → 404"""
+    r = await client.delete(f"/attendees/{uuid4()}")
+    assert r.status_code == 404
+    detail = r.json().get("detail", "")
+    assert detail and any(k in detail.lower() for k in ["no such", "not found", "does not"])
