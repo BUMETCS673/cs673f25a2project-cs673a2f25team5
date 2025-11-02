@@ -54,7 +54,7 @@ export default function Profile() {
                 className={({ selected }) =>
                   `w-full rounded-xl px-6 py-2 text-sm font-semibold transition-all duration-200 ${
                     selected
-                      ? "bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow-lg ring-2 ring-blue-400 ring-offset-2 ring-offset-neutral-900"
+                      ? "bg-gradient-to-r from-amber-500 to-amber-300 text-white shadow-lg ring-2 ring-amber-400 ring-offset-2 ring-offset-neutral-900"
                       : "text-neutral-300 hover:text-white hover:bg-neutral-700/60"
                   }`
                 }
