@@ -8,8 +8,8 @@ Framework-generated code: 0%
 
 */
 
-import { getUser } from "./users";
-import { API_BASE_URL } from "./config";
+import { getUser } from "@/services/users";
+import { API_BASE_URL } from "@/services/config";
 
 describe("users.getUser", () => {
   const base = API_BASE_URL;
