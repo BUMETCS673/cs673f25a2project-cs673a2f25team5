@@ -7,37 +7,37 @@ export default function Profile() {
     Attending: [
       {
         id: 1,
-        title: "Cassies Birthday Party",
-        date: "October 20",
+        title: "Saniya's Birthday",
+        date: "Aug 11",
       },
       {
         id: 2,
-        title: "Halloween Party",
-        date: "1 day ago",
+        title: "Christmas Party",
+        date: "Dec 25",
       },
     ],
     Created: [
       {
         id: 1,
-        title: "Saniya Birthday",
-        date: "Mar 20",
+        title: "Saniya's Birthday",
+        date: "Aug 11",
       },
       {
         id: 2,
         title: "Sai's Birthday",
-        date: "Mar 19",
+        date: "April 5",
       },
     ],
     Upcoming: [
       {
         id: 1,
         title: "Thanksgiving Dinner",
-        date: "20d ago",
+        date: "Nov 27",
       },
       {
         id: 2,
         title: "Ice Skating Class",
-        date: "2 weeks ago",
+        date: "Nov 13",
       },
     ],
   };
