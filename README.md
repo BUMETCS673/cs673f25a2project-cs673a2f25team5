@@ -120,15 +120,15 @@ cs673f25a2project-cs673a2f25team5/
 │       │   │   ├── config.ts                         # service configuration and API base URL
 │       │   │   ├── events.ts                         # events API service functions
 │       │   │   └── users.ts                          # users API service functions
-│       │   └── middleware.ts                         # (used for protected/public routes)
+│       │   └── middleware.ts                         # ran before req's (used for protected/public routes)
 │       ├── tests/                                    # folder for all tests
 │       │   ├── config.test.ts                        # tests for config file
-│       │   ├── createEventSchema.test.ts            # tests for creating event schema
+│       │   ├── createEventSchema.test.ts             # tests for creating event schema
 │       │   ├── events.test.ts                        # tests for events
 │       │   ├── EventSearchField.test.tsx             # tests for searching events
-│       │   ├── Header.test.tsx                       # test for viewing header
-│       │   ├── useEventsBrowserState.test.ts         # test for events browser
-│       │   └── users.test.ts                          # test for users
+│       │   ├── Header.test.tsx                       # tests for viewing header
+│       │   ├── useEventsBrowserState.test.ts         # tests for events browser
+│       │   └── users.test.ts                         # tests for users
 │       ├── cypress.config.ts                         # cypress config
 │       ├── eslint.config.mjs                         # configuration file for ESLint and prettier
 │       ├── frontend-README.md                        # detailed frontend documentation
