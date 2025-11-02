@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 80% (tool: Codex - GPT-5, initialEvents, status, events, errorMessage, fetchAbortRef, fetchedOnceRef, openModal, closeModal, useEffect, fetchEvents, mergeEvents, hasEvents, handleRetry  ) 
+ 
+ Human code: 20% (functions: MapDiscoveryModalTrigger, MapDiscoveryModalTriggerProps) 
+
+ No framework-generated code.
+
+*/
+
 "use client";
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";

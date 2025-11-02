@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 80% (tool: Codex - GPT-5, userLocation, locationError, locationStatus, geocodeStatus, geocodeError, points, selectedEventId, isMapReady, mapboxToken, viewState, hasAppliedUserLocation, hasCenteredOnEvents, mapRef, markerRegistryRef, markerHandlersRef, useEffect, load, renderStatusBadge, syncHandler, nextHandler  ) 
+ 
+ Human code: 20% (functions: MapDiscoveryView, MapDiscoveryViewProps) 
+
+ No framework-generated code.
+
+*/
+
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -351,10 +361,7 @@ export function MapDiscoveryView({ events }: MapDiscoveryViewProps) {
             event.event_location ??
             "Location to be announced";
 
-          if (
-            (!decoded || decoded.address === locationLabel) &&
-            (!event.event_location || !event.event_location.trim())
-          ) {
+          if (!event.event_location || !event.event_location.trim()) {
             continue;
           }
 
