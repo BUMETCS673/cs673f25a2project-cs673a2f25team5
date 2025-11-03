@@ -8,7 +8,7 @@
 
 */
 
-import type { EventResponse } from "@/services/events";
+import type { EventResponse } from "@/types/eventTypes";
 
 import { EventCard } from "./EventCard";
 import { EventsPaginationBanner } from "./EventsPaginationBanner";
