@@ -8,8 +8,8 @@ Framework-generated code: 0%
 
 */
 
-import { getEvents, createEvent, EventCreatePayload } from "./events";
-import { API_BASE_URL } from "./config";
+import { getEvents, createEvent, EventCreatePayload } from "@/services/events";
+import { API_BASE_URL } from "@/services/config";
 
 beforeEach(() => {
   jest.restoreAllMocks();
