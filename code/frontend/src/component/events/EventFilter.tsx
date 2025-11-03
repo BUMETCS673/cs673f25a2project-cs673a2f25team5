@@ -36,8 +36,8 @@ export function EventFilter() {
                 key={option.name}
                 href={option.href}
                 className={classNames(
-                  option.current ? "font-medium text-white" 
-                  : "text-gray-300 block px-4 py-2 text-sm rounded-md transition duration-200 hover:bg-gradient-to-r hover:from-[#5c1354]/90 hover:to-[#b34fa8]/80 hover:text-white"
+                    option.current ? "font-medium text-white"
+                    : "text-gray-300 block px-4 py-2 text-sm rounded-md transition duration-200 hover:bg-gradient-to-r hover:from-[#5c1354]/90 hover:to-[#b34fa8]/80 hover:text-white"
                 )}
               >
                 {option.name}
@@ -48,5 +48,4 @@ export function EventFilter() {
       </Popover>
     </div>
   );
-
 }
