@@ -58,4 +58,3 @@ class PaginatedAttendees(BaseModel):
     total: int
     offset: int
     limit: int
-    
