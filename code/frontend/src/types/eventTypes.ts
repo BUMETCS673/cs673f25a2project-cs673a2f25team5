@@ -1,6 +1,6 @@
 /*
 
- AI-generated code: 100% (tool: Codex - GPT-5, UserSchema, UserResponse, UserListSchema, UserListResponse, getUser) 
+ AI-generated code: 100% (tool: Codex - GPT-5, EventSchema, EventResponse, EventListSchema, EventListResponse, EventCreatePayloadSchema, EventCreatePayload) 
 
  Human code: 0%
 

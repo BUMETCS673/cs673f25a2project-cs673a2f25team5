@@ -10,8 +10,8 @@
 
 import type { CSSProperties } from "react";
 
-import type { EventResponse } from "@/services/events";
-import type { UserResponse } from "@/services/users";
+import type { EventResponse } from "@/types/eventTypes";
+import type { UserResponse } from "@/types/userTypes";
 
 export type EventStatusTone = "past" | "live" | "upcoming";
 

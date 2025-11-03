@@ -10,12 +10,11 @@ import logging
 import time
 from typing import Annotated, Any
 
-import httpx
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import PyJWKClient
-from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import InvalidTokenError, PyJWKClientError
 
 from app.config import settings
 
@@ -23,10 +22,6 @@ logger = logging.getLogger(__name__)
 
 # Security scheme for Bearer token
 security = HTTPBearer(auto_error=False)
-
-# Clerk JWKs cache
-_clerk_jwks_cache: dict[str, Any] = {}
-_clerk_jwks_cache_expiry: float = 0
 
 
 class ClerkTokenPayload:
@@ -45,41 +40,11 @@ class ClerkTokenPayload:
         self.iat: int = payload.get("iat", 0)
 
 
-async def get_clerk_public_keys() -> dict[str, Any]:
-    """
-    Fetch Clerk's public keys with caching.
-    Clerk rotates its JWKs periodically, so we cache them for 1 hour.
-    """
-    global _clerk_jwks_cache, _clerk_jwks_cache_expiry
-    current_time = time.time()
-
-    if _clerk_jwks_cache and current_time < _clerk_jwks_cache_expiry:
-        logger.debug("Using cached Clerk JWKs")
-        return _clerk_jwks_cache
-
-    logger.debug("Fetching fresh Clerk JWKs")
-
-    async with httpx.AsyncClient() as client:
-        response = await client.get(settings.CLERK_JWKS_URL, timeout=10)
-        response.raise_for_status()
-        clerk_keys = response.json()
-
-    # Cache for 1 hour
-    _clerk_jwks_cache = clerk_keys
-    _clerk_jwks_cache_expiry = current_time + 3600
-    logger.info("Cached Clerk JWKs for 1 hour")
-
-    return clerk_keys
-
-
 async def verify_clerk_token(token: str) -> ClerkTokenPayload:
     """
     Verify a Clerk-issued JWT and return user info.
     """
     try:
-        # Ensure public keys are available
-        await get_clerk_public_keys()
-
         # Use Clerk's JWK client for signature verification
         jwk_client = PyJWKClient(settings.CLERK_JWKS_URL)
         signing_key = jwk_client.get_signing_key_from_jwt(token)
@@ -118,7 +83,6 @@ async def verify_clerk_token(token: str) -> ClerkTokenPayload:
                     detail="Invalid token audience",
                 )
 
-
         return ClerkTokenPayload(payload)
 
     except jwt.ExpiredSignatureError as exc:
@@ -133,7 +97,7 @@ async def verify_clerk_token(token: str) -> ClerkTokenPayload:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token",
         ) from e
-    except httpx.HTTPError as e:
+    except PyJWKClientError as e:
         logger.error(f"Failed to fetch Clerk JWKs: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
