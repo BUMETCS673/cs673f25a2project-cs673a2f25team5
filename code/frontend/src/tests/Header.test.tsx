@@ -9,7 +9,7 @@ Framework-generated code: 0%
 */
 
 import { render, screen } from "@testing-library/react";
-import Header from "./Header";
+import Header from "@/component/ui/Header";
 
 jest.mock("next/navigation", () => ({
   usePathname: () => "/",

@@ -8,7 +8,7 @@ Framework-generated code: 0%
 
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
 from app.models import events as models_events
 from app.models import patch as models_patch
@@ -115,14 +115,71 @@ async def create_event(event: models_events.EventCreate) -> models_events.EventR
 
 @router.patch(
     "/events",
-    response_model=models_patch.PatchRequest,
-    summary="Patch events using JSON Patch",
+    response_model=dict[UUID, models_events.EventRead],
+    summary="Patch multiple events using JSON Patch operations",
+    description=(
+        "Apply JSON Patch operations to multiple events. Each operation is applied to a "
+        "specific event identified by UUID. Returns a dictionary mapping event IDs to their "
+        "updated Event models.\n\n"
+        "JSON Patch operations supported:\n"
+        "- `replace`: Replace a field value\n"
+        "Example request body:\n"
+        "```json\n"
+        "{\n"
+        '  "patch": {\n'
+        '    "550e8400-e29b-41d4-a716-446655440001": {\n'
+        '      "op": "replace",\n'
+        '      "path": "/event_name",\n'
+        '      "value": "Updated Event Name"\n'
+        "    }\n"
+        "  }\n"
+        "}\n"
+        "```"
+    ),
     tags=["Events"],
+    responses={
+        200: {"description": "Events patched successfully"},
+        400: {
+            "description": "Invalid patch operation or data",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "InvalidOperation": {
+                            "summary": "Invalid JSON Patch operation",
+                            "value": {"detail": "Invalid operation: unsupported_op"},
+                        },
+                        "InvalidPath": {
+                            "summary": "Invalid field path",
+                            "value": {"detail": "Invalid path: /invalid_field"},
+                        },
+                        "InvalidValue": {
+                            "summary": "Invalid field value",
+                            "value": {"detail": "Invalid value for field: start_time"},
+                        },
+                    }
+                }
+            },
+        },
+        404: {
+            "description": "One or more events not found",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Event not found: 550e8400-e29b-41d4-a716-446655440001"
+                    }
+                }
+            },
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
+        },
+    },
 )
 async def patch_events(
     request: models_patch.PatchRequest,
-) -> models_events.EventRead:
-    raise HTTPException(status_code=501, detail="Not implemented")
+) -> dict[UUID, models_events.EventRead]:
+    return await events_service.patch_events_service(request)
 
 
 @router.delete(

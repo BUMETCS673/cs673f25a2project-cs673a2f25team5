@@ -8,7 +8,7 @@ Framework-generated code: 0%
 
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
 from app.models import patch as models_patch
 from app.models import users as models_users
@@ -110,14 +110,71 @@ async def create_user(user: models_users.UserCreate) -> models_users.UserRead:
 
 @router.patch(
     "/users",
-    response_model=models_patch.PatchRequest,
-    summary="Patch users using JSON Patch",
+    response_model=dict[UUID, models_users.UserRead],
+    summary="Patch multiple users using JSON Patch operations",
+    description=(
+        "Apply JSON Patch operations to multiple users. Each operation is applied to a "
+        "specific user identified by UUID. Returns a dictionary mapping user IDs to their "
+        "updated User models.\n\n"
+        "JSON Patch operations supported:\n"
+        "- `replace`: Replace a field value\n"
+        "Example request body:\n"
+        "```json\n"
+        "{\n"
+        '  "patch": {\n'
+        '    "550e8400-e29b-41d4-a716-446655440000": {\n'
+        '      "op": "replace",\n'
+        '      "path": "/first_name",\n'
+        '      "value": "John"\n'
+        "    }\n"
+        "  }\n"
+        "}\n"
+        "```"
+    ),
     tags=["Users"],
+    responses={
+        200: {"description": "Users patched successfully"},
+        400: {
+            "description": "Invalid patch operation or data",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "InvalidOperation": {
+                            "summary": "Invalid JSON Patch operation",
+                            "value": {"detail": "Invalid operation: unsupported_op"},
+                        },
+                        "InvalidPath": {
+                            "summary": "Invalid field path",
+                            "value": {"detail": "Invalid path: /invalid_field"},
+                        },
+                        "InvalidValue": {
+                            "summary": "Invalid field value",
+                            "value": {"detail": "Invalid value for field: email"},
+                        },
+                    }
+                }
+            },
+        },
+        404: {
+            "description": "One or more users not found",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "User not found: 550e8400-e29b-41d4-a716-446655440000"
+                    }
+                }
+            },
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
+        },
+    },
 )
 async def patch_users(
     request: models_patch.PatchRequest,
-) -> models_users.UserRead:
-    raise HTTPException(status_code=501, detail="Not implemented")
+) -> dict[UUID, models_users.UserRead]:
+    return await users_service.patch_users_service(request)
 
 
 @router.delete(
