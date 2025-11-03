@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { EventListResponse, EventResponse } from "@/types/eventTypes";
 import { getEvents } from "@/services/events";
+import { decodeEventLocation } from "@/helpers/locationCodec";
 
 const REMOTE_SEARCH_PAGE_SIZE = 9;
 

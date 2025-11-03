@@ -11,6 +11,7 @@
 import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
 import type { EventResponse } from "@/types/eventTypes";
+import { decodeEventLocation } from "@/helpers/locationCodec";
 
 type EventCardProps = {
   event: EventResponse;

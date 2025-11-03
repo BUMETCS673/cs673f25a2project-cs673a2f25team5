@@ -12,6 +12,7 @@ import type { CSSProperties } from "react";
 
 import type { EventResponse } from "@/types/eventTypes";
 import type { UserResponse } from "@/types/userTypes";
+import { decodeEventLocation } from "@/helpers/locationCodec";
 
 export type EventStatusTone = "past" | "live" | "upcoming";
 
