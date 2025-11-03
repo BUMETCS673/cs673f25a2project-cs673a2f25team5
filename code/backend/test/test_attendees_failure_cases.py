@@ -214,4 +214,3 @@ async def test_delete_attendee_nonexistent_404(client: AsyncClient):
     assert r.status_code == 404
     detail = r.json().get("detail", "")
     assert detail and any(k in detail.lower() for k in ["no such", "not found", "does not"])
-
