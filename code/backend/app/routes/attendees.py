@@ -43,7 +43,6 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of attendees
     ),
     tags=["Attendees"],
     responses={
-        201: {"description": "Attendee created"},
         200: {"description": "Paginated list of attendees"},
         400: {
             "description": "Invalid parameters",
@@ -86,8 +85,10 @@ async def list_attendees(
     responses={
         201: {"description": "Attendee created"},
         404: {
-            "description": "Attendee not found",
-            "content": {"application/json": {"example": {"detail": "Attendee not found"}}},
+            "description": "Event or user not found",
+            "content": {
+                "application/json": {"example": {"detail": "Event or user not found"}}
+            },
         },
         500: {
             "description": "Internal server error",

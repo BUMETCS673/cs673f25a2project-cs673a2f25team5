@@ -14,6 +14,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import (
     Column,
     DateTime,
+    MetaData,
     Table,
     and_,
     func,
@@ -24,12 +25,14 @@ from sqlalchemy.dialects.postgresql import UUID as SQLAlchemyUUID
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.elements import ColumnElement
 
-from app.db.db import engine, metadata
+from app.db.db import engine
 from app.db.filters import FilterOperation
 from app.models.attendees import AttendeeCreate, AttendeeRead, AttendeeStatus
 from app.models.exceptions import InvalidColumnError, NotFoundError
 
 logger = logging.getLogger(__name__)
+
+metadata = MetaData()
 
 # Map to existing DB enum type created by init SQL: attendee_status
 attendee_status = PG_ENUM(

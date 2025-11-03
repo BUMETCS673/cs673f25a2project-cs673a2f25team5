@@ -15,6 +15,7 @@ from uuid import UUID
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.pool import StaticPool
 
@@ -59,7 +60,13 @@ async def test_engine(test_db_file) -> AsyncGenerator[AsyncEngine, None]:
 
     # point all module engines at the same test engine
     db.engine = engine
-    db.metadata = attendees_md
+
+    combined_md = MetaData()
+    for md in [attendees_md, categories_md, events_md, users_md]:
+        for table in md.tables.values():
+            table.to_metadata(combined_md)
+    db.metadata = combined_md
+
     attendees_db.engine = engine
     events_db.engine = engine
     users_db.engine = engine
@@ -161,7 +168,7 @@ async def test_post_attendee_minimal_defaults_status_null(client: AsyncClient):
     resp = await client.post(
         "/attendees", json={"event_id": str(event_id), "user_id": str(user_id)}
     )
-    assert resp.status_code in (200, 201)
+    assert resp.status_code == 201
     body = resp.json()
     assert UUID(body["attendee_id"])
     # Depending on response config, NULL may appear as None or be omitted
@@ -184,7 +191,7 @@ async def test_post_attendee_with_explicit_status_rsvped(client: AsyncClient):
             "status": "RSVPed",
         },
     )
-    assert resp.status_code in (200, 201)
+    assert resp.status_code == 201
     body = resp.json()
     assert (
         body.get("status", "RSVPed").upper().startswith("RSVP")
@@ -213,7 +220,7 @@ async def test_get_attendees_by_event_filter_eq(client: AsyncClient):
     created = await client.post(
         "/attendees", json={"event_id": str(event_id), "user_id": str(user_id)}
     )
-    assert created.status_code in (200, 201)
+    assert created.status_code == 201
     att_id = created.json()["attendee_id"]
 
     resp = await client.get(
@@ -275,6 +282,7 @@ async def test_delete_attendee_success(client: AsyncClient):
     created = await client.post(
         "/attendees", json={"event_id": str(event_id), "user_id": str(user_id)}
     )
+    assert created.status_code == 201
     att_id = created.json()["attendee_id"]
 
     dele = await client.delete(f"/attendees/{att_id}")
@@ -285,3 +293,4 @@ async def test_delete_attendee_success(client: AsyncClient):
     )
     assert after.status_code == 200
     assert len(after.json()["items"]) == 0
+

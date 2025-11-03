@@ -14,6 +14,7 @@ from uuid import uuid4
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.pool import StaticPool
 
@@ -58,7 +59,12 @@ async def test_engine(test_db_file) -> AsyncGenerator[AsyncEngine, None]:
 
     # rebind engines for all related modules
     db.engine = engine
-    db.metadata = attendees_md
+    combined_md = MetaData()
+    for md in [attendees_md, categories_md, events_md, users_md]:
+        for table in md.tables.values():
+            table.to_metadata(combined_md)
+    db.metadata = combined_md
+
     attendees_db.engine = engine
     events_db.engine = engine
     users_db.engine = engine
@@ -122,18 +128,6 @@ async def test_create_attendee_404_missing_refs(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_post_attendee_missing_refs_404(client: AsyncClient):
-    """Nonexistent event_id/user_id → 404"""
-    r = await client.post(
-        "/attendees",
-        json={"event_id": str(uuid4()), "user_id": str(uuid4()), "status": "RSVPed"},
-    )
-    assert r.status_code == 404
-    detail = r.json().get("detail", "")
-    assert detail and "no such" in detail.lower()
-
-
-@pytest.mark.asyncio
 async def test_post_attendee_invalid_uuid_422(client: AsyncClient):
     """Invalid UUIDs in body → 422"""
     r = await client.post(
@@ -180,7 +174,7 @@ async def test_post_attendee_duplicate_409(client: AsyncClient):
     r1 = await client.post(
         "/attendees", json={"event_id": eid, "user_id": uid, "status": "RSVPed"}
     )
-    assert r1.status_code in (200, 201)
+    assert r1.status_code == 201
 
     r2 = await client.post(
         "/attendees", json={"event_id": eid, "user_id": uid, "status": "RSVPed"}
@@ -220,3 +214,4 @@ async def test_delete_attendee_nonexistent_404(client: AsyncClient):
     assert r.status_code == 404
     detail = r.json().get("detail", "")
     assert detail and any(k in detail.lower() for k in ["no such", "not found", "does not"])
+

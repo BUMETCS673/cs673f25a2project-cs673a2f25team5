@@ -80,9 +80,7 @@ async def create_attendee_service(att: AttendeeCreate) -> AttendeeRead:
                 status_code=409, detail="User already registered for this event"
             )
 
-            # DB will default status to NULL if not provided (meaning no response yet)
-
-        # DB will default status to RSVPed if not provided (enum default in schema)
+        # DB will default status to NULL if not provided (meaning no response yet)
         sanitized = AttendeeCreate(
             event_id=att.event_id,
             user_id=att.user_id,
