@@ -118,8 +118,6 @@ async def verify_clerk_token(token: str) -> ClerkTokenPayload:
                     detail="Invalid token audience",
                 )
 
-        if "aud" not in payload and audience_claim:
-            payload["aud"] = audience_claim
 
         return ClerkTokenPayload(payload)
 
