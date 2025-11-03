@@ -205,4 +205,4 @@ async def test_list_categories_invalid_limit_type(test_client: AsyncClient):
     """Test that non-integer limit is rejected."""
     response = await test_client.get("/categories", params={"limit": "xyz"})
     assert response.status_code == 422
-
+    

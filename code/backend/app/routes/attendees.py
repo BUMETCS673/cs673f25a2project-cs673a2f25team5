@@ -122,4 +122,4 @@ async def create_attendee(
 )
 async def delete_attendee(attendee_id: UUID) -> models_attendees.AttendeeRead:
     return await attendees_service.delete_attendee_service(attendee_id)
-
+    
