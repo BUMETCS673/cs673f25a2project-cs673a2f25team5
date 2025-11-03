@@ -31,13 +31,31 @@ class Settings(BaseSettings):
     )
 
     # Google OAuth settings
-    GOOGLE_CLIENT_ID: str = Field(
+    # GOOGLE_CLIENT_ID: str = Field(
+    #     default="",
+    #     description="Google OAuth Client ID for token verification",
+    # )
+    # GOOGLE_OAUTH_ENABLED: bool = Field(
+    #     default=False,
+    #     description="Enable Google OAuth token verification. Set to True in production.",
+    # )
+
+    # Clerk authentication settings
+    CLERK_JWKS_URL: str = Field(
         default="",
-        description="Google OAuth Client ID for token verification",
+        description="Clerk JWKS endpoint used to verify session tokens.",
     )
-    GOOGLE_OAUTH_ENABLED: bool = Field(
+    CLERK_ISSUER: str = Field(
+        default="",
+        description="Expected Clerk issuer (iss) claim when validating tokens.",
+    )
+    CLERK_JWT_AUDIENCE: str = Field(
+        default="",
+        description="Expected Clerk audience (aud/azp) claim when validating tokens.",
+    )
+    CLERK_AUTH_ENABLED: bool = Field(
         default=False,
-        description="Enable Google OAuth token verification. Set to True in production.",
+        description="Toggle Clerk authentication. Set True to enforce token validation.",
     )
 
     @field_validator("POSTGRES_PASSWORD")

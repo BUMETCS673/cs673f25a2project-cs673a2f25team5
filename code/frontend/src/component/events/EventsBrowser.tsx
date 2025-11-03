@@ -10,7 +10,7 @@
 
 "use client";
 
-import type { EventListResponse } from "@/services/events";
+import type { EventListResponse } from "@/types/eventTypes";
 
 import { EventSearchField } from "./EventSearchField";
 import { EventsResults } from "./EventsResults";

@@ -14,6 +14,7 @@ import httpx
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jwt import PyJWKClient
 from jwt.exceptions import InvalidTokenError
 
 from app.config import settings
@@ -23,173 +24,125 @@ logger = logging.getLogger(__name__)
 # Security scheme for Bearer token
 security = HTTPBearer(auto_error=False)
 
-# Google public keys cache
-_google_keys_cache: dict[str, Any] = {}
-_google_keys_cache_expiry: float = 0
+# Clerk JWKs cache
+_clerk_jwks_cache: dict[str, Any] = {}
+_clerk_jwks_cache_expiry: float = 0
 
 
-class GoogleTokenPayload:
-    """Represents the validated Google OAuth token payload."""
+class ClerkTokenPayload:
+    """Represents the validated Clerk token payload."""
 
     def __init__(self, payload: dict[str, Any]) -> None:
+        self.sub: str = payload.get("sub", "")
         self.email: str = payload.get("email", "")
-        self.email_verified: bool = payload.get("email_verified", False)
         self.name: str = payload.get("name", "")
-        self.given_name: str = payload.get("given_name", "")
-        self.family_name: str = payload.get("family_name", "")
-        self.picture: str = payload.get("picture", "")
-        self.sub: str = payload.get("sub", "")  # Google user ID
+        self.image_url: str = payload.get("image_url", "")
+        self.first_name: str = payload.get("first_name", "")
+        self.last_name: str = payload.get("last_name", "")
         self.iss: str = payload.get("iss", "")
-        self.aud: str = payload.get("aud", "")
+        self.aud: str = payload.get("aud") or payload.get("azp", "")
+        self.exp: int = payload.get("exp", 0)
+        self.iat: int = payload.get("iat", 0)
 
 
-async def get_google_public_keys() -> dict[str, Any]:
+async def get_clerk_public_keys() -> dict[str, Any]:
     """
-    Fetch Google's public keys with caching.
-
-    Google's public keys change infrequently (every 24-48 hours typically).
-    We cache them for 1 hour by default, but respect the max-age from
-    Google's cache-control header if provided.
-
-    Returns:
-        dict: Google's public keys in JWK format
-
-    Raises:
-        requests.RequestException: If unable to fetch keys
+    Fetch Clerk's public keys with caching.
+    Clerk rotates its JWKs periodically, so we cache them for 1 hour.
     """
-    global _google_keys_cache, _google_keys_cache_expiry
-
+    global _clerk_jwks_cache, _clerk_jwks_cache_expiry
     current_time = time.time()
 
-    if _google_keys_cache and current_time < _google_keys_cache_expiry:
-        logger.debug("Using cached Google public keys")
-        return _google_keys_cache
+    if _clerk_jwks_cache and current_time < _clerk_jwks_cache_expiry:
+        logger.debug("Using cached Clerk JWKs")
+        return _clerk_jwks_cache
 
-    logger.debug("Fetching fresh Google public keys")
+    logger.debug("Fetching fresh Clerk JWKs")
 
     async with httpx.AsyncClient() as client:
-        response = await client.get("https://www.googleapis.com/oauth2/v3/certs", timeout=10)
+        response = await client.get(settings.CLERK_JWKS_URL, timeout=10)
         response.raise_for_status()
-        google_keys = response.json()
+        clerk_keys = response.json()
 
-    cache_ttl = 3600
-    cache_control = response.headers.get("cache-control", "")
-    if "max-age=" in cache_control:
-        try:
-            # Extract max-age value from cache-control header
-            max_age_str = cache_control.split("max-age=")[1].split(",")[0].strip()
-            google_max_age = int(max_age_str)
-            # Use Google's max-age but cap at 24 hours for safety
-            cache_ttl = min(google_max_age, 24 * 3600)
-            logger.debug(f"Using Google's cache TTL: {cache_ttl} seconds")
-        except (ValueError, IndexError):
-            logger.warning("Failed to parse max-age from cache-control, using default TTL")
+    # Cache for 1 hour
+    _clerk_jwks_cache = clerk_keys
+    _clerk_jwks_cache_expiry = current_time + 3600
+    logger.info("Cached Clerk JWKs for 1 hour")
 
-    # Update cache
-    _google_keys_cache = google_keys
-    _google_keys_cache_expiry = current_time + cache_ttl
-
-    logger.info(f"Cached Google public keys for {cache_ttl} seconds")
-    return google_keys
+    return clerk_keys
 
 
-def clear_google_keys_cache() -> None:
+async def verify_clerk_token(token: str) -> ClerkTokenPayload:
     """
-    Clear the Google public keys cache.
-
-    This can be useful for testing or if you want to force
-    a fresh fetch of the keys.
-    """
-    global _google_keys_cache, _google_keys_cache_expiry
-    _google_keys_cache.clear()
-    _google_keys_cache_expiry = 0
-    logger.info("Google public keys cache cleared")
-
-
-async def verify_google_token(token: str) -> GoogleTokenPayload:
-    """
-    Verify a Google OAuth token and return the user information.
-
-    Args:
-        token: The JWT token from Google OAuth
-
-    Returns:
-        GoogleTokenPayload: Validated token payload with user information
-
-    Raises:
-        HTTPException: If token is invalid or verification fails
+    Verify a Clerk-issued JWT and return user info.
     """
     try:
-        # Get Google's public keys (cached)
-        google_keys = await get_google_public_keys()
+        # Ensure public keys are available
+        await get_clerk_public_keys()
 
-        # Decode the token header to get the key ID (kid)
-        unverified_header = jwt.get_unverified_header(token)
-        kid: str | None = unverified_header.get("kid")
+        # Use Clerk's JWK client for signature verification
+        jwk_client = PyJWKClient(settings.CLERK_JWKS_URL)
+        signing_key = jwk_client.get_signing_key_from_jwt(token)
 
-        if not kid:
-            logger.error("No 'kid' found in token header")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token: missing key ID",
-            )
-
-        # Find the public key that matches the token's key ID
-        jwk_key = None
-        for key in google_keys["keys"]:
-            if key["kid"] == kid:
-                # Use PyJWT's PyJWK class for proper JWK handling
-                jwk_key = jwt.PyJWK(key)
-                break
-
-        if not jwk_key:
-            logger.error(f"Unable to find public key for kid: {kid}")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token: key not found",
-            )
-
-        # Verify and decode the token
-        # PyJWT will validate signature, expiration, audience, and issuer
         payload = jwt.decode(
             token,
-            jwk_key.key,
+            signing_key.key,
             algorithms=["RS256"],
-            audience=settings.GOOGLE_CLIENT_ID,
-            issuer="https://accounts.google.com",
-            options={
-                "verify_signature": True,
-                "verify_exp": True,
-                "verify_aud": True,
-                "verify_iss": True,
-            },
+            issuer=settings.CLERK_ISSUER,
+            options={"verify_exp": True, "verify_aud": False, "verify_iss": True},
         )
 
-        # Verify email is verified
-        email_verified: bool = bool(payload.get("email_verified", False))
-        if not email_verified:
-            email: str = str(payload.get("email", "unknown"))
-            logger.warning(f"Unverified email attempted access: {email}")
+        audience_claim = payload.get("aud") or payload.get("azp")
+        expected_audience = settings.CLERK_JWT_AUDIENCE
+
+        if not audience_claim:
+            logger.error("Clerk token missing audience/azp claim")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Email not verified",
+                detail="Invalid token audience",
             )
 
-        return GoogleTokenPayload(payload)
+        if expected_audience:
+            if isinstance(audience_claim, (list, tuple)):
+                audience_valid = expected_audience in audience_claim
+            else:
+                audience_valid = audience_claim == expected_audience
 
-    except InvalidTokenError as e:
-        logger.error(f"JWT verification failed: {str(e)}")
+            if not audience_valid:
+                logger.error(
+                    "Clerk token audience mismatch",
+                    extra={"expected": expected_audience, "received": audience_claim},
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid token audience",
+                )
+
+        if "aud" not in payload and audience_claim:
+            payload["aud"] = audience_claim
+
+        return ClerkTokenPayload(payload)
+
+    except jwt.ExpiredSignatureError as exc:
+        logger.error("Clerk token expired")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired",
+        ) from exc
+    except InvalidTokenError as e:
+        logger.error(f"Invalid Clerk token: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
         ) from e
     except httpx.HTTPError as e:
-        logger.error(f"Failed to fetch Google public keys: {str(e)}")
+        logger.error(f"Failed to fetch Clerk JWKs: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Authentication service unavailable",
         ) from e
     except Exception as e:
-        logger.error(f"Unexpected error during token verification: {str(e)}")
+        logger.error(f"Unexpected Clerk token verification error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication failed",
@@ -198,40 +151,30 @@ async def verify_google_token(token: str) -> GoogleTokenPayload:
 
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
-) -> GoogleTokenPayload:
+) -> ClerkTokenPayload:
     """
-    Dependency to extract and verify the current user from the Bearer token.
-
-    This can be used in any endpoint that requires authentication:
+    Extract and verify the current user from the Clerk Bearer token.
+    Use in any endpoint requiring authentication:
     ```python
     @router.get("/protected")
-    async def protected_route(user: Annotated[GoogleTokenPayload, Depends(get_current_user)]):
+    async def protected_route(user: Annotated[ClerkTokenPayload, Depends(get_current_user)]):
         return {"email": user.email}
     ```
-
-    Args:
-        credentials: The HTTP Bearer token credentials
-
-    Returns:
-        GoogleTokenPayload: The verified user information
-
-    Raises:
-        HTTPException: If authentication fails
     """
-    # If OAuth is disabled (e.g., in development), skip authentication
-    if not settings.GOOGLE_OAUTH_ENABLED:
-        logger.warning("OAuth is disabled - returning mock user for development")
-        return GoogleTokenPayload(
+    # Development mode mock user
+    if not settings.CLERK_AUTH_ENABLED:
+        logger.warning("Clerk auth disabled - returning mock user")
+        return ClerkTokenPayload(
             {
-                "email": "dev@example.com",
-                "email_verified": True,
-                "name": "Development User",
-                "given_name": "Dev",
-                "family_name": "User",
-                "picture": "",
                 "sub": "dev-user-id",
+                "email": "dev@example.com",
+                "name": "Development User",
+                "first_name": "Dev",
+                "last_name": "User",
                 "iss": "development",
                 "aud": "development",
+                "exp": int(time.time()) + 3600,
+                "iat": int(time.time()),
             }
         )
 
@@ -243,8 +186,8 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    return await verify_google_token(credentials.credentials)
+    return await verify_clerk_token(credentials.credentials)
 
 
 # Type alias for dependency injection
-CurrentUser = Annotated[GoogleTokenPayload, Depends(get_current_user)]
+CurrentUser = Annotated[ClerkTokenPayload, Depends(get_current_user)]
