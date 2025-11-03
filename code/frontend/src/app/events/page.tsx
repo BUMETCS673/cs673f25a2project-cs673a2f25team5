@@ -9,7 +9,6 @@
 */
 
 export const dynamic = "force-dynamic";
-
 import { EventsBrowser } from "@/component/events/EventsBrowser";
 import { getEvents } from "@/services/events";
 
@@ -34,7 +33,6 @@ export default async function EventsPage() {
             details to RSVP.
           </p>
         </header>
-
         <EventsBrowser initialResult={initialResult} />
       </div>
     </main>
