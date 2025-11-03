@@ -121,3 +121,4 @@ async def delete_attendee_service(attendee_id: UUID) -> AttendeeRead:
     except Exception as e:
         logger.error(f"Unexpected error while deleting attendee: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error") from e
+

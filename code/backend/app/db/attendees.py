@@ -189,3 +189,4 @@ async def delete_attendee_db(attendee_id: UUID) -> None:
     except Exception as e:
         logger.error(f"Unexpected error while deleting attendee: {str(e)}")
         raise ValueError(f"Unexpected error while deleting attendee: {str(e)}") from e
+

@@ -293,3 +293,4 @@ async def test_delete_attendee_success(client: AsyncClient):
     )
     assert after.status_code == 200
     assert len(after.json()["items"]) == 0
+
