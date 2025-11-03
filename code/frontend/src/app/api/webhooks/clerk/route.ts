@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { verifyWebhook } from "@clerk/nextjs/webhooks";
-import { clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000"; // Adjust as needed
 
@@ -45,10 +45,16 @@ export async function POST(req: NextRequest) {
 
   console.log("[Webhook] Sending payload to backend:", payload);
 
+  const { getToken } = await auth();
+  const token = await getToken();
+
   try {
     const res = await fetch(`${BACKEND_URL}/users`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(payload),
     });
 
