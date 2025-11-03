@@ -30,16 +30,6 @@ class Settings(BaseSettings):
         default="event_manager", min_length=1, description="PostgreSQL database name"
     )
 
-    # Google OAuth settings
-    # GOOGLE_CLIENT_ID: str = Field(
-    #     default="",
-    #     description="Google OAuth Client ID for token verification",
-    # )
-    # GOOGLE_OAUTH_ENABLED: bool = Field(
-    #     default=False,
-    #     description="Enable Google OAuth token verification. Set to True in production.",
-    # )
-
     # Clerk authentication settings
     CLERK_JWKS_URL: str = Field(
         default="",
