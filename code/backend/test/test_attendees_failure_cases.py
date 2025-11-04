@@ -282,8 +282,6 @@ async def test_patch_attendee_invalid_user_id(test_client: AsyncClient):
     assert user_response.status_code == 201
     user_id = user_response.json()["user_id"]
 
-    from datetime import UTC, datetime, timedelta
-
     event_response = await test_client.post(
         "/events",
         json={
@@ -333,8 +331,6 @@ async def test_patch_attendee_invalid_event_id(test_client: AsyncClient):
     )
     assert user_response.status_code == 201
     user_id = user_response.json()["user_id"]
-
-    from datetime import UTC, datetime, timedelta
 
     event_response = await test_client.post(
         "/events",
@@ -386,8 +382,6 @@ async def test_patch_attendee_invalid_status_value(test_client: AsyncClient):
     assert user_response.status_code == 201
     user_id = user_response.json()["user_id"]
 
-    from datetime import UTC, datetime, timedelta
-
     event_response = await test_client.post(
         "/events",
         json={
@@ -436,8 +430,6 @@ async def test_patch_attendee_invalid_operation(test_client: AsyncClient):
     )
     assert user_response.status_code == 201
     user_id = user_response.json()["user_id"]
-
-    from datetime import UTC, datetime, timedelta
 
     event_response = await test_client.post(
         "/events",
