@@ -11,73 +11,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
-import type { AttendeeCreatePayload } from "@/types/attendeeTypes";
-import type { EventRegisterData } from "./viewModel";
 import { toast } from "sonner";
-
-type AttendeeStatus = AttendeeCreatePayload["status"];
-
-type RegisterResult =
-  | {
-      success: true;
-      status: AttendeeStatus;
-      message: string;
-    }
-  | {
-      success: false;
-      code: "unauthenticated" | "alreadyRegistered" | "host" | "unknown";
-      message: string;
-      status?: AttendeeStatus | null;
-    };
-
-type EventRegisterCardProps = EventRegisterData & {
-  eventId: string;
-  onRegister: (
-    eventId: string,
-    status: AttendeeStatus,
-  ) => Promise<RegisterResult>;
-  initialStatus: AttendeeStatus | null;
-  isAuthenticated: boolean;
-  isHost: boolean;
-  note?: string;
-};
-
-type StatusOption = {
-  value: AttendeeStatus;
-  label: string;
-  description: string;
-};
-
-const STATUS_OPTIONS: StatusOption[] = [
-  {
-    value: "RSVPed",
-    label: "Going",
-    description: "Reserve my spot — I'm planning to attend.",
-  },
-  {
-    value: "Maybe",
-    label: "Maybe",
-    description: "I'm interested but need to confirm.",
-  },
-  {
-    value: "Not Going",
-    label: "Not going",
-    description: "I can't make it this time.",
-  },
-];
-
-const SUCCESS_MESSAGE_BY_STATUS: Record<AttendeeStatus, string> = {
-  RSVPed: "You're all set—see you there!",
-  Maybe: "We'll keep a seat warm if you can make it.",
-  "Not Going": "Thanks for letting us know.",
-};
-
-const STATUS_LABEL_MAP: Record<AttendeeStatus, string> = {
-  RSVPed: "Going",
-  Maybe: "Maybe",
-  "Not Going": "Not going",
-};
+import type {
+  EventRegisterCardProps,
+  AttendeeStatus,
+} from "@/types/registerTypes";
+import {
+  STATUS_OPTIONS,
+  SUCCESS_MESSAGE_BY_STATUS,
+  STATUS_LABEL_MAP,
+} from "@/types/registerTypes";
 
 export function EventRegisterCard({
   ctaLabel,
@@ -175,7 +118,15 @@ export function EventRegisterCard({
         }
         const message =
           result.message ?? SUCCESS_MESSAGE_BY_STATUS[result.status];
-        toast.success(message);
+        const normalizedMessage = message.trim();
+        if (
+          normalizedMessage.toLowerCase().includes("no changes needed") ||
+          normalizedMessage.toLowerCase().includes("already")
+        ) {
+          toast.info(normalizedMessage);
+        } else {
+          toast.success(normalizedMessage);
+        }
         return;
       }
 
@@ -184,6 +135,9 @@ export function EventRegisterCard({
       }
 
       if (result.code === "alreadyRegistered") {
+        toast.info(result.message);
+      } else if (result.code === "unauthenticated") {
+        setError(result.message);
         toast.info(result.message);
       } else if (result.code === "host") {
         setSelectedStatus(null);
