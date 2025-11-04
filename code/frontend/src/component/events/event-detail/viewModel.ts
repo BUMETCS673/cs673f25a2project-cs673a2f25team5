@@ -49,7 +49,6 @@ export type EventAboutData = {
 
 export type EventRegisterData = {
   ctaLabel: string;
-  note: string;
 };
 
 export type HostProfileTheme = {
@@ -182,7 +181,6 @@ export function buildEventViewModel({
   const registerData: EventRegisterData = {
     ctaLabel:
       priceLabel === "Free" ? "Register for free" : `Register • ${priceLabel}`,
-    note: "Need accommodations? Reply to the confirmation email and we will do our best to help.",
   };
 
   const hostFullName = host

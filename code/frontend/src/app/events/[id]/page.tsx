@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { currentUser } from "@clerk/nextjs/server";
 
 import { EventAboutSection } from "@/component/events/event-detail/EventAboutSection";
 import { EventDetailHeader } from "@/component/events/event-detail/EventDetailHeader";
@@ -21,7 +22,24 @@ import { EventRegisterCard } from "@/component/events/event-detail/EventRegister
 import { EventLocationMapCard } from "@/component/events/event-detail/EventLocationMapCard";
 import { buildEventViewModel } from "@/component/events/event-detail/viewModel";
 import { getEvents } from "@/services/events";
+import { createAttendee, getAttendees } from "@/services/attendees";
 import { getUser } from "@/services/users";
+import type { AttendeeCreatePayload } from "@/types/attendeeTypes";
+
+type AttendeeStatus = AttendeeCreatePayload["status"];
+
+type RegisterAttendeeResult =
+  | {
+      success: true;
+      status: AttendeeStatus;
+      message: string;
+    }
+  | {
+      success: false;
+      code: "unauthenticated" | "alreadyRegistered" | "unknown";
+      message: string;
+      status?: AttendeeStatus | null;
+    };
 
 export default async function EventPage({
   params,
@@ -53,6 +71,12 @@ export default async function EventPage({
       hostEvents: [],
     });
 
+    const disabledRegister = async (): Promise<RegisterAttendeeResult> => ({
+      success: false,
+      code: "unknown",
+      message: "Registration is disabled in E2E mode.",
+    });
+
     return (
       <main className="relative min-h-screen overflow-hidden bg-neutral-50/80 px-4 py-16 sm:px-6 lg:px-16 dark:bg-neutral-950">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-12">
@@ -72,7 +96,13 @@ export default async function EventPage({
               <EventLocationMapCard location={event.event_location} />
             </section>
             <aside className="space-y-6">
-              <EventRegisterCard {...viewModel.register} />
+              <EventRegisterCard
+                {...viewModel.register}
+                eventId={event.event_id}
+                onRegister={disabledRegister}
+                initialStatus={null}
+                isAuthenticated={false}
+              />
               <EventHostPanel
                 host={viewModel.hostCard}
                 relatedEvents={viewModel.relatedEvents}
@@ -103,19 +133,119 @@ export default async function EventPage({
     throw error;
   }
 
-  const [host, hostEventsResult] = await Promise.all([
+  const viewerPromise = currentUser();
+
+  const [host, hostEventsResult, viewer] = await Promise.all([
     getUser(event.user_id).catch(() => null),
     getEvents({
       filters: [`user_id:eq:${event.user_id}`],
       limit: 6,
     }).catch(() => null),
+    viewerPromise,
   ]);
+
+  const attendeeExternalId = viewer?.externalId ?? null;
+
+  let initialStatus: AttendeeStatus | null = null;
+
+  if (attendeeExternalId) {
+    try {
+      const attendeeResult = await getAttendees({
+        filters: [
+          `event_id:eq:${event.event_id}`,
+          `user_id:eq:${attendeeExternalId}`,
+        ],
+        limit: 1,
+      });
+      initialStatus = attendeeResult.items[0]?.status ?? null;
+    } catch (error) {
+      console.error("Failed to load attendee registration", error);
+      initialStatus = null;
+    }
+  }
 
   const viewModel = buildEventViewModel({
     event,
     host,
     hostEvents: hostEventsResult?.items ?? [],
   });
+
+  const statusSuccessMessages: Record<AttendeeStatus, string> = {
+    RSVPed: "You're all set—see you there!",
+    Maybe: "We'll keep a seat warm if you can make it.",
+    "Not Going": "Thanks for letting us know.",
+  };
+
+  async function onRegister(
+    eventId: string,
+    status: AttendeeStatus,
+  ): Promise<RegisterAttendeeResult> {
+    "use server";
+
+    const viewerSession = await currentUser();
+    const viewerExternalId = viewerSession?.externalId ?? null;
+
+    if (!viewerExternalId) {
+      return {
+        success: false,
+        code: "unauthenticated",
+        message: "Sign in to register for this event.",
+      };
+    }
+
+    try {
+      await createAttendee({
+        event_id: eventId,
+        user_id: viewerExternalId,
+        status,
+      });
+
+      return {
+        success: true,
+        status,
+        message: statusSuccessMessages[status],
+      };
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "We couldn't save your registration.";
+
+      if (message.includes("status 409")) {
+        let existingStatus: AttendeeStatus | null = null;
+
+        try {
+          const attendeeResult = await getAttendees({
+            filters: [
+              `event_id:eq:${eventId}`,
+              `user_id:eq:${viewerExternalId}`,
+            ],
+            limit: 1,
+          });
+          existingStatus = attendeeResult.items[0]?.status ?? null;
+        } catch {
+          existingStatus = null;
+        }
+
+        return {
+          success: false,
+          code: "alreadyRegistered",
+          message:
+            existingStatus !== null
+              ? `You're already marked as "${existingStatus}".`
+              : "You're already registered for this event.",
+          status: existingStatus,
+        };
+      }
+
+      return {
+        success: false,
+        code: "unknown",
+        message:
+          "We couldn't save your registration right now. Please try again later.",
+      };
+    }
+  }
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-neutral-50/80 px-4 py-16 sm:px-6 lg:px-16 dark:bg-neutral-950">
@@ -155,7 +285,13 @@ export default async function EventPage({
           </section>
 
           <aside className="space-y-6">
-            <EventRegisterCard {...viewModel.register} />
+            <EventRegisterCard
+              {...viewModel.register}
+              eventId={event.event_id}
+              onRegister={onRegister}
+              initialStatus={initialStatus}
+              isAuthenticated={Boolean(attendeeExternalId)}
+            />
             <EventHostPanel
               host={viewModel.hostCard}
               relatedEvents={viewModel.relatedEvents}
