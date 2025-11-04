@@ -85,6 +85,18 @@ class UserBase(BaseModel):
             raise DuplicateResourceError(f"Email {email} is already in use by another user")
 
     @classmethod
+    async def validate_user_exists(cls, user_id: UUID) -> None:
+        """Business logic validation - check if user exists."""
+        import app.db.users as users_db
+        from app.db.filters import FilterOperation
+
+        users, _ = await users_db.get_users_db(
+            [FilterOperation("user_id", "eq", user_id)], limit=1
+        )
+        if not users:
+            raise NotFoundError(f"User {user_id} does not exist")
+
+    @classmethod
     async def validate_patch_field(
         cls,
         field_name: str,
@@ -156,13 +168,13 @@ class UserCreate(UserBase):
 
 
 class UserRead(UserBase):
-    user_id: UUID
-    created_at: datetime
-    updated_at: datetime
+    user_id: UUID = Field(..., description="Unique identifier for the user")
+    created_at: datetime = Field(..., description="User account creation timestamp")
+    updated_at: datetime = Field(..., description="User account last update timestamp")
 
 
 class PaginatedUsers(BaseModel):
-    items: list[UserRead]
-    total: int
-    offset: int
-    limit: int
+    items: list[UserRead] = Field(..., description="List of users in the current page")
+    total: int = Field(..., description="Total number of users")
+    offset: int = Field(..., description="Offset for pagination")
+    limit: int = Field(..., description="Limit for pagination")
