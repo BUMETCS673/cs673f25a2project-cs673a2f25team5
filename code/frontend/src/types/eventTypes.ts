@@ -23,6 +23,7 @@ export const EventSchema = z.object({
   category_id: z.string().uuid(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
+  attendee_count: z.number().int().nonnegative().optional(),
 });
 
 export type EventResponse = z.infer<typeof EventSchema>;

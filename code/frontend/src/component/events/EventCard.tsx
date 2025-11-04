@@ -69,7 +69,7 @@ export function EventCard({
           </h3>
           {event.capacity ? (
             <span className="rounded-full border border-amber-300/60 px-3 py-1 text-xs font-medium text-amber-600 dark:border-amber-400/40 dark:text-amber-300">
-              {event.capacity} seats
+              {event.capacity - (event.attendee_count ?? 0)} seats available
             </span>
           ) : null}
         </div>

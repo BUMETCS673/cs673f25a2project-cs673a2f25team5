@@ -83,6 +83,8 @@ const STATUS_LABEL_MAP: Record<AttendeeStatus, string> = {
 export function EventRegisterCard({
   ctaLabel,
   note,
+  attendeeCount,
+  capacity,
   eventId,
   onRegister,
   initialStatus,
@@ -95,6 +97,9 @@ export function EventRegisterCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentAttendeeCount, setCurrentAttendeeCount] = useState<number>(
+    attendeeCount ?? 0,
+  );
   const hostMessage =
     "You created this event, so there's no need to register as an attendee.";
 
@@ -115,6 +120,21 @@ export function EventRegisterCard({
     setSelectedStatus(initialStatus);
     setFeedback(initialStatusMessage);
   }, [hostMessage, initialStatus, initialStatusMessage, isHost]);
+
+  useEffect(() => {
+    if (typeof attendeeCount === "number" && attendeeCount >= 0) {
+      setCurrentAttendeeCount(attendeeCount);
+    }
+  }, [attendeeCount]);
+
+  const normalizedCapacity =
+    typeof capacity === "number" && capacity > 0 ? capacity : null;
+  const hasCapacityLimit = normalizedCapacity !== null;
+  const isAtCapacity =
+    hasCapacityLimit && currentAttendeeCount >= normalizedCapacity;
+  const remainingSeats = hasCapacityLimit
+    ? Math.max(normalizedCapacity - currentAttendeeCount, 0)
+    : null;
 
   const handleSelect = async (status: AttendeeStatus) => {
     if (isSubmitting) {
@@ -137,6 +157,16 @@ export function EventRegisterCard({
       return;
     }
 
+    const priorStatus = selectedStatus;
+    const capacityReachedMessage =
+      "This event has reached its capacity. Registration is currently closed.";
+
+    if (isAtCapacity && status === "RSVPed" && priorStatus !== "RSVPed") {
+      setError(capacityReachedMessage);
+      toast.info(capacityReachedMessage);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -144,6 +174,11 @@ export function EventRegisterCard({
 
       if (result.success) {
         setSelectedStatus(result.status);
+        if (priorStatus !== "RSVPed" && result.status === "RSVPed") {
+          setCurrentAttendeeCount((count) => count + 1);
+        } else if (priorStatus === "RSVPed" && result.status !== "RSVPed") {
+          setCurrentAttendeeCount((count) => Math.max(0, count - 1));
+        }
         const message =
           result.message ?? SUCCESS_MESSAGE_BY_STATUS[result.status];
         setFeedback(message);
@@ -162,6 +197,12 @@ export function EventRegisterCard({
         setSelectedStatus(null);
         setFeedback(result.message ?? hostMessage);
         toast.info(result.message ?? hostMessage);
+      } else if (
+        hasCapacityLimit &&
+        result.message.toLowerCase().includes("capacity")
+      ) {
+        setError(result.message);
+        toast.info(result.message);
       } else {
         setError(result.message);
         toast.error(result.message);
@@ -193,16 +234,46 @@ export function EventRegisterCard({
         </span>
       </div>
 
+      <div className="mt-5 rounded-2xl border border-amber-200/60 bg-amber-50/60 px-4 py-3 text-sm text-amber-800 dark:border-amber-400/30 dark:bg-amber-300/10 dark:text-amber-200">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Registrations</span>
+          <span className="font-medium">
+            {currentAttendeeCount.toLocaleString()}
+            {hasCapacityLimit
+              ? ` / ${normalizedCapacity?.toLocaleString()}`
+              : ""}
+          </span>
+        </div>
+        {hasCapacityLimit && remainingSeats !== null ? (
+          <p className="mt-1 text-xs text-amber-700/80 dark:text-amber-200/70">
+            {isAtCapacity
+              ? "Capacity reached — new registrations are closed."
+              : `${remainingSeats.toLocaleString()} seat${
+                  remainingSeats === 1 ? "" : "s"
+                } available`}
+          </p>
+        ) : (
+          <p className="mt-1 text-xs text-amber-700/80 dark:text-amber-200/70">
+            Open event — no attendee limit.
+          </p>
+        )}
+      </div>
+
       <div className="mt-5 space-y-3">
         {STATUS_OPTIONS.map((option) => {
           const isActive = option.value === selectedStatus;
+          const shouldDisableOption =
+            isSubmitting ||
+            (isAtCapacity &&
+              option.value === "RSVPed" &&
+              selectedStatus !== "RSVPed");
           return (
             <button
               key={option.value}
               type="button"
               className={`flex w-full items-start gap-3 rounded-2xl border px-4 py-3 text-left transition focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-amber-300 dark:focus-visible:outline-amber-300 ${isActive ? "border-amber-400 bg-amber-50 shadow-sm shadow-amber-100/40 dark:border-amber-300/60 dark:bg-amber-400/10 dark:shadow-amber-400/20" : "border-neutral-200/70 bg-white/80 hover:border-amber-300 hover:bg-amber-50/40 dark:border-white/10 dark:bg-neutral-900/60 dark:hover:border-amber-300/60 dark:hover:bg-amber-300/5"} ${isSubmitting ? "opacity-80" : ""}`}
               onClick={() => handleSelect(option.value)}
-              disabled={isSubmitting}
+              disabled={shouldDisableOption}
               aria-pressed={isActive}
             >
               <span

@@ -126,7 +126,6 @@ export default async function EventPage({
       notFound();
     }
     event = eventResult.items[0];
-    console.log(event);
   } catch (error) {
     if (error instanceof Error && error.message.includes("404")) {
       notFound();
@@ -136,14 +135,21 @@ export default async function EventPage({
 
   const viewerPromise = currentUser();
 
-  const [host, hostEventsResult, viewer] = await Promise.all([
-    getUser(event.user_id).catch(() => null),
-    getEvents({
-      filters: [`user_id:eq:${event.user_id}`],
-      limit: 6,
-    }).catch(() => null),
-    viewerPromise,
-  ]);
+  const attendeeCountPromise = getAttendees({
+    filters: [`event_id:eq:${event.event_id}`, `status:eq:RSVPed`],
+    limit: 1,
+  }).catch(() => null);
+
+  const [host, hostEventsResult, viewer, attendeeCountResult] =
+    await Promise.all([
+      getUser(event.user_id).catch(() => null),
+      getEvents({
+        filters: [`user_id:eq:${event.user_id}`],
+        limit: 6,
+      }).catch(() => null),
+      viewerPromise,
+      attendeeCountPromise,
+    ]);
 
   const attendeeExternalId = viewer?.externalId ?? null;
   const isHostUser = attendeeExternalId === event.user_id;
@@ -166,10 +172,16 @@ export default async function EventPage({
     }
   }
 
+  const attendeeCount =
+    typeof attendeeCountResult?.total === "number"
+      ? attendeeCountResult.total
+      : null;
+
   const viewModel = buildEventViewModel({
     event,
     host,
     hostEvents: hostEventsResult?.items ?? [],
+    attendeeCount,
   });
 
   const statusSuccessMessages: Record<AttendeeStatus, string> = {
