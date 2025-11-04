@@ -15,7 +15,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { AttendeeCreatePayload } from "@/types/attendeeTypes";
 import type { EventRegisterData } from "./viewModel";
 import { toast } from "sonner";
-import { Toaster } from "sonner";
 
 type AttendeeStatus = AttendeeCreatePayload["status"];
 
@@ -95,7 +94,6 @@ export function EventRegisterCard({
     initialStatus,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentAttendeeCount, setCurrentAttendeeCount] = useState<number>(
     attendeeCount ?? 0,
@@ -113,12 +111,10 @@ export function EventRegisterCard({
   useEffect(() => {
     if (isHost) {
       setSelectedStatus(null);
-      setFeedback(hostMessage);
       return;
     }
 
     setSelectedStatus(initialStatus);
-    setFeedback(initialStatusMessage);
   }, [hostMessage, initialStatus, initialStatusMessage, isHost]);
 
   useEffect(() => {
@@ -142,11 +138,9 @@ export function EventRegisterCard({
     }
 
     setError(null);
-    setFeedback(null);
 
     if (isHost) {
       setSelectedStatus(null);
-      setFeedback(hostMessage);
       toast.info(hostMessage);
       return;
     }
@@ -181,7 +175,6 @@ export function EventRegisterCard({
         }
         const message =
           result.message ?? SUCCESS_MESSAGE_BY_STATUS[result.status];
-        setFeedback(message);
         toast.success(message);
         return;
       }
@@ -191,11 +184,9 @@ export function EventRegisterCard({
       }
 
       if (result.code === "alreadyRegistered") {
-        setFeedback(result.message);
         toast.info(result.message);
       } else if (result.code === "host") {
         setSelectedStatus(null);
-        setFeedback(result.message ?? hostMessage);
         toast.info(result.message ?? hostMessage);
       } else if (
         hasCapacityLimit &&
@@ -291,12 +282,6 @@ export function EventRegisterCard({
           );
         })}
       </div>
-
-      {feedback ? (
-        <p className="mt-4 rounded-2xl border border-emerald-200/70 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 shadow-sm dark:border-emerald-400/40 dark:bg-emerald-400/10 dark:text-emerald-200">
-          {feedback}
-        </p>
-      ) : null}
 
       {error ? (
         <p className="mt-4 rounded-2xl border border-red-200/70 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm dark:border-red-400/40 dark:bg-red-400/10 dark:text-red-200">

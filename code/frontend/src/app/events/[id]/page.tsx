@@ -17,7 +17,6 @@ import { currentUser } from "@clerk/nextjs/server";
 import { EventAboutSection } from "@/component/events/event-detail/EventAboutSection";
 import { EventDetailHeader } from "@/component/events/event-detail/EventDetailHeader";
 import { EventHostPanel } from "@/component/events/event-detail/EventHostPanel";
-import { EventPreviewComingSoon } from "@/component/events/event-detail/EventPreviewComingSoon";
 import { EventRegisterCard } from "@/component/events/event-detail/EventRegisterCard";
 import { EventLocationMapCard } from "@/component/events/event-detail/EventLocationMapCard";
 import { buildEventViewModel } from "@/component/events/event-detail/viewModel";
@@ -92,7 +91,6 @@ export default async function EventPage({
           <article className="grid gap-12 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
             <section className="space-y-8">
               <EventDetailHeader {...viewModel.header} />
-              <EventPreviewComingSoon />
               <EventAboutSection {...viewModel.about} />
               <EventLocationMapCard location={event.event_location} />
             </section>
@@ -199,23 +197,6 @@ export default async function EventPage({
     const viewerSession = await currentUser();
     const viewerExternalId = viewerSession?.externalId ?? null;
 
-    if (!viewerExternalId) {
-      return {
-        success: false,
-        code: "unauthenticated",
-        message: "Sign in to register for this event.",
-      };
-    }
-
-    if (viewerExternalId === event.user_id) {
-      return {
-        success: false,
-        code: "host",
-        message:
-          "You created this event, so there's no need to register as an attendee.",
-      };
-    }
-
     try {
       await createAttendee({
         event_id: eventId,
@@ -299,10 +280,6 @@ export default async function EventPage({
         <article className="grid gap-12 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
           <section className="space-y-8">
             <EventDetailHeader {...viewModel.header} />
-
-            {!viewModel.heroMedia.pictureUrl ? (
-              <EventPreviewComingSoon />
-            ) : null}
             <EventAboutSection {...viewModel.about} />
             <EventLocationMapCard location={event.event_location ?? null} />
           </section>
