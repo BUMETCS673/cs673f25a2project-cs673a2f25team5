@@ -13,12 +13,14 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.models.categories import CategoryRead
 from app.models.exceptions import (
     InvalidPathError,
     NotFoundError,
     UnsupportedPatchOperationError,
     ValidateFieldError,
 )
+from app.models.users import UserBase
 
 logger = logging.getLogger(__name__)
 
@@ -90,28 +92,16 @@ class EventBase(BaseModel):
         return self
 
     @classmethod
-    async def _validate_user_exists(cls, user_id: UUID) -> None:
-        """Business logic validation - check if user exists."""
-        import app.db.users as users_db
+    async def validate_event_exists(cls, event_id: UUID) -> None:
+        """Business logic validation - check if event exists."""
+        import app.db.events as events_db
         from app.db.filters import FilterOperation
 
-        users, _ = await users_db.get_users_db(
-            [FilterOperation("user_id", "eq", user_id)], limit=1
+        events, _ = await events_db.get_events_db(
+            [FilterOperation("event_id", "eq", event_id)], limit=1
         )
-        if not users:
-            raise NotFoundError(f"User {user_id} does not exist")
-
-    @classmethod
-    async def _validate_category_exists(cls, category_id: UUID) -> None:
-        """Business logic validation - check if category exists."""
-        import app.db.categories as categories_db
-        from app.db.filters import FilterOperation
-
-        categories, _ = await categories_db.get_categories_db(
-            [FilterOperation("category_id", "eq", category_id)], limit=1
-        )
-        if not categories:
-            raise NotFoundError(f"Category {category_id} does not exist")
+        if not events:
+            raise NotFoundError(f"Event {event_id} does not exist")
 
     @classmethod
     async def validate_patch_field(
@@ -135,9 +125,9 @@ class EventBase(BaseModel):
         validated_field_value = getattr(validated_instance, field_name)
 
         if field_name == "user_id":
-            await cls._validate_user_exists(validated_field_value)
+            await UserBase.validate_user_exists(validated_field_value)
         elif field_name == "category_id":
-            await cls._validate_category_exists(validated_field_value)
+            await CategoryRead.validate_category_exists(validated_field_value)
 
         return validated_field_value
 
@@ -192,13 +182,13 @@ class EventCreate(EventBase):
 
 
 class EventRead(EventBase):
-    event_id: UUID
-    created_at: datetime
-    updated_at: datetime
+    event_id: UUID = Field(..., description="Unique identifier for the event")
+    created_at: datetime = Field(..., description="Event creation timestamp")
+    updated_at: datetime = Field(..., description="Event last update timestamp")
 
 
 class PaginatedEvents(BaseModel):
-    items: list[EventRead]
-    total: int
-    offset: int
-    limit: int
+    items: list[EventRead] = Field(..., description="List of events in the current page")
+    total: int = Field(..., description="Total number of events")
+    offset: int = Field(..., description="Offset for pagination")
+    limit: int = Field(..., description="Limit for pagination")

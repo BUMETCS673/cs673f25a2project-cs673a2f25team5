@@ -11,6 +11,7 @@ from uuid import UUID
 from fastapi import APIRouter, Query, status
 
 from app.models import attendees as models_attendees
+from app.models import patch as models_patch
 from app.service import attendees as attendees_service
 
 router = APIRouter()
@@ -100,6 +101,75 @@ async def create_attendee(
     attendee: models_attendees.AttendeeCreate,
 ) -> models_attendees.AttendeeRead:
     return await attendees_service.create_attendee_service(attendee)
+
+
+@router.patch(
+    "/attendees",
+    response_model=dict[UUID, models_attendees.AttendeeRead],
+    summary="Patch multiple attendees using JSON Patch operations",
+    description=(
+        "Apply JSON Patch operations to multiple attendees. Each operation is applied to a "
+        "specific attendee identified by UUID. Returns a dictionary mapping attendee IDs to "
+        "their updated Attendee models.\n\n"
+        "JSON Patch operations supported:\n"
+        "- `replace`: Replace a field value\n"
+        "Example request body:\n"
+        "```json\n"
+        "{\n"
+        '  "patch": {\n'
+        '    "550e8400-e29b-41d4-a716-446655440000": {\n'
+        '      "op": "replace",\n'
+        '      "path": "/status",\n'
+        '      "value": "Not going"\n'
+        "    }\n"
+        "  }\n"
+        "}\n"
+        "```"
+    ),
+    tags=["Attendees"],
+    responses={
+        200: {"description": "Attendees patched successfully"},
+        400: {
+            "description": "Invalid patch operation or data",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "InvalidOperation": {
+                            "summary": "Invalid JSON Patch operation",
+                            "value": {"detail": "Invalid operation: unsupported_op"},
+                        },
+                        "InvalidPath": {
+                            "summary": "Invalid field path",
+                            "value": {"detail": "Invalid path: /invalid_field"},
+                        },
+                        "InvalidValue": {
+                            "summary": "Invalid field value",
+                            "value": {"detail": "Invalid value for field: email"},
+                        },
+                    }
+                }
+            },
+        },
+        404: {
+            "description": "One or more attendees not found",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Attendee not found: 550e8400-e29b-41d4-a716-446655440000"
+                    }
+                }
+            },
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
+        },
+    },
+)
+async def patch_attendees(
+    request: models_patch.PatchRequest,
+) -> dict[UUID, models_attendees.AttendeeRead]:
+    return await attendees_service.patch_attendees_service(request)
 
 
 @router.delete(
