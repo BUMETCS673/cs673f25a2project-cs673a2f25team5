@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { AttendeeCreatePayload } from "@/types/attendeeTypes";
 import type { EventRegisterData } from "./viewModel";
+import { useToast } from "@/component/ui/toast/ToastProvider";
 
 type AttendeeStatus = AttendeeCreatePayload["status"];
 
@@ -38,6 +39,7 @@ type EventRegisterCardProps = EventRegisterData & {
   ) => Promise<RegisterResult>;
   initialStatus: AttendeeStatus | null;
   isAuthenticated: boolean;
+  note?: string;
 };
 
 type StatusOption = {
@@ -78,6 +80,7 @@ const STATUS_LABEL_MAP: Record<AttendeeStatus, string> = {
 
 export function EventRegisterCard({
   ctaLabel,
+  note,
   eventId,
   onRegister,
   initialStatus,
@@ -89,6 +92,7 @@ export function EventRegisterCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   const initialStatusMessage = useMemo(() => {
     if (!initialStatus) {
@@ -112,6 +116,11 @@ export function EventRegisterCard({
 
     if (!isAuthenticated) {
       setError("Sign in to register for this event.");
+      showToast({
+        type: "info",
+        title: "Sign in required",
+        description: "Sign in to RSVP and receive event updates.",
+      });
       return;
     }
 
@@ -122,7 +131,14 @@ export function EventRegisterCard({
 
       if (result.success) {
         setSelectedStatus(result.status);
-        setFeedback(result.message ?? SUCCESS_MESSAGE_BY_STATUS[result.status]);
+        const message =
+          result.message ?? SUCCESS_MESSAGE_BY_STATUS[result.status];
+        setFeedback(message);
+        showToast({
+          type: "success",
+          title: "RSVP saved",
+          description: message,
+        });
         return;
       }
 
@@ -132,12 +148,27 @@ export function EventRegisterCard({
 
       if (result.code === "alreadyRegistered") {
         setFeedback(result.message);
+        showToast({
+          type: "info",
+          title: "Already registered",
+          description: result.message,
+        });
       } else {
         setError(result.message);
+        showToast({
+          type: "error",
+          title: "Could not save RSVP",
+          description: result.message,
+        });
       }
     } catch (error) {
       console.error("Failed to update registration", error);
       setError("We couldn't update your registration. Please try again.");
+      showToast({
+        type: "error",
+        title: "Something went wrong",
+        description: "We couldn't update your RSVP. Please try again.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -204,6 +235,12 @@ export function EventRegisterCard({
       {!isAuthenticated ? (
         <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
           Sign in to manage your RSVP and receive event updates.
+        </p>
+      ) : null}
+
+      {note ? (
+        <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+          {note}
         </p>
       ) : null}
     </section>
