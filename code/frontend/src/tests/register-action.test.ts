@@ -109,6 +109,7 @@ describe("createRegisterAction", () => {
     expect(result.success).toBe(true);
     expect(result.status).toBe("RSVPed");
     expect(result.message).toBe(SUCCESS_MESSAGE_BY_STATUS.RSVPed);
+    expect(result.toast).toBe("success");
   });
 
   it("returns success without patching when the status already matches", async () => {
@@ -135,6 +136,7 @@ describe("createRegisterAction", () => {
     expect(result.status).toBe("Maybe");
     expect(result.message).toMatch(/already registered with this status/i);
     expect(mockPatchAttendees).not.toHaveBeenCalled();
+    expect(result.toast).toBe("info");
   });
 
   it("patches the attendee when the status changes", async () => {
@@ -172,6 +174,7 @@ describe("createRegisterAction", () => {
     expect(result.success).toBe(true);
     expect(result.status).toBe("RSVPed");
     expect(result.message).toBe(SUCCESS_MESSAGE_BY_STATUS.RSVPed);
+    expect(result.toast).toBe("success");
   });
 
   it("returns an unknown error when patching fails", async () => {
@@ -202,6 +205,7 @@ describe("createRegisterAction", () => {
     expect(result.message).toMatch(
       /couldn't update your registration right now/i,
     );
+    expect(result.toast).toBeUndefined();
     mute.mockRestore();
   });
 });

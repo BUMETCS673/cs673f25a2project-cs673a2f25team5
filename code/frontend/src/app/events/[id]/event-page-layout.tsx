@@ -16,19 +16,19 @@ import { EventLocationMapCard } from "@/component/events/event-detail/EventLocat
 import { EventRegisterCard } from "@/component/events/event-detail/EventRegisterCard";
 import type { EventViewModel } from "@/component/events/event-detail/viewModel";
 import type {
-  AttendeeStatusType,
+  AttendeeStatus,
   RegisterAttendeeResult,
 } from "@/types/registerTypes";
 
 type EventPageLayoutProps = {
   eventId: string;
   eventLocation: string | null;
-  initialStatus: AttendeeStatusType | null;
+  initialStatus: AttendeeStatus | null;
   isAuthenticated: boolean;
   isHost: boolean;
   onRegister: (
     eventId: string,
-    status: AttendeeStatusType,
+    status: AttendeeStatus,
   ) => Promise<RegisterAttendeeResult>;
   viewModel: EventViewModel;
 };

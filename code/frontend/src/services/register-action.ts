@@ -6,14 +6,14 @@ import {
   patchAttendees,
 } from "@/services/attendees";
 import type {
-  AttendeeStatusType,
+  AttendeeStatus,
   RegisterAttendeeResult,
 } from "@/types/registerTypes";
 
 type RegisterActionOptions = {
   hostMessage: string;
   hostUserId: string;
-  successMessages: Record<AttendeeStatusType, string>;
+  successMessages: Record<AttendeeStatus, string>;
 };
 
 export const HOST_REGISTRATION_MESSAGE =
@@ -26,7 +26,7 @@ export function createRegisterAction({
 }: RegisterActionOptions) {
   return async function onRegister(
     eventId: string,
-    status: AttendeeStatusType,
+    status: AttendeeStatus,
   ): Promise<RegisterAttendeeResult> {
     "use server";
 
@@ -60,6 +60,7 @@ export function createRegisterAction({
         success: true,
         status,
         message: successMessages[status],
+        toast: "success",
       };
     } catch (error) {
       const message =
@@ -68,7 +69,7 @@ export function createRegisterAction({
           : "We couldn't save your registration.";
 
       if (message.includes("status 409")) {
-        let existingStatus: AttendeeStatusType | null = null;
+        let existingStatus: AttendeeStatus | null = null;
         let attendeeId: string | null = null;
 
         try {
@@ -105,6 +106,7 @@ export function createRegisterAction({
             status: existingStatus,
             message:
               "You're already registered with this status. No changes needed.",
+            toast: "info",
           };
         }
 
@@ -118,12 +120,13 @@ export function createRegisterAction({
           });
           const updatedStatus = (patched[attendeeId]?.status ??
             existingStatus ??
-            status) as AttendeeStatusType;
+            status) as AttendeeStatus;
 
           return {
             success: true,
             status: updatedStatus,
             message: successMessages[updatedStatus],
+            toast: "success",
           };
         } catch (patchError) {
           console.error("Failed to patch attendee registration", patchError);

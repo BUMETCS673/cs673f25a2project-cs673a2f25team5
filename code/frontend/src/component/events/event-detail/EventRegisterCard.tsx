@@ -119,10 +119,8 @@ export function EventRegisterCard({
         const message =
           result.message ?? SUCCESS_MESSAGE_BY_STATUS[result.status];
         const normalizedMessage = message.trim();
-        if (
-          normalizedMessage.toLowerCase().includes("no changes needed") ||
-          normalizedMessage.toLowerCase().includes("already")
-        ) {
+        const toastVariant = result.toast ?? "success";
+        if (toastVariant === "info") {
           toast.info(normalizedMessage);
         } else {
           toast.success(normalizedMessage);

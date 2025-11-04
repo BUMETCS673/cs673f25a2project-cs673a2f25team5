@@ -13,7 +13,7 @@ import { getAttendees } from "@/services/attendees";
 import { getEvents } from "@/services/events";
 import { getUser } from "@/services/users";
 import type { EventResponse } from "@/types/eventTypes";
-import type { AttendeeStatusType } from "@/types/registerTypes";
+import type { AttendeeStatus } from "@/types/registerTypes";
 import type { UserResponse } from "@/types/userTypes";
 
 type EventDetailData = {
@@ -83,7 +83,7 @@ export async function fetchInitialAttendeeStatus({
   attendeeExternalId,
   eventId,
   isHostUser,
-}: FetchInitialStatusParams): Promise<AttendeeStatusType | null> {
+}: FetchInitialStatusParams): Promise<AttendeeStatus | null> {
   if (!attendeeExternalId || isHostUser) {
     return null;
   }

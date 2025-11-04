@@ -3,25 +3,28 @@ import type { AttendeeCreatePayload } from "./attendeeTypes";
 
 type AttendeeStatus = AttendeeCreatePayload["status"];
 
-type RegisterResult =
-  | {
-      success: true;
-      status: AttendeeStatus;
-      message: string;
-    }
-  | {
-      success: false;
-      code: "unauthenticated" | "alreadyRegistered" | "host" | "unknown";
-      message: string;
-      status?: AttendeeStatus | null;
-    };
+type RegisterAttendeeSuccess = {
+  success: true;
+  status: AttendeeStatus;
+  message: string;
+  toast?: "success" | "info";
+};
+
+type RegisterAttendeeFailure = {
+  success: false;
+  code: "unauthenticated" | "alreadyRegistered" | "host" | "unknown";
+  message: string;
+  status?: AttendeeStatus | null;
+};
+
+type RegisterAttendeeResult = RegisterAttendeeSuccess | RegisterAttendeeFailure;
 
 type EventRegisterCardProps = EventRegisterData & {
   eventId: string;
   onRegister: (
     eventId: string,
     status: AttendeeStatus,
-  ) => Promise<RegisterResult>;
+  ) => Promise<RegisterAttendeeResult>;
   initialStatus: AttendeeStatus | null;
   isAuthenticated: boolean;
   isHost: boolean;
@@ -64,26 +67,11 @@ const STATUS_LABEL_MAP: Record<AttendeeStatus, string> = {
   "Not Going": "Not going",
 };
 
-export type AttendeeStatusType = AttendeeCreatePayload["status"];
-
-export type RegisterAttendeeResult =
-  | {
-      success: true;
-      status: AttendeeStatusType;
-      message: string;
-    }
-  | {
-      success: false;
-      code: "unauthenticated" | "alreadyRegistered" | "host" | "unknown";
-      message: string;
-      status?: AttendeeStatusType | null;
-    };
-
 export {
   STATUS_OPTIONS,
   SUCCESS_MESSAGE_BY_STATUS,
   STATUS_LABEL_MAP,
   type EventRegisterCardProps,
-  type RegisterResult,
   type AttendeeStatus,
+  type RegisterAttendeeResult,
 };

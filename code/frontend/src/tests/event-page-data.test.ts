@@ -3,7 +3,7 @@ import {
   fetchInitialAttendeeStatus,
 } from "@/app/events/[id]/event-page-data";
 import type { EventResponse } from "@/types/eventTypes";
-import type { AttendeeStatusType } from "@/types/registerTypes";
+import type { AttendeeStatus } from "@/types/registerTypes";
 import type { UserResponse } from "@/types/userTypes";
 import { getAttendees } from "@/services/attendees";
 import { getEvents } from "@/services/events";
@@ -162,7 +162,7 @@ describe("fetchInitialAttendeeStatus", () => {
   });
 
   it("returns the attendee status when found", async () => {
-    const attendeeStatus: AttendeeStatusType = "Maybe";
+    const attendeeStatus: AttendeeStatus = "Maybe";
 
     mockGetAttendees.mockResolvedValueOnce({
       items: [
