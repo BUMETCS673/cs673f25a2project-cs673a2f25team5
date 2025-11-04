@@ -21,7 +21,11 @@ import { EventRegisterCard } from "@/component/events/event-detail/EventRegister
 import { EventLocationMapCard } from "@/component/events/event-detail/EventLocationMapCard";
 import { buildEventViewModel } from "@/component/events/event-detail/viewModel";
 import { getEvents } from "@/services/events";
-import { createAttendee, getAttendees } from "@/services/attendees";
+import {
+  createAttendee,
+  getAttendees,
+  patchAttendees,
+} from "@/services/attendees";
 import { getUser } from "@/services/users";
 import type { AttendeeCreatePayload } from "@/types/attendeeTypes";
 import type { EventResponse } from "@/types/eventTypes";
@@ -187,6 +191,8 @@ export default async function EventPage({
     Maybe: "We'll keep a seat warm if you can make it.",
     "Not Going": "Thanks for letting us know.",
   };
+  const hostMessage =
+    "You created this event, so there's no need to register as an attendee.";
 
   async function onRegister(
     eventId: string,
@@ -196,6 +202,22 @@ export default async function EventPage({
 
     const viewerSession = await currentUser();
     const viewerExternalId = viewerSession?.externalId ?? null;
+
+    if (!viewerExternalId) {
+      return {
+        success: false,
+        code: "unauthenticated",
+        message: "Sign in to register for this event.",
+      };
+    }
+
+    if (viewerExternalId === event.user_id) {
+      return {
+        success: false,
+        code: "host",
+        message: hostMessage,
+      };
+    }
 
     try {
       await createAttendee({
@@ -217,6 +239,7 @@ export default async function EventPage({
 
       if (message.includes("status 409")) {
         let existingStatus: AttendeeStatus | null = null;
+        let attendeeId: string | null = null;
 
         try {
           const attendeeResult = await getAttendees({
@@ -226,20 +249,63 @@ export default async function EventPage({
             ],
             limit: 1,
           });
-          existingStatus = attendeeResult.items[0]?.status ?? null;
+          const attendee = attendeeResult.items[0];
+          existingStatus = attendee?.status ?? null;
+          attendeeId = attendee?.attendee_id ?? null;
         } catch {
           existingStatus = null;
+          attendeeId = null;
         }
 
-        return {
-          success: false,
-          code: "alreadyRegistered",
-          message:
-            existingStatus !== null
-              ? `You're already marked as "${existingStatus}".`
-              : "You're already registered for this event.",
-          status: existingStatus,
-        };
+        if (!attendeeId || existingStatus === null) {
+          return {
+            success: false,
+            code: "alreadyRegistered",
+            message:
+              existingStatus !== null
+                ? `You're already marked as "${existingStatus}".`
+                : "You're already registered for this event.",
+            status: existingStatus,
+          };
+        }
+
+        if (existingStatus === status) {
+          return {
+            success: true,
+            status: existingStatus,
+            message:
+              "You're already registered with this status. No changes needed.",
+          };
+        }
+
+        try {
+          const patched = await patchAttendees({
+            [attendeeId]: {
+              op: "replace",
+              path: "/status",
+              value: status,
+            },
+          });
+          const updatedStatus = (patched[attendeeId]?.status ??
+            existingStatus ??
+            status) as AttendeeStatus;
+
+          return {
+            success: true,
+            status: updatedStatus,
+            message: statusSuccessMessages[updatedStatus],
+          };
+        } catch (patchError) {
+          console.error("Failed to patch attendee registration", patchError);
+
+          return {
+            success: false,
+            code: "unknown",
+            message:
+              "We couldn't update your registration right now. Please try again later.",
+            status: existingStatus,
+          };
+        }
       }
 
       return {

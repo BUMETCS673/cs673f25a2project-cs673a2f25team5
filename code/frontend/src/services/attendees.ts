@@ -22,6 +22,14 @@ import {
   GetAttendeesParams,
 } from "../types/attendeeTypes";
 
+type AttendeePatchOperation = {
+  op: "replace";
+  path: "/status";
+  value: AttendeeCreatePayload["status"];
+};
+
+export type AttendeePatchRequest = Record<string, AttendeePatchOperation>;
+
 export async function createAttendee(
   payload: AttendeeCreatePayload,
 ): Promise<AttendeeResponse> {
@@ -45,6 +53,35 @@ export async function createAttendee(
 
   const data = await response.json();
   return AttendeeSchema.parse(data);
+}
+
+export async function patchAttendees(
+  patch: AttendeePatchRequest,
+): Promise<Record<string, AttendeeResponse>> {
+  const { getToken } = await auth();
+  const token = await getToken();
+
+  const response = await fetch(`${API_BASE_URL}/attendees`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ patch }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  const data = (await response.json()) as Record<string, unknown>;
+  const parsed: Record<string, AttendeeResponse> = {};
+
+  for (const [attendeeId, attendee] of Object.entries(data)) {
+    parsed[attendeeId] = AttendeeSchema.parse(attendee);
+  }
+
+  return parsed;
 }
 
 export async function getAttendees(
