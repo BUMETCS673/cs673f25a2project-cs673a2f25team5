@@ -11,7 +11,7 @@ import { z } from "zod";
 import {
   EventCreatePayloadSchema,
   type EventCreatePayload,
-} from "@/services/events";
+} from "@/types/eventTypes";
 
 const trimmedString = () => z.string().trim();
 
