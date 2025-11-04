@@ -11,7 +11,6 @@
 "use client";
 
 import type { EventListResponse } from "@/services/events";
-import { EventFilter } from "@/component/events/EventFilter";
 import { EventSearchField } from "./EventSearchField";
 import { EventsResults } from "./EventsResults";
 import { useEventsBrowserState } from "./hooks/useEventsBrowserState";
@@ -39,14 +38,14 @@ export function EventsBrowser({ initialResult }: EventsBrowserProps) {
     handleBaseRetry,
     handleRemoteRetry,
   } = useEventsBrowserState(initialResult);
-
+  
   return (
     <div className="space-y-8">
       <EventSearchField
         query={query}
         onQueryChange={(value) => setQuery(value)}
       />
-      <EventFilter />
+
       <EventsResults
         events={eventsToRender}
         hasQuery={hasQuery}
