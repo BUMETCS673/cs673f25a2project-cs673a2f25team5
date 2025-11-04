@@ -49,7 +49,8 @@ export type EventAboutData = {
 
 export type EventRegisterData = {
   ctaLabel: string;
-  note: string;
+  attendeeCount: number | null;
+  capacity: number | null;
 };
 
 export type HostProfileTheme = {
@@ -89,6 +90,7 @@ type BuildViewModelOptions = {
   host: UserResponse | null;
   hostEvents: EventResponse[];
   currentTimestamp?: number;
+  attendeeCount?: number | null;
 };
 
 export function buildEventViewModel({
@@ -96,6 +98,7 @@ export function buildEventViewModel({
   host,
   hostEvents,
   currentTimestamp = Date.now(),
+  attendeeCount,
 }: BuildViewModelOptions): EventViewModel {
   const parsedStart = parseDate(event.event_datetime);
   const parsedEnd = parseDate(event.event_endtime);
@@ -179,10 +182,20 @@ export function buildEventViewModel({
     },
   ];
 
+  const normalizedAttendeeCount =
+    typeof attendeeCount === "number" && attendeeCount >= 0
+      ? attendeeCount
+      : null;
+  const normalizedCapacity =
+    typeof event.capacity === "number" && event.capacity > 0
+      ? event.capacity
+      : null;
+
   const registerData: EventRegisterData = {
     ctaLabel:
       priceLabel === "Free" ? "Register for free" : `Register • ${priceLabel}`,
-    note: "Need accommodations? Reply to the confirmation email and we will do our best to help.",
+    attendeeCount: normalizedAttendeeCount,
+    capacity: normalizedCapacity,
   };
 
   const hostFullName = host
