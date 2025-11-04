@@ -14,7 +14,8 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { AttendeeCreatePayload } from "@/types/attendeeTypes";
 import type { EventRegisterData } from "./viewModel";
-import { useToast } from "@/component/ui/toast/ToastProvider";
+import { toast } from "sonner";
+import { Toaster } from "sonner";
 
 type AttendeeStatus = AttendeeCreatePayload["status"];
 
@@ -26,7 +27,7 @@ type RegisterResult =
     }
   | {
       success: false;
-      code: "unauthenticated" | "alreadyRegistered" | "unknown";
+      code: "unauthenticated" | "alreadyRegistered" | "host" | "unknown";
       message: string;
       status?: AttendeeStatus | null;
     };
@@ -39,6 +40,7 @@ type EventRegisterCardProps = EventRegisterData & {
   ) => Promise<RegisterResult>;
   initialStatus: AttendeeStatus | null;
   isAuthenticated: boolean;
+  isHost: boolean;
   note?: string;
 };
 
@@ -85,6 +87,7 @@ export function EventRegisterCard({
   onRegister,
   initialStatus,
   isAuthenticated,
+  isHost,
 }: EventRegisterCardProps) {
   const [selectedStatus, setSelectedStatus] = useState<AttendeeStatus | null>(
     initialStatus,
@@ -92,7 +95,8 @@ export function EventRegisterCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { showToast } = useToast();
+  const hostMessage =
+    "You created this event, so there's no need to register as an attendee.";
 
   const initialStatusMessage = useMemo(() => {
     if (!initialStatus) {
@@ -102,9 +106,15 @@ export function EventRegisterCard({
   }, [initialStatus]);
 
   useEffect(() => {
+    if (isHost) {
+      setSelectedStatus(null);
+      setFeedback(hostMessage);
+      return;
+    }
+
     setSelectedStatus(initialStatus);
     setFeedback(initialStatusMessage);
-  }, [initialStatus, initialStatusMessage]);
+  }, [hostMessage, initialStatus, initialStatusMessage, isHost]);
 
   const handleSelect = async (status: AttendeeStatus) => {
     if (isSubmitting) {
@@ -114,13 +124,16 @@ export function EventRegisterCard({
     setError(null);
     setFeedback(null);
 
+    if (isHost) {
+      setSelectedStatus(null);
+      setFeedback(hostMessage);
+      toast.info(hostMessage);
+      return;
+    }
+
     if (!isAuthenticated) {
       setError("Sign in to register for this event.");
-      showToast({
-        type: "info",
-        title: "Sign in required",
-        description: "Sign in to RSVP and receive event updates.",
-      });
+      toast.info("Sign in to register for this event.");
       return;
     }
 
@@ -134,11 +147,7 @@ export function EventRegisterCard({
         const message =
           result.message ?? SUCCESS_MESSAGE_BY_STATUS[result.status];
         setFeedback(message);
-        showToast({
-          type: "success",
-          title: "RSVP saved",
-          description: message,
-        });
+        toast.success(message);
         return;
       }
 
@@ -148,27 +157,19 @@ export function EventRegisterCard({
 
       if (result.code === "alreadyRegistered") {
         setFeedback(result.message);
-        showToast({
-          type: "info",
-          title: "Already registered",
-          description: result.message,
-        });
+        toast.info(result.message);
+      } else if (result.code === "host") {
+        setSelectedStatus(null);
+        setFeedback(result.message ?? hostMessage);
+        toast.info(result.message ?? hostMessage);
       } else {
         setError(result.message);
-        showToast({
-          type: "error",
-          title: "Could not save RSVP",
-          description: result.message,
-        });
+        toast.error(result.message);
       }
     } catch (error) {
       console.error("Failed to update registration", error);
       setError("We couldn't update your registration. Please try again.");
-      showToast({
-        type: "error",
-        title: "Something went wrong",
-        description: "We couldn't update your RSVP. Please try again.",
-      });
+      toast.error("We couldn't update your registration. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -176,6 +177,8 @@ export function EventRegisterCard({
 
   return (
     <section className="rounded-3xl border border-neutral-200/70 bg-white/90 p-6 shadow-lg shadow-amber-100/40 dark:border-white/10 dark:bg-neutral-900/70 dark:shadow-neutral-900/40">
+      <Toaster position="bottom-right" />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">

@@ -25,6 +25,7 @@ import { getEvents } from "@/services/events";
 import { createAttendee, getAttendees } from "@/services/attendees";
 import { getUser } from "@/services/users";
 import type { AttendeeCreatePayload } from "@/types/attendeeTypes";
+import type { EventResponse } from "@/types/eventTypes";
 
 type AttendeeStatus = AttendeeCreatePayload["status"];
 
@@ -36,7 +37,7 @@ type RegisterAttendeeResult =
     }
   | {
       success: false;
-      code: "unauthenticated" | "alreadyRegistered" | "unknown";
+      code: "unauthenticated" | "alreadyRegistered" | "host" | "unknown";
       message: string;
       status?: AttendeeStatus | null;
     };
@@ -102,6 +103,7 @@ export default async function EventPage({
                 onRegister={disabledRegister}
                 initialStatus={null}
                 isAuthenticated={false}
+                isHost={false}
               />
               <EventHostPanel
                 host={viewModel.hostCard}
@@ -114,17 +116,16 @@ export default async function EventPage({
     );
   }
 
-  let event;
+  let event: EventResponse;
   try {
-    console.log(`event_id:eq:${id}`);
-    event = await getEvents({
+    const eventResult = await getEvents({
       filters: [`event_id:eq:${id}`],
       limit: 1,
     });
-    if (event.items.length === 0) {
+    if (eventResult.items.length === 0) {
       notFound();
     }
-    event = event.items[0];
+    event = eventResult.items[0];
     console.log(event);
   } catch (error) {
     if (error instanceof Error && error.message.includes("404")) {
@@ -145,10 +146,11 @@ export default async function EventPage({
   ]);
 
   const attendeeExternalId = viewer?.externalId ?? null;
+  const isHostUser = attendeeExternalId === event.user_id;
 
   let initialStatus: AttendeeStatus | null = null;
 
-  if (attendeeExternalId) {
+  if (attendeeExternalId && !isHostUser) {
     try {
       const attendeeResult = await getAttendees({
         filters: [
@@ -190,6 +192,15 @@ export default async function EventPage({
         success: false,
         code: "unauthenticated",
         message: "Sign in to register for this event.",
+      };
+    }
+
+    if (viewerExternalId === event.user_id) {
+      return {
+        success: false,
+        code: "host",
+        message:
+          "You created this event, so there's no need to register as an attendee.",
       };
     }
 
@@ -291,6 +302,7 @@ export default async function EventPage({
               onRegister={onRegister}
               initialStatus={initialStatus}
               isAuthenticated={Boolean(attendeeExternalId)}
+              isHost={isHostUser}
             />
             <EventHostPanel
               host={viewModel.hostCard}
