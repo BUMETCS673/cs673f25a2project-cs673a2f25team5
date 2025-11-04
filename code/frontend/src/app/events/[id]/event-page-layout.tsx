@@ -19,6 +19,7 @@ import type {
   AttendeeStatus,
   RegisterAttendeeResult,
 } from "@/types/registerTypes";
+import { FaArrowLeft } from "react-icons/fa";
 
 type EventPageLayoutProps = {
   eventId: string;
@@ -52,18 +53,7 @@ export function EventPageLayout({
             href="/events"
             className="inline-flex items-center gap-2 text-sm font-medium text-neutral-600 transition hover:text-amber-600 focus-visible:text-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 dark:text-neutral-400 dark:hover:text-amber-300"
           >
-            <svg
-              aria-hidden="true"
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
+            <FaArrowLeft className="size-4" />
             Back to events
           </Link>
         </nav>
