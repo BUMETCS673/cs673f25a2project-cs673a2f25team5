@@ -711,7 +711,7 @@ Occurs when:
 
 #### Security Considerations
 
-1. **Token Validation**: Every request validates the token signature with Google's public keys
+1. **Token Validation**: Every request validates the token signature with Clerk's public keys
 2. **Email Verification**: Only tokens with verified emails are accepted
 3. **Audience Check**: Tokens must be issued for your specific Clerk
 4. **Issuer Check**: Tokens must come from Clerk's issuer
