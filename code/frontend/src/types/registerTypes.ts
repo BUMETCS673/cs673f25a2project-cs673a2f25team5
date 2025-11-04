@@ -64,6 +64,21 @@ const STATUS_LABEL_MAP: Record<AttendeeStatus, string> = {
   "Not Going": "Not going",
 };
 
+export type AttendeeStatusType = AttendeeCreatePayload["status"];
+
+export type RegisterAttendeeResult =
+  | {
+      success: true;
+      status: AttendeeStatusType;
+      message: string;
+    }
+  | {
+      success: false;
+      code: "unauthenticated" | "alreadyRegistered" | "host" | "unknown";
+      message: string;
+      status?: AttendeeStatusType | null;
+    };
+
 export {
   STATUS_OPTIONS,
   SUCCESS_MESSAGE_BY_STATUS,
