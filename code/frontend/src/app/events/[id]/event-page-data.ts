@@ -1,5 +1,14 @@
-import { notFound } from "next/navigation";
+/*
 
+ AI-generated code: 0%
+
+ Human code: 100% (functions: fetchEventDetailData, fetchInitialAttendeeStatus)
+
+ framework-generated code: 0%
+
+*/
+
+import { notFound } from "next/navigation";
 import { getAttendees } from "@/services/attendees";
 import { getEvents } from "@/services/events";
 import { getUser } from "@/services/users";

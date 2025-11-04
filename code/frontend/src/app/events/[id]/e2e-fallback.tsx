@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 0% 
+
+ Human code: 100% (functions: renderE2EEventPage) 
+
+ framework-generated code: 0%
+
+*/
+
 import { EventPageLayout } from "./event-page-layout";
 
 import { buildEventViewModel } from "@/component/events/event-detail/viewModel";

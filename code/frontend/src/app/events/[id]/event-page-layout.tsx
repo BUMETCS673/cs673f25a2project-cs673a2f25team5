@@ -1,5 +1,14 @@
-import Link from "next/link";
+/*
 
+ AI-generated code: 0% 
+
+ Human code: 100% (functions: EventPageLayout, EventDetailHeader, EventAboutSection, EventLocationMapCard, EventRegisterCard, EventHostPanel) 
+
+ framework-generated code: 0%
+
+*/
+
+import Link from "next/link";
 import { EventAboutSection } from "@/component/events/event-detail/EventAboutSection";
 import { EventDetailHeader } from "@/component/events/event-detail/EventDetailHeader";
 import { EventHostPanel } from "@/component/events/event-detail/EventHostPanel";
