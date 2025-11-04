@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { EventFilter } from "@/component/events/EventFilter";
 import { EventsBrowser } from "@/component/events/EventsBrowser";
 
 export function ClientEvents({ initialResult }: { initialResult: any }) {
-  const [sortBy, setSortBy] = useState("Date");
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-neutral-50/80 px-4 py-16 sm:px-6 lg:px-16 dark:bg-neutral-950">
@@ -27,7 +25,7 @@ export function ClientEvents({ initialResult }: { initialResult: any }) {
         </header>
 
         {/* 🆕 Now this actually works */}
-        <EventFilter value={sortBy} onChange={setSortBy} />
+        <EventFilter value="Date" onChange={() => {}} />
 
         {/* 🆕 Pass sortBy if you want to use it in EventsBrowser */}
         <EventsBrowser initialResult={initialResult} />

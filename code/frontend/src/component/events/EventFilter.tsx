@@ -1,5 +1,6 @@
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { FaAngleDown } from "react-icons/fa6";
+import clsx from "clsx";
 
 const sortOptions = [
   "Date",
@@ -40,12 +41,12 @@ export function EventFilter({ value, onChange }: EventFilterProps) {
                 key={option}
                 type="button"
                 onClick={() => onChange(option)}
-                className={`block w-full rounded-md px-1 py-3 text-sm text-center font-medium transition-all duration-300 cursor-pointer
-                  ${
-                    value === option
-                    ? "font-medium text-white bg-gradient-to-r from-[#5c1354]/90 to-[#b34fa8]/80"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-[#5c1354]/80 hover:to-[#b34fa8]/70 hover:text-white"
-                  }`}
+                className={clsx(
+                     "block w-full rounded-md px-5 py-3 text-sm text-center font-medium transition-all duration-300",
+                     value === option
+                       ? "bg-gradient-to-r from-[#5c1354] to-[#b34fa8] text-white shadow-md"
+                       : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-[#5c1354] hover:to-[#b34fa8] hover:text-white"
+                )}
               >
                 {option}
               </button>
