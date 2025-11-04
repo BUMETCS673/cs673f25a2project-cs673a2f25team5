@@ -218,8 +218,6 @@ export function EventRegisterCard({
 
   return (
     <section className="rounded-3xl border border-neutral-200/70 bg-white/90 p-6 shadow-lg shadow-amber-100/40 dark:border-white/10 dark:bg-neutral-900/70 dark:shadow-neutral-900/40">
-      <Toaster position="bottom-right" />
-
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
