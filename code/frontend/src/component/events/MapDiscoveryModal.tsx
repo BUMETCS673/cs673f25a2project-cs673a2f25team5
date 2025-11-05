@@ -11,9 +11,15 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
-import { Dialog, Transition } from "@headlessui/react";
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+} from "@headlessui/react";
 import { MapDiscoveryView } from "./MapDiscoveryView";
-import type { EventResponse } from "@/services/events";
+import type { EventResponse } from "@/types/eventTypes";
 import { getEvents } from "@/services/events";
 
 type ModalStatus = "idle" | "loading" | "success" | "error";
@@ -86,12 +92,14 @@ export function MapDiscoveryModalTrigger({
         setErrorMessage(null);
         const response = await getEvents({
           limit: MAX_FETCH_LIMIT,
-          signal: controller.signal,
         });
+        if (fetchAbortRef.current !== controller) {
+          return;
+        }
         setEvents((previous) => mergeEvents(previous, response.items));
         setStatus("success");
       } catch (error) {
-        if (controller.signal.aborted) {
+        if (fetchAbortRef.current !== controller) {
           return;
         }
         const message =
@@ -100,8 +108,11 @@ export function MapDiscoveryModalTrigger({
             : "We could not load nearby events. Please try again.";
         setErrorMessage(message);
         setStatus("error");
+      } finally {
+        if (fetchAbortRef.current === controller) {
+          fetchAbortRef.current = null;
+        }
       }
-      fetchAbortRef.current = null;
     };
 
     void fetchEvents();
@@ -132,7 +143,7 @@ export function MapDiscoveryModalTrigger({
 
       <Transition show={isOpen} as={Fragment}>
         <Dialog onClose={closeModal} className="relative z-50">
-          <Transition.Child
+          <TransitionChild
             as={Fragment}
             enter="ease-out duration-200"
             enterFrom="opacity-0"
@@ -142,11 +153,11 @@ export function MapDiscoveryModalTrigger({
             leaveTo="opacity-0"
           >
             <div className="fixed inset-0 bg-neutral-950/70 backdrop-blur-sm" />
-          </Transition.Child>
+          </TransitionChild>
 
           <div className="fixed inset-0 overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
-              <Transition.Child
+              <TransitionChild
                 as={Fragment}
                 enter="ease-out duration-200"
                 enterFrom="opacity-0 scale-95 translate-y-4"
@@ -155,11 +166,11 @@ export function MapDiscoveryModalTrigger({
                 leaveFrom="opacity-100 scale-100 translate-y-0"
                 leaveTo="opacity-0 scale-95 translate-y-4"
               >
-                <Dialog.Panel className="relative w-full max-w-[1080px] rounded-3xl border border-neutral-200/60 bg-neutral-50/95 p-6 shadow-2xl shadow-neutral-900/20 backdrop-blur-xl dark:border-white/10 dark:bg-neutral-950/90 dark:shadow-black/40">
+                <DialogPanel className="relative w-full max-w-[1080px] rounded-3xl border border-neutral-200/60 bg-neutral-50/95 p-6 shadow-2xl shadow-neutral-900/20 backdrop-blur-xl dark:border-white/10 dark:bg-neutral-950/90 dark:shadow-black/40">
                   <div className="flex items-start justify-between gap-4">
-                    <Dialog.Title className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                    <DialogTitle className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
                       Nearby events
-                    </Dialog.Title>
+                    </DialogTitle>
                     <button
                       type="button"
                       onClick={closeModal}
@@ -199,8 +210,8 @@ export function MapDiscoveryModalTrigger({
                       </div>
                     ) : null}
                   </div>
-                </Dialog.Panel>
-              </Transition.Child>
+                </DialogPanel>
+              </TransitionChild>
             </div>
           </div>
         </Dialog>

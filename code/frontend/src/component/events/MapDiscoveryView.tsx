@@ -15,8 +15,7 @@ import Link from "next/link";
 import MapboxMap, { Marker, NavigationControl } from "react-map-gl/mapbox";
 import type { MapRef } from "react-map-gl/mapbox";
 import mapboxgl from "mapbox-gl";
-
-import type { EventResponse } from "@/services/events";
+import type { EventResponse } from "@/types/eventTypes";
 import { getPublicMapboxToken } from "@/component/map/getPublicMapboxToken";
 import { decodeEventLocation } from "@/helpers/locationCodec";
 
@@ -157,6 +156,13 @@ function formatDistance(distanceKm: number | null): string {
     return `${Math.round(distanceKm * 1000)} m away`;
   }
   return `${distanceKm.toFixed(1)} km away`;
+}
+
+function toLngLat(coordinates: Coordinates): mapboxgl.LngLatLike {
+  return {
+    lng: coordinates.longitude,
+    lat: coordinates.latitude,
+  };
 }
 
 function haversineDistance(a: Coordinates, b: Coordinates): number {
@@ -527,6 +533,33 @@ export function MapDiscoveryView({ events }: MapDiscoveryViewProps) {
     }
 
     const map = mapRef.current.getMap();
+    const resize = () => {
+      map.resize();
+    };
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => {
+        resize();
+      });
+      observer.observe(map.getContainer());
+    }
+
+    return () => {
+      window.removeEventListener("resize", resize);
+      observer?.disconnect();
+    };
+  }, [isMapReady]);
+
+  useEffect(() => {
+    if (!isMapReady || !mapRef.current) {
+      return;
+    }
+
+    const map = mapRef.current.getMap();
     const registry = markerRegistryRef.current;
     const handlers = markerHandlersRef.current;
     const remaining = new Set(registry.keys());
@@ -539,10 +572,7 @@ export function MapDiscoveryView({ events }: MapDiscoveryViewProps) {
         decodeEventLocation(event.event_location)?.address ??
         "Location to be announced";
 
-      const coordinates: [number, number] = [
-        event.coordinates.longitude,
-        event.coordinates.latitude,
-      ];
+      const lngLat = toLngLat(event.coordinates);
 
       const syncHandler = (marker: mapboxgl.Marker) => {
         const element = marker.getElement();
@@ -572,11 +602,11 @@ export function MapDiscoveryView({ events }: MapDiscoveryViewProps) {
           color: event.event_id === selectedEventId ? "#f59e0b" : "#111827",
           anchor: "bottom",
         })
-          .setLngLat(coordinates)
+          .setLngLat(lngLat)
           .addTo(map);
         registry.set(id, marker);
       } else {
-        marker.setLngLat(coordinates);
+        marker.setLngLat(lngLat);
       }
 
       syncHandler(marker);
@@ -658,7 +688,10 @@ export function MapDiscoveryView({ events }: MapDiscoveryViewProps) {
                 ...moveEvent.viewState,
               }));
             }}
-            onLoad={() => setIsMapReady(true)}
+            onLoad={() => {
+              mapRef.current?.getMap().resize();
+              setIsMapReady(true);
+            }}
             reuseMaps
             attributionControl={false}
             style={{ width: "100%", height: "100%" }}
