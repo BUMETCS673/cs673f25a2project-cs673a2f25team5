@@ -10,13 +10,23 @@ import logging
 from uuid import UUID
 
 from fastapi import HTTPException
+from pydantic import ValidationError
 
 import app.db.attendees as attendees_db
 import app.db.events as events_db
 import app.db.users as users_db
 from app.db.filters import FilterOperation
-from app.models.attendees import AttendeeCreate, AttendeeRead, PaginatedAttendees
-from app.models.exceptions import InvalidColumnError, InvalidFilterFormatError, NotFoundError
+from app.models.attendees import AttendeeBase, AttendeeCreate, AttendeeRead, PaginatedAttendees
+from app.models.exceptions import (
+    DuplicateResourceError,
+    InvalidColumnError,
+    InvalidFilterFormatError,
+    InvalidPathError,
+    NotFoundError,
+    UnsupportedPatchOperationError,
+    ValidateFieldError,
+)
+from app.models.patch import PatchRequest
 from app.service.filter_helper import parse_filter
 
 logger = logging.getLogger(__name__)
@@ -120,4 +130,45 @@ async def delete_attendee_service(attendee_id: UUID) -> AttendeeRead:
         raise HTTPException(status_code=500, detail="Internal server error") from e
     except Exception as e:
         logger.error(f"Unexpected error while deleting attendee: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error") from e
+
+
+async def patch_attendees_service(request: PatchRequest) -> dict[UUID, AttendeeRead]:
+    try:
+        updates = await AttendeeBase.validate_patch_operations(request.patch)
+
+        result = await attendees_db.batch_update_attendees_db(updates)
+
+        logger.info(f"Successfully updated {len(result)} attendees in batch operation")
+        return result
+
+    except HTTPException:
+        raise
+    except UnsupportedPatchOperationError as e:
+        logger.error(f"Unsupported patch operation: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except DuplicateResourceError as e:
+        logger.error(f"Duplicate resource error during batch update: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except InvalidPathError as e:
+        logger.error(f"Invalid path in patch operation: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except NotFoundError as e:
+        logger.error(f"Attendee not found during batch update: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except ValidateFieldError as e:
+        logger.error(f"Field validation error during batch update: {str(e)}")
+        raise HTTPException(status_code=422, detail=str(e)) from e
+    except ValidationError as e:
+        logger.error(f"Validation error during batch update: {str(e)}")
+        raise HTTPException(status_code=422, detail=str(e)) from e
+    except ValueError as e:
+        # Database errors from the db layer
+        logger.error(f"Database error during batch update: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail="Failed to update attendees: Database error"
+        ) from e
+    except Exception as e:
+        # Unexpected errors
+        logger.error(f"Unexpected error in patch_attendees_service: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error") from e

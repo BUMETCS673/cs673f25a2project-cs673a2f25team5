@@ -18,8 +18,8 @@ import {
   EventResponse,
   EventListResponse,
   EventSchema,
-  EventListSchema,
 } from "../types/eventTypes";
+import { getAttendees } from "./attendees";
 
 export async function createEvent(
   payload: EventCreatePayload,
@@ -82,9 +82,6 @@ export async function getEvents(
     url.searchParams.set("limit", limit.toString());
   }
 
-  console.log("filters: ", filters);
-  console.log("url: ", url.toString());
-
   const { getToken } = await auth();
 
   const token = await getToken();
@@ -101,5 +98,22 @@ export async function getEvents(
     throw new Error(`Request failed with status ${response.status}`);
   }
   const data = await response.json();
-  return EventListSchema.parse(data);
+  const items = await Promise.all(
+    data.items.map(async (item: EventResponse) => {
+      EventSchema.parse(item);
+      const result = await getAttendees({
+        filters: [`event_id:eq:${item.event_id}`],
+      });
+      return {
+        ...item,
+        attendee_count: result.total,
+      };
+    }),
+  );
+  return {
+    items,
+    total: data.total,
+    offset: data.offset,
+    limit: data.limit,
+  };
 }

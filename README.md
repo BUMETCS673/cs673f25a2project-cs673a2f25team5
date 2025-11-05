@@ -211,11 +211,11 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="<your_publishable_key>"
 DOCKER_USERNAME=javi99est
 BACKEND_URL="http://127.0.0.1:8000"
 
-# Google OAuth Configuration
-# Get your Client ID from: https://console.cloud.google.com/apis/credentials
-GOOGLE_CLIENT_ID="<your_google_client_id>"
+# Clerk Configuration
+CLERK_ISSUER=<clerk_issuer_url>
+CLERK_JWT_AUDIENCE=<front_end_url>
 # Enable/disable OAuth verification
-GOOGLE_OAUTH_ENABLED=false
+CLERK_AUTH_ENABLED=true
 
 # Miscellaneous
 IMAGE_TAG=latest
@@ -271,11 +271,11 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="<your_publishable_key>"
 DOCKER_USERNAME=javi99est
 IMAGE_TAG=latest
 
-# Google OAuth Configuration
-# Get your Client ID from: https://console.cloud.google.com/apis/credentials
-GOOGLE_CLIENT_ID="<your_google_client_id>"
+# Clerk Configuration
+CLERK_ISSUER=<clerk_issuer_url>
+CLERK_JWT_AUDIENCE=<front_end_url>
 # Enable/disable OAuth verification
-GOOGLE_OAUTH_ENABLED=false
+CLERK_AUTH_ENABLED=true
 
 # Miscellaneous
 BACKEND_URL="http://backend:8000"
@@ -635,16 +635,16 @@ publish the frontend image:
 
 ### Backend Authentication Guide
 
-The Event Manager API uses **Google OAuth 2.0** for authentication. All API endpoints (except health checks and metrics) require a valid Google OAuth token in the `Authorization` header.
+The Event Manager API uses **Clerk** for authentication. All API endpoints (except health checks and metrics) require a valid Clerk OAuth token in the `Authorization` header.
 
 ---
 
 #### Authentication Flow
 
-1. **Frontend**: User logs in with Google OAuth (handled by your frontend)
-2. **Frontend**: Receives a JWT token from Google
+1. **Frontend**: User logs in with Clerk OAuth (handled by your frontend)
+2. **Frontend**: Receives a JWT token from Clerk
 3. **Frontend**: Includes token in API requests: `Authorization: Bearer <token>`
-4. **Backend**: Verifies token with Google's public keys
+4. **Backend**: Verifies token with Clerk's public keys
 5. **Backend**: Extracts user information and processes request
 
 ---
@@ -656,9 +656,9 @@ The Event Manager API uses **Google OAuth 2.0** for authentication. All API endp
 Add these to your `.env` file:
 
 ```bash
-# Google OAuth Configuration
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-GOOGLE_OAUTH_ENABLED=true  # Set to false for local development without auth
+# Clerk Configuration
+CLERK_ISSUER=<clerk_issuer_url>
+CLERK_JWT_AUDIENCE=<front_end_url>
 ```
 
 ---
@@ -668,147 +668,10 @@ GOOGLE_OAUTH_ENABLED=true  # Set to false for local development without auth
 For local development without Google OAuth:
 
 ```bash
-GOOGLE_OAUTH_ENABLED=false
+CLERK_AUTH_ENABLED=false
 ```
 
 When disabled, the API accepts all requests with a mock development user.
-
----
-
-#### Making Authenticated Requests (Testing)
-
-##### Method 1: Google OAuth 2.0 Playground (Recommended for Testing)
-
-1. **Go to Google OAuth Playground**
-
-   - Visit: https://developers.google.com/oauthplayground/
-
-2. **Configure the Playground**
-
-   - Click the ⚙️ (gear icon) in the top right
-   - Check "Use your own OAuth credentials"
-   - Enter your `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
-   - Close the configuration
-
-3. **Select Scopes**
-
-   - In "Step 1 - Select & authorize APIs"
-   - **Option A: Search and Select** (Recommended)
-
-     - Scroll down to find **"Google OAuth2 API v2"** and expand it
-     - Check these boxes:
-       - ✅ `https://www.googleapis.com/auth/userinfo.email`
-       - ✅ `https://www.googleapis.com/auth/userinfo.profile`
-     - Scroll to find **"OpenID Connect"** section
-     - Check: ✅ `openid`
-
-   - **Option B: Manual Entry** (Easier)
-
-     - At the bottom of "Step 1", find the "Input your own scopes" text box
-     - Paste this: `openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile`
-
-   - Click "Authorize APIs"
-
-4. **Sign in with Google**
-
-   - Log in with your Google account
-   - Grant permissions
-
-5. **Exchange Authorization Code**
-
-   - Click "Exchange authorization code for tokens"
-   - You'll see an `id_token` in the response
-
-6. **Copy the ID Token**
-
-   - Copy the entire `id_token` value (it's a long JWT string)
-   - This is your test token!
-
-7. **Test Your API**
-
-   ```bash
-   # Set your token
-   TOKEN="your-id-token-here"
-
-   # Test an endpoint
-   curl -H "Authorization: Bearer $TOKEN" \
-        http://localhost:8000/events
-   ```
-
----
-
-##### Method 2: Frontend Integration (Production Way)
-
-If you have your frontend running with Google OAuth:
-
-###### Using Browser DevTools
-
-1. **Log in to your frontend** with Google OAuth
-2. **Open Browser DevTools** (F12 or Right-click → Inspect)
-3. **Go to the Console tab**
-4. **Get the token**:
-   ```javascript
-   // The backend expects a Google OAuth ID token (JWT).
-   // If you are using direct Google OAuth, retrieve the token as follows:
-   // The token is usually in localStorage or sessionStorage
-   localStorage.getItem("token");
-   // or
-   sessionStorage.getItem("token");
-   //
-   // If you are using Clerk, note: Clerk tokens are NOT supported by the backend unless explicitly configured.
-   await window.Clerk.session.getToken();
-   // Use Google OAuth and ensure you provide a Google-issued ID token.
-   ```
-5. **Copy the token** from the console output
-6. **Test with curl**:
-   ```bash
-   TOKEN="your-token-from-console"
-   curl -H "Authorization: Bearer $TOKEN" \
-        http://localhost:8000/events
-   ```
-
----
-
-##### Quick Test Checklist
-
-✅ Set `GOOGLE_OAUTH_ENABLED=true` in `.env`
-✅ Set correct `GOOGLE_CLIENT_ID` in `.env`
-✅ Get a valid Google OAuth token
-✅ Start FastAPI server: `uv run uvicorn app.main:event_manager_app --reload`
-
----
-
-#### Protected Endpoints
-
-All endpoints under these routes require authentication:
-
-- `/users/*` - User management
-- `/events/*` - Event management
-- `/categories/*` - Category management
-- `/attendees/*` - Attendee management
-
----
-
-#### Public Endpoints
-
-These endpoints do NOT require authentication:
-
-- `/dbHealth` - Database health check
-- `/metrics` - Prometheus metrics
-
----
-
-#### Token Structure
-
-Google OAuth tokens contain:
-
-- `email`: User's email address
-- `email_verified`: Whether email is verified
-- `name`: Full name
-- `given_name`: First name
-- `family_name`: Last name
-- `picture`: Profile picture URL
-- `sub`: Google user ID (unique identifier)
 
 ---
 
@@ -848,10 +711,10 @@ Occurs when:
 
 #### Security Considerations
 
-1. **Token Validation**: Every request validates the token signature with Google's public keys
+1. **Token Validation**: Every request validates the token signature with Clerk's public keys
 2. **Email Verification**: Only tokens with verified emails are accepted
-3. **Audience Check**: Tokens must be issued for your specific Google Client ID
-4. **Issuer Check**: Tokens must come from Google's issuer
+3. **Audience Check**: Tokens must be issued for your specific Clerk
+4. **Issuer Check**: Tokens must come from Clerk's issuer
 5. **HTTPS**: Always use HTTPS in production to prevent token interception
 
 ---
@@ -869,14 +732,6 @@ Authentication is disabled in tests by default
 - Check that `Authorization` header is present
 - Verify token format: `Bearer <token>`
 - Ensure token hasn't expired (Google tokens typically last 1 hour)
-
----
-
-##### "Invalid token" error
-
-- Verify `GOOGLE_CLIENT_ID` matches your frontend configuration
-- Check that token is from Google OAuth (not another provider)
-- Ensure user's email is verified
 
 ---
 
