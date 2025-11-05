@@ -11,74 +11,16 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
-import type { AttendeeCreatePayload } from "@/types/attendeeTypes";
-import type { EventRegisterData } from "./viewModel";
 import { toast } from "sonner";
-import { Toaster } from "sonner";
-
-type AttendeeStatus = AttendeeCreatePayload["status"];
-
-type RegisterResult =
-  | {
-      success: true;
-      status: AttendeeStatus;
-      message: string;
-    }
-  | {
-      success: false;
-      code: "unauthenticated" | "alreadyRegistered" | "host" | "unknown";
-      message: string;
-      status?: AttendeeStatus | null;
-    };
-
-type EventRegisterCardProps = EventRegisterData & {
-  eventId: string;
-  onRegister: (
-    eventId: string,
-    status: AttendeeStatus,
-  ) => Promise<RegisterResult>;
-  initialStatus: AttendeeStatus | null;
-  isAuthenticated: boolean;
-  isHost: boolean;
-  note?: string;
-};
-
-type StatusOption = {
-  value: AttendeeStatus;
-  label: string;
-  description: string;
-};
-
-const STATUS_OPTIONS: StatusOption[] = [
-  {
-    value: "RSVPed",
-    label: "Going",
-    description: "Reserve my spot — I'm planning to attend.",
-  },
-  {
-    value: "Maybe",
-    label: "Maybe",
-    description: "I'm interested but need to confirm.",
-  },
-  {
-    value: "Not Going",
-    label: "Not going",
-    description: "I can't make it this time.",
-  },
-];
-
-const SUCCESS_MESSAGE_BY_STATUS: Record<AttendeeStatus, string> = {
-  RSVPed: "You're all set—see you there!",
-  Maybe: "We'll keep a seat warm if you can make it.",
-  "Not Going": "Thanks for letting us know.",
-};
-
-const STATUS_LABEL_MAP: Record<AttendeeStatus, string> = {
-  RSVPed: "Going",
-  Maybe: "Maybe",
-  "Not Going": "Not going",
-};
+import type {
+  EventRegisterCardProps,
+  AttendeeStatus,
+} from "@/types/registerTypes";
+import {
+  STATUS_OPTIONS,
+  SUCCESS_MESSAGE_BY_STATUS,
+  STATUS_LABEL_MAP,
+} from "@/types/registerTypes";
 
 export function EventRegisterCard({
   ctaLabel,
@@ -95,7 +37,6 @@ export function EventRegisterCard({
     initialStatus,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentAttendeeCount, setCurrentAttendeeCount] = useState<number>(
     attendeeCount ?? 0,
@@ -113,12 +54,10 @@ export function EventRegisterCard({
   useEffect(() => {
     if (isHost) {
       setSelectedStatus(null);
-      setFeedback(hostMessage);
       return;
     }
 
     setSelectedStatus(initialStatus);
-    setFeedback(initialStatusMessage);
   }, [hostMessage, initialStatus, initialStatusMessage, isHost]);
 
   useEffect(() => {
@@ -142,11 +81,9 @@ export function EventRegisterCard({
     }
 
     setError(null);
-    setFeedback(null);
 
     if (isHost) {
       setSelectedStatus(null);
-      setFeedback(hostMessage);
       toast.info(hostMessage);
       return;
     }
@@ -181,8 +118,13 @@ export function EventRegisterCard({
         }
         const message =
           result.message ?? SUCCESS_MESSAGE_BY_STATUS[result.status];
-        setFeedback(message);
-        toast.success(message);
+        const normalizedMessage = message.trim();
+        const toastVariant = result.toast ?? "success";
+        if (toastVariant === "info") {
+          toast.info(normalizedMessage);
+        } else {
+          toast.success(normalizedMessage);
+        }
         return;
       }
 
@@ -191,11 +133,12 @@ export function EventRegisterCard({
       }
 
       if (result.code === "alreadyRegistered") {
-        setFeedback(result.message);
+        toast.info(result.message);
+      } else if (result.code === "unauthenticated") {
+        setError(result.message);
         toast.info(result.message);
       } else if (result.code === "host") {
         setSelectedStatus(null);
-        setFeedback(result.message ?? hostMessage);
         toast.info(result.message ?? hostMessage);
       } else if (
         hasCapacityLimit &&
@@ -291,12 +234,6 @@ export function EventRegisterCard({
           );
         })}
       </div>
-
-      {feedback ? (
-        <p className="mt-4 rounded-2xl border border-emerald-200/70 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 shadow-sm dark:border-emerald-400/40 dark:bg-emerald-400/10 dark:text-emerald-200">
-          {feedback}
-        </p>
-      ) : null}
 
       {error ? (
         <p className="mt-4 rounded-2xl border border-red-200/70 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm dark:border-red-400/40 dark:bg-red-400/10 dark:text-red-200">
