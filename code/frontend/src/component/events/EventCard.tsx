@@ -11,6 +11,7 @@
 import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
 import type { EventResponse } from "@/types/eventTypes";
+import { decodeEventLocation } from "@/helpers/locationCodec";
 import { FaArrowRight, FaLocationDot } from "react-icons/fa6";
 
 type EventCardProps = {
@@ -56,6 +57,11 @@ export function EventCard({
   ...rest
 }: EventCardProps) {
   const dateLabel = formatDateRange(event);
+  const decodedLocation = decodeEventLocation(event.event_location);
+  const locationLabel =
+    decodedLocation?.address ??
+    event.event_location ??
+    "Location to be announced";
 
   return (
     <Link
@@ -88,7 +94,7 @@ export function EventCard({
         <div className="mt-auto flex items-center justify-between text-sm text-neutral-500 dark:text-neutral-400">
           <span className="flex items-center gap-2">
             <FaLocationDot className="size-4" />
-            {event.event_location ?? "Location TBA"}
+            {locationLabel}
           </span>
           <span className="font-medium items-center gap-2 flex text-amber-600 transition group-hover:text-amber-500 dark:text-amber-300">
             View details <FaArrowRight className="size-4" />

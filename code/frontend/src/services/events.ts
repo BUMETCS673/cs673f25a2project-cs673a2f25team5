@@ -61,13 +61,12 @@ type GetEventsParams = {
   filters?: string[];
   offset?: number;
   limit?: number;
-  signal?: AbortSignal;
 };
 
 export async function getEvents(
   params?: GetEventsParams,
 ): Promise<EventListResponse> {
-  const { filters, offset, limit, signal } = params ?? {};
+  const { filters, offset, limit } = params ?? {};
   const url = new URL("/events", API_BASE_URL);
 
   for (const filter of filters ?? []) {
@@ -92,7 +91,6 @@ export async function getEvents(
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    signal,
   });
   if (!response.ok) {
     throw new Error(`Request failed with status ${response.status}`);

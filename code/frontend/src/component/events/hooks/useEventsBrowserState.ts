@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { EventListResponse, EventResponse } from "@/types/eventTypes";
 import { getEvents } from "@/services/events";
+import { decodeEventLocation } from "@/helpers/locationCodec";
 
 const REMOTE_SEARCH_PAGE_SIZE = 9;
 
@@ -123,9 +124,10 @@ export function useEventsBrowserState(
     }
 
     return baseEvents.filter((event) => {
+      const decodedLocation = decodeEventLocation(event.event_location);
       const haystack = [
         event.event_name,
-        event.event_location ?? "",
+        decodedLocation?.address ?? "",
         event.description ?? "",
       ]
         .join(" ")
@@ -161,10 +163,10 @@ export function useEventsBrowserState(
     }
 
     let isMounted = true;
-    const controller = new AbortController();
-
     setIsRemoteLoading(true);
     setRemoteError(null);
+
+    let didCancel = false;
 
     async function fetchRemoteEvents() {
       try {
@@ -178,10 +180,9 @@ export function useEventsBrowserState(
           filters: [`event_name:ilike:${ilikeValue}`],
           offset: remoteOffset,
           limit: REMOTE_SEARCH_PAGE_SIZE,
-          signal: controller.signal,
         });
 
-        if (!isMounted) {
+        if (!isMounted || didCancel) {
           return;
         }
 
@@ -190,10 +191,7 @@ export function useEventsBrowserState(
           items: sortEventsByDate(result.items),
         });
       } catch (error) {
-        if (
-          !isMounted ||
-          (error instanceof DOMException && error.name === "AbortError")
-        ) {
+        if (!isMounted || didCancel) {
           return;
         }
 
@@ -204,7 +202,7 @@ export function useEventsBrowserState(
         setRemoteError(message);
         setRemoteResult(null);
       } finally {
-        if (isMounted) {
+        if (isMounted && !didCancel) {
           setIsRemoteLoading(false);
         }
       }
@@ -214,7 +212,7 @@ export function useEventsBrowserState(
 
     return () => {
       isMounted = false;
-      controller.abort();
+      didCancel = true;
     };
   }, [remoteFetchNonce, remoteOffset, shouldFetchRemoteSearch, trimmedQuery]);
 
@@ -248,8 +246,11 @@ export function useEventsBrowserState(
       const result = await getEvents({
         offset: nextIndex * pageSize,
         limit: pageSize,
-        signal: controller.signal,
       });
+
+      if (baseControllerRef.current !== controller) {
+        return;
+      }
 
       const sortedResult = {
         ...result,
@@ -261,7 +262,7 @@ export function useEventsBrowserState(
       setPageIndex(nextIndex);
       setPendingBaseIndex(null);
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
+      if (baseControllerRef.current !== controller) {
         return;
       }
 
@@ -273,8 +274,8 @@ export function useEventsBrowserState(
     } finally {
       if (baseControllerRef.current === controller) {
         baseControllerRef.current = null;
+        setIsBaseLoading(false);
       }
-      setIsBaseLoading(false);
     }
   };
 

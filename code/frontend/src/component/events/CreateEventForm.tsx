@@ -30,6 +30,7 @@ import { useUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { EventLocationPickerMap } from "./EventLocationPickerMap";
 import { getPublicMapboxToken } from "@/component/map/getPublicMapboxToken";
+import { encodeEventLocation } from "@/helpers/locationCodec";
 
 type SubmissionState = "idle" | "submitting" | "success";
 
@@ -104,8 +105,18 @@ export function CreateEventForm() {
     }
 
     try {
+      const locationValue =
+        selectedCoordinates && formValues.location
+          ? encodeEventLocation({
+              address: formValues.location,
+              longitude: selectedCoordinates.longitude,
+              latitude: selectedCoordinates.latitude,
+            })
+          : result.data.location;
+
       const valuesWithCategory = {
         ...result.data,
+        location: locationValue,
         categoryId: "2db3d8ac-257c-4ff9-ad97-ba96bfbf9bc5",
       };
       await createEvent(buildEventCreatePayload(valuesWithCategory, userId));
