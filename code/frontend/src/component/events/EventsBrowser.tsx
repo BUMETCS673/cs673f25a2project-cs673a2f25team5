@@ -39,7 +39,7 @@ export function EventsBrowser({ initialResult }: EventsBrowserProps) {
     handleBaseRetry,
     handleRemoteRetry,
   } = useEventsBrowserState(initialResult);
-  
+
   return (
     <div className="space-y-8">
       <EventSearchField
