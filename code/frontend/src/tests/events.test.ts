@@ -10,9 +10,19 @@ Framework-generated code: 0%
 
 import { getEvents, createEvent, EventCreatePayload } from "@/services/events";
 import { API_BASE_URL } from "@/services/config";
+import { auth } from "@clerk/nextjs/server";
+
+jest.mock("@clerk/nextjs/server", () => ({
+  auth: jest.fn(),
+}));
+
+const mockAuth = auth as jest.MockedFunction<typeof auth>;
 
 beforeEach(() => {
-  jest.restoreAllMocks();
+  jest.resetAllMocks();
+  mockAuth.mockResolvedValue({
+    getToken: jest.fn().mockResolvedValue("test-token"),
+  } as never);
 });
 
 test("getEvents builds query string correctly and parses response", async () => {
@@ -45,7 +55,13 @@ test("getEvents builds query string correctly and parses response", async () => 
         API_BASE_URL,
       ).toString(),
     ),
-    expect.any(Object),
+    expect.objectContaining({
+      method: "GET",
+      headers: expect.objectContaining({
+        "Content-Type": "application/json",
+        Authorization: "Bearer test-token",
+      }),
+    }),
   );
   expect(res.total).toBe(0);
   mute.mockRestore();
@@ -80,4 +96,14 @@ test("createEvent posts payload and returns parsed event", async () => {
 
   const res = await createEvent(payload as EventCreatePayload);
   expect(res.event_name).toBe("Show");
+  expect(fetch).toHaveBeenCalledWith(
+    `${API_BASE_URL}/events`,
+    expect.objectContaining({
+      method: "POST",
+      headers: expect.objectContaining({
+        "Content-Type": "application/json",
+        Authorization: "Bearer test-token",
+      }),
+    }),
+  );
 });
