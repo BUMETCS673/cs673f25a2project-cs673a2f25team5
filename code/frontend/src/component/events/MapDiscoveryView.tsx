@@ -659,7 +659,7 @@ export function MapDiscoveryView({ events }: MapDiscoveryViewProps) {
   return (
     <section className="space-y-10">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start">
-        <div className="group relative h-[24rem] w-full overflow-hidden rounded-3xl border border-neutral-200/50 bg-white shadow-xl shadow-amber-500/10 dark:border-white/10 dark:bg-neutral-950 sm:h-[26rem] md:h-[28rem] lg:h-[30rem] xl:h-[32rem]">
+        <div className="group relative h-[48rem] w-full overflow-hidden rounded-3xl border border-neutral-200/50 bg-white shadow-xl shadow-amber-500/10 dark:border-white/10 dark:bg-neutral-950 sm:h-[26rem] md:h-[28rem] lg:h-[30rem] xl:h-[32rem]">
           {renderStatusBadge(locationStatus, "Locating you…")}
           {renderStatusBadge(geocodeStatus, "Loading nearby events…")}
           {locationStatus === "error" && locationError ? (
@@ -679,8 +679,8 @@ export function MapDiscoveryView({ events }: MapDiscoveryViewProps) {
             longitude={viewState.longitude}
             latitude={viewState.latitude}
             zoom={viewState.zoom}
-            pitch={viewState.pitch}
-            bearing={viewState.bearing}
+            // pitch={viewState.pitch}
+            // bearing={viewState.bearing}
             ref={mapRef}
             onMove={(moveEvent) => {
               setViewState((previous) => ({
@@ -692,15 +692,14 @@ export function MapDiscoveryView({ events }: MapDiscoveryViewProps) {
               mapRef.current?.getMap().resize();
               setIsMapReady(true);
             }}
-            reuseMaps
-            attributionControl={false}
+            attributionControl={true}
             style={{ width: "100%", height: "100%" }}
             initialViewState={{
               longitude: viewState.longitude,
               latitude: viewState.latitude,
               zoom: viewState.zoom,
             }}
-            scrollZoom={false}
+            scrollZoom={true}
             doubleClickZoom={false}
             touchZoomRotate={false}
             keyboard={false}
