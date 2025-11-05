@@ -11,6 +11,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import "mapbox-gl/dist/mapbox-gl.css";
 import Link from "next/link";
 import MapboxMap, { Marker, NavigationControl } from "react-map-gl/mapbox";
 import type { MapRef } from "react-map-gl/mapbox";
@@ -601,6 +602,7 @@ export function MapDiscoveryView({ events }: MapDiscoveryViewProps) {
         marker = new mapboxgl.Marker({
           color: event.event_id === selectedEventId ? "#f59e0b" : "#111827",
           anchor: "bottom",
+          rotationAlignment: "map",
         })
           .setLngLat(lngLat)
           .addTo(map);
@@ -706,7 +708,7 @@ export function MapDiscoveryView({ events }: MapDiscoveryViewProps) {
             dragRotate={false}
             boxZoom={false}
           >
-            <NavigationControl position="bottom-right" showCompass={false} />
+            <NavigationControl position="bottom-right" showCompass={true} />
 
             {userLocation ? (
               <Marker
