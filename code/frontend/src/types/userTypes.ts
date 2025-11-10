@@ -11,10 +11,10 @@
 import { z } from "zod";
 
 export const UserSchema = z.object({
-  user_id: z.string().uuid(),
+  user_id: z.uuid(),
   first_name: z.string(),
   last_name: z.string(),
-  email: z.string().email(),
+  email: z.email(),
   date_of_birth: z.string(),
   color: z.string().nullable().optional(),
   created_at: z.string(),

@@ -14,7 +14,7 @@ import { UserResponse, UserListSchema } from "@/types/userTypes";
 import { auth } from "@clerk/nextjs/server";
 
 export async function getUser(id: string): Promise<UserResponse> {
-  const userId = z.string().uuid().parse(id);
+  const userId = z.uuid().parse(id);
   const url = new URL("/users", API_BASE_URL);
   url.searchParams.append("filter_expression", `user_id:eq:${userId}`);
   url.searchParams.set("limit", "1");

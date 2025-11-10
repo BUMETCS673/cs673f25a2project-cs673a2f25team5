@@ -10,7 +10,7 @@
 
 import { z } from "zod";
 export const EventSchema = z.object({
-  event_id: z.string().uuid(),
+  event_id: z.uuid(),
   event_name: z.string(),
   event_datetime: z.string(),
   event_endtime: z.string(),
@@ -19,8 +19,8 @@ export const EventSchema = z.object({
   picture_url: z.string().nullable().optional(),
   capacity: z.number().nullable().optional(),
   price_field: z.number().nullable().optional(),
-  user_id: z.string().uuid(),
-  category_id: z.string().uuid(),
+  user_id: z.uuid(),
+  category_id: z.uuid(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
   attendee_count: z.number().int().nonnegative().optional(),
@@ -46,8 +46,8 @@ export const EventCreatePayloadSchema = z.object({
   picture_url: z.string().nullable().optional(),
   capacity: z.number().int().positive().nullable().optional(),
   price_field: z.number().int().nonnegative().nullable().optional(),
-  user_id: z.string().uuid(),
-  category_id: z.string().uuid(),
+  user_id: z.uuid(),
+  category_id: z.uuid(),
 });
 
 export type EventCreatePayload = z.infer<typeof EventCreatePayloadSchema>;
