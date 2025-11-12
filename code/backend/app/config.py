@@ -53,6 +53,17 @@ class Settings(BaseSettings):
         default="http://localhost:3000",
         description="Frontend base URL for building invitation links.",
     )
+    
+    # Stripe and frontend/app URLs
+    STRIPE_SECRET_KEY: str = Field(default="", description="Stripe secret API key")
+    STRIPE_WEBHOOK_SECRET: str = Field(default="", description="Stripe webhook signing secret")
+    FRONTEND_BASE_URL: str = Field(
+        default="http://localhost:3000",
+        description="Frontend base URL for redirecting after checkout",
+    )
+    APP_BASE_URL: str = Field(
+        default="http://127.0.0.1:8010", description="Backend API base URL"
+    )
 
     @field_validator("POSTGRES_PASSWORD")
     @classmethod

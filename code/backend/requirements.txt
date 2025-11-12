@@ -9,5 +9,6 @@ pydantic-settings
 pyjwt
 requests
 sqlalchemy
+stripe
 uv
 uvicorn
