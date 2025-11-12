@@ -46,3 +46,19 @@ CREATE TABLE IF NOT EXISTS EventAttendees (
     FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
+
+
+CREATE TABLE IF NOT EXISTS Payments (
+  payment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), -- Unique identifier for each payment
+  event_id   UUID NOT NULL REFERENCES Events(event_id) ON DELETE CASCADE, -- Event the payment is for
+  user_id    UUID NOT NULL REFERENCES Users(user_id)  ON DELETE CASCADE, -- User who made the payment
+  amount_usd NUMERIC(10,2) NOT NULL, -- Payment amount in USD (25.00) 
+  currency   VARCHAR(10)   NOT NULL DEFAULT 'usd', -- Currency code (default = 'usd') [For multi currency option for future]
+  status     VARCHAR(20)   NOT NULL DEFAULT 'created', -- created|processing|succeeded|failed|canceled
+  -- Stripe’s unique ID for the checkout session (the hosted page where the user clicked “Pay”).
+  stripe_checkout_session_id VARCHAR(128), -- Stripe checkout session ID (for reference) [Used to link the local payment record with the Stripe-hosted checkout page] 
+  -- Stripe’s ID for the actual payment transaction (used for verifying payment success/failure).
+  stripe_payment_intent_id   VARCHAR(128), -- Stripe payment intent ID (for verification) [Used to verify the final payment status (succeeded, failed, etc.) via webhooks.]
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
