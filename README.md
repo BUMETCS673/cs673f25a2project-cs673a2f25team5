@@ -561,7 +561,7 @@ uv run ruff check --fix
 
 ## Database Setup
 
-This project uses postgressql as both the local development and production database. Please see below the steps to locally run your own version of the event manager database.
+This project uses PostgresSQL as both the local development and production database. Please see below the steps to locally run your own version of the event manager database.
 
 ### Database Initialization Files
 
@@ -584,13 +584,13 @@ To clarify, this section uses the DB-docker-compose.yaml file to create the cont
 1. Run the following command to export all env variables.
 
 ```bash
-export POSTGRES_USER=test
-POSTGRES_PASSWORD=test1234
-POSTGRES_PORT=5432
-POSTGRES_HOST=localhost
-POSTGRES_DB=event_manager
-PGADMIN_DEFAULT_EMAIL=admin@example.com
-PGADMIN_DEFAULT_PASSWORD=adminpass
+export POSTGRES_USER=test \
+  POSTGRES_PASSWORD=test1234 \
+  POSTGRES_PORT=5432 \
+  POSTGRES_HOST=localhost \
+  POSTGRES_DB=event_manager \
+  PGADMIN_DEFAULT_EMAIL=admin@example.com \
+  PGADMIN_DEFAULT_PASSWORD=adminpass
 ```
 
 2. Run the following command to get the postgres and pgadmin containers running.
