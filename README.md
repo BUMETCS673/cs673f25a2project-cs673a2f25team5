@@ -209,7 +209,7 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="<your_publishable_key>"
 
 # Docker Configuration
 DOCKER_USERNAME=javi99est
-BACKEND_URL="http://127.0.0.1:8000"
+IMAGE_TAG=latest
 
 # Clerk Configuration
 CLERK_ISSUER=<clerk_issuer_url>
@@ -218,7 +218,7 @@ CLERK_JWT_AUDIENCE=<front_end_url>
 CLERK_AUTH_ENABLED=true
 
 # Miscellaneous
-IMAGE_TAG=latest
+BACKEND_URL="http://127.0.0.1:8000"
 ```
 
 2. Export the env vars in the env file:
@@ -256,8 +256,8 @@ npm run dev
 # Database Configuration
 POSTGRES_USER="<your_postgres_username>"
 POSTGRES_PASSWORD="<your_postgres_password>"
-POSTGRES_HOST="host.docker.internal"                        # use this host to allow the backend container to access the database running on the host machine
 POSTGRES_PORT="<your_postgres_port>"
+POSTGRES_HOST=localhost
 POSTGRES_DB="<your_database_name>"
 
 # Clerk Configuration
@@ -307,7 +307,14 @@ docker build -f Dockerfile.frontend \
   -t $DOCKER_USERNAME/event-manager-frontend:$IMAGE_TAG .
 ```
 
-6. Start the docker frontend and backend containers
+6. Modify env file with the following env var and export the env vars again:
+```bash
+POSTGRES_HOST="host.docker.internal"  # use this host to allow the backend container to access the database running on the host machine
+
+export $(grep -v '^#' .env | xargs)
+```
+
+7. Start the docker frontend and backend containers
 
 ```bash
 docker compose -f docker-compose.dev.yaml up -d
@@ -510,6 +517,14 @@ uv run tox -e coverage
 
 ---
 
+#### Test report
+
+```bash
+uv run tox -e report
+```
+
+---
+
 #### Run Ruff linter
 
 ```bash
@@ -538,16 +553,33 @@ uv run ruff format .
 
 ---
 
-#### Check for lint issues
+#### Fix lint issues
 
 ```bash
-uv run ruff check .
+uv run ruff check --fix
 ```
 
 ## Database Setup
 
 This project uses postgressql as both the local development and production database. Please see below the steps to locally run your own version of the event manager database.
-To clarify, the section below uses the DB-docker-compose.yaml file to create the container for the postgres instance which holds the event_manager database as well as the pgadmin container which runs a simple and easy to use web ui to connect to the postgres instance.
+
+### Database Initialization Files
+
+Database initialization and migrations are managed through SQL scripts located in the `db/init/` directory of the repository. These files are executed during the database setup process, typically as part of the Docker Compose workflow, ensuring all required extensions and tables are created with the proper schema.
+
+- **01_add_extensions.sql**  
+  *Purpose*: This script adds necessary PostgreSQL extensions that are required for the application. Extensions might include support for UUID generation, advanced indexing, or other features to optimize database performance and functionality.
+
+- **02_event_manager_db_schema.sql**  
+  *Purpose*: This script defines the core schema for the Event Manager application. It creates all tables (`Users`, `Events`, `Categories`, `EventAttendees`), sets up primary and foreign key constraints, and establishes the relationships as outlined in the ERD. It ensures the database structure matches the application's data model and enforces referential integrity.
+
+These initialization files ensure that the database environment is consistent and reproducible across development, staging, and production deployments. Any future additions to the init process like database constraints or indexes will be added in sequential files to ensure the init process for the event_manager database is robust and complete.
+
+---
+
+### Database Docker Setup
+
+To clarify, this section uses the DB-docker-compose.yaml file to create the container for the postgres instance which holds the event_manager database as well as the pgadmin container which runs a simple and easy to use web ui to connect to the postgres instance.
 
 1. Run the following command to export all env variables.
 
@@ -573,6 +605,12 @@ docker compose -f db/db-docker-compose.yaml --env-file .env up -d --wait
 
 ```bash
 docker compose -f db/db-docker-compose.yaml down -v
+```
+
+5. If you want to keep the volumes (persistent storage) and just want to stop the container please run the following command.
+
+```bash
+docker compose -f db/db-docker-compose.yaml down
 ```
 
 ## Authentication Setup
