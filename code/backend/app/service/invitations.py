@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 async def check_and_expire_invitation(invitation: InvitationsReadDB) -> InvitationsReadDB:
     if invitation.status != InvitationStatus.ACTIVE.value:
         return invitation
-    
+
     if invitation.expires_at:
         today = date.today()
         expiration_date = invitation.expires_at.date()
@@ -59,7 +59,7 @@ async def check_and_expire_invitation(invitation: InvitationsReadDB) -> Invitati
             updates = {invitation.invitation_id: {"status": InvitationStatus.EXPIRED.value}}
             updated_invitations = await db_invitations.batch_update_invitations_db(updates)
             return updated_invitations[invitation.invitation_id]
-    
+
     return invitation
 
 
@@ -75,7 +75,7 @@ async def get_invitations_service(
         for invitation in invitations:
             updated_invitation = await check_and_expire_invitation(invitation)
             updated_invitations.append(updated_invitation)
-        
+
         return PaginatedInvitations(
             items=updated_invitations, total=total, offset=offset, limit=limit
         )
@@ -151,7 +151,7 @@ async def get_invitation_by_token(token: str) -> InvitationsDetailResponse:
             raise HTTPException(status_code=404, detail="Invitation not found")
 
         invitation = invitations_list[0]
-        
+
         invitation = await check_and_expire_invitation(invitation)
         if invitation.status == InvitationStatus.REVOKED.value:
             logger.info(f"Invitation {invitation.invitation_id} has been revoked")

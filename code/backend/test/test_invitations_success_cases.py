@@ -701,7 +701,9 @@ async def test_patch_multiple_invitations(
 async def test_auto_expire_invitation_on_list(
     test_client: AsyncClient, test_user: UUID, test_event: UUID
 ):
-    """Test that invitations are automatically expired when listed if expiration date has passed."""
+    """
+    Test that invitations are automatically expired when listed if expiration date has passed.
+    """
     past_expiration = datetime.now(UTC) - timedelta(days=1)
     invitation_data = {
         "event_id": str(test_event),
@@ -728,7 +730,10 @@ async def test_auto_expire_invitation_on_list(
 async def test_auto_expire_invitation_on_get_by_token(
     test_client: AsyncClient, test_user: UUID, test_event: UUID
 ):
-    """Test that invitation is automatically expired when fetched by token if expiration date has passed."""
+    """
+    Test that invitation is automatically expired when fetched by token
+    if expiration date has passed.
+    """
     past_expiration = datetime.now(UTC) - timedelta(days=1)
     invitation_data = {
         "event_id": str(test_event),
