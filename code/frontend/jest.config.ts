@@ -26,6 +26,7 @@ const config: Config = {
     "^.+\\.(css|sass|scss)$": "identity-obj-proxy",
     "^.+\\.(svg|png|jpg|gif)$": "<rootDir>/__mocks__/fileMock.js",
   },
+  modulePathIgnorePatterns: ["<rootDir>/.next/"],
   testMatch: [
     "<rootDir>/src/**/*.test.(ts|tsx)",
     "<rootDir>/tests/**/*.test.(ts|tsx)",

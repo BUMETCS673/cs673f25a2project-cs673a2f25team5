@@ -15,6 +15,7 @@
     "@clerk/nextjs": "^6.33.3",
     "@headlessui/react": "^2.2.9",
     "@mapbox/mapbox-gl-geocoder": "^5.1.2",
+    "@rehookify/datepicker": "^6.6.8",
     "@types/mapbox__mapbox-gl-geocoder": "^5.0.0",
     "@types/mapbox-gl": "^3.4.1",
     "mapbox-gl": "^3.15.0",
