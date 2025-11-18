@@ -27,10 +27,11 @@ import {
 } from "./createEventSchema";
 import { createEvent } from "@/services/events";
 import { useUser } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { EventLocationPickerMap } from "./EventLocationPickerMap";
 import { getPublicMapboxToken } from "@/component/map/getPublicMapboxToken";
 import { encodeEventLocation } from "@/helpers/locationCodec";
+import { toast } from "sonner";
 
 type SubmissionState = "idle" | "submitting" | "success";
 
@@ -53,6 +54,7 @@ const inputClass =
 const labelClass = "text-sm font-medium text-neutral-700 dark:text-neutral-200";
 
 export function CreateEventForm() {
+  const router = useRouter();
   const [formValues, setFormValues] = useState<EventFormInput>(
     createEmptyFormValues,
   );
@@ -62,7 +64,6 @@ export function CreateEventForm() {
   } | null>(null);
   const [status, setStatus] = useState<SubmissionState>("idle");
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const [serverError, setServerError] = useState<string | null>(null);
   const { user } = useUser();
   const email = user?.primaryEmailAddress?.emailAddress;
   const userId = user?.externalId;
@@ -76,7 +77,6 @@ export function CreateEventForm() {
   ) => {
     setFormValues((prev) => ({ ...prev, [field]: value }));
     setValidationErrors([]);
-    setServerError(null);
     if (field === "location" && !options?.preserveCoordinates) {
       setSelectedCoordinates(null);
     }
@@ -87,20 +87,23 @@ export function CreateEventForm() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const loadingToastId = toast.loading("Creating event...");
     if (!userId) {
       setValidationErrors(["You must be logged in to create an event"]);
       setStatus("idle");
+      toast.dismiss(loadingToastId);
+      toast.error("You must be logged in to create an event");
       return;
     }
     setStatus("submitting");
     setValidationErrors([]);
-    setServerError(null);
 
     const result = EventFormSchema.safeParse(formValues);
     if (!result.success) {
       const issues = result.error.issues.map((issue) => issue.message);
       setValidationErrors(Array.from(new Set(issues)));
       setStatus("idle");
+      toast.dismiss(loadingToastId);
       return;
     }
 
@@ -120,18 +123,21 @@ export function CreateEventForm() {
         categoryId: "2db3d8ac-257c-4ff9-ad97-ba96bfbf9bc5",
       };
       await createEvent(buildEventCreatePayload(valuesWithCategory, userId));
+      toast.dismiss(loadingToastId);
+      toast.success("Event created successfully");
       setStatus("success");
       setFormValues(createEmptyFormValues());
       setSelectedCoordinates(null);
       setTimeout(() => {
-        redirect(`/events`);
-      }, 3000);
+        router.push(`/events`);
+      }, 1000);
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
           : "We could not save the event. Please try again.";
-      setServerError(message);
+      toast.dismiss(loadingToastId);
+      toast.error(message);
       setStatus("idle");
     }
   };
@@ -165,18 +171,6 @@ export function CreateEventForm() {
               <li key={error}>{error}</li>
             ))}
           </ul>
-        </div>
-      ) : null}
-
-      {serverError ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-200">
-          {serverError}
-        </div>
-      ) : null}
-
-      {status === "success" ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-          New Event Created Successfully!
         </div>
       ) : null}
 
