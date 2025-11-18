@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS Invitations (
     invitation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_id UUID NOT NULL,
     user_id UUID NOT NULL,
-    expires_at DATE NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
     token_hash VARCHAR(64) UNIQUE NOT NULL,
     status invitation_status NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
