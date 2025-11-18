@@ -18,7 +18,7 @@
 
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useCallback, useMemo, useState } from "react";
 
 import {
   EventFormSchema,
@@ -34,6 +34,11 @@ import { encodeEventLocation } from "@/helpers/locationCodec";
 import { toast } from "sonner";
 
 type SubmissionState = "idle" | "submitting" | "success";
+type Coordinates = { longitude: number; latitude: number };
+type LocationSelectionPayload = {
+  placeName: string | null;
+  coordinates: Coordinates | null;
+};
 
 const createEmptyFormValues = (): EventFormInput => ({
   eventName: "",
@@ -58,10 +63,8 @@ export function CreateEventForm() {
   const [formValues, setFormValues] = useState<EventFormInput>(
     createEmptyFormValues,
   );
-  const [selectedCoordinates, setSelectedCoordinates] = useState<{
-    longitude: number;
-    latitude: number;
-  } | null>(null);
+  const [selectedCoordinates, setSelectedCoordinates] =
+    useState<Coordinates | null>(null);
   const [status, setStatus] = useState<SubmissionState>("idle");
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { user } = useUser();
@@ -70,20 +73,31 @@ export function CreateEventForm() {
 
   const mapboxToken = useMemo(() => getPublicMapboxToken(), []);
 
-  const updateField = (
-    field: keyof EventFormInput,
-    value: string,
-    options?: { preserveCoordinates?: boolean },
-  ) => {
-    setFormValues((prev) => ({ ...prev, [field]: value }));
-    setValidationErrors([]);
-    if (field === "location" && !options?.preserveCoordinates) {
-      setSelectedCoordinates(null);
-    }
-    if (status === "success") {
-      setStatus("idle");
-    }
-  };
+  const updateField = useCallback(
+    (
+      field: keyof EventFormInput,
+      value: string,
+      options?: { preserveCoordinates?: boolean },
+    ) => {
+      setFormValues((prev) => ({ ...prev, [field]: value }));
+      setValidationErrors([]);
+      if (field === "location" && !options?.preserveCoordinates) {
+        setSelectedCoordinates(null);
+      }
+      setStatus((prev) => (prev === "success" ? "idle" : prev));
+    },
+    [],
+  );
+
+  const handleLocationSelect = useCallback(
+    ({ placeName, coordinates }: LocationSelectionPayload) => {
+      if (placeName) {
+        updateField("location", placeName, { preserveCoordinates: true });
+      }
+      setSelectedCoordinates(coordinates);
+    },
+    [updateField],
+  );
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -258,14 +272,7 @@ export function CreateEventForm() {
             <EventLocationPickerMap
               mapboxToken={mapboxToken}
               coordinates={selectedCoordinates}
-              onLocationSelect={({ placeName, coordinates }) => {
-                if (placeName) {
-                  updateField("location", placeName, {
-                    preserveCoordinates: true,
-                  });
-                }
-                setSelectedCoordinates(coordinates);
-              }}
+              onLocationSelect={handleLocationSelect}
             />
             <div className="rounded-3xl border border-neutral-200/70 bg-white/85 p-6 shadow-lg shadow-amber-500/10 backdrop-blur dark:border-white/10 dark:bg-neutral-900/60">
               <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-neutral-500 dark:text-neutral-400">
