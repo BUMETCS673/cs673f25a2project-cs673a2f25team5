@@ -96,7 +96,7 @@ export function CreateEventForm() {
       }
       setSelectedCoordinates(coordinates);
     },
-    [updateField],
+    [setSelectedCoordinates, updateField],
   );
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -118,6 +118,7 @@ export function CreateEventForm() {
       setValidationErrors(Array.from(new Set(issues)));
       setStatus("idle");
       toast.dismiss(loadingToastId);
+      toast.error("Please fix the validation errors");
       return;
     }
 
@@ -142,9 +143,7 @@ export function CreateEventForm() {
       setStatus("success");
       setFormValues(createEmptyFormValues());
       setSelectedCoordinates(null);
-      setTimeout(() => {
-        router.push(`/events`);
-      }, 1000);
+      router.push(`/events`);
     } catch (error) {
       const message =
         error instanceof Error
