@@ -1,9 +1,19 @@
+/*
+AI-generated code: 70% (tool: Codex - GPT-5, modified and adapted, functions: pad, addMonths, subtractMonths, parseDateTimeValue, formatDateForInput, formatTimeForInput, getDayButtonClasses, getTimeButtonClasses, EventDateTimePicker, useDatePicker, useEffect, useMemo, useRef, useState) 
+
+Human code: 10% (functions: wrapping in useEffect, useMemo, useRef, useState, and adding the FaArrowLeft and FaArrowRight icons)
+
+Framework-generated code: 10% (functions: pad, addMonths, subtractMonths, parseDateTimeValue, formatDateForInput, formatTimeForInput, getDayButtonClasses, getTimeButtonClasses, EventDateTimePicker, useDatePicker, useEffect, useMemo, useRef, useState)
+
+*/
+
 "use client";
 
 import { useDatePicker } from "@rehookify/datepicker";
 import type { DPDay, DPTime } from "@rehookify/datepicker";
 import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 
 type EventDateTimePickerProps = {
   id: string;
@@ -300,21 +310,7 @@ export function EventDateTimePicker({
                     {...subtractOffset({ months: 1 })}
                   >
                     <span className="sr-only">Previous month</span>
-                    <svg
-                      className="h-4 w-4"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden
-                    >
-                      <path
-                        d="M12.5 5L7.5 10L12.5 15"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                    <FaArrowLeft className="h-4 w-4" />
                   </button>
                   <div className="text-sm font-semibold text-neutral-700 dark:text-neutral-100">
                     {calendar ? `${calendar.month} ${calendar.year}` : ""}
@@ -325,21 +321,7 @@ export function EventDateTimePicker({
                     {...addOffset({ months: 1 })}
                   >
                     <span className="sr-only">Next month</span>
-                    <svg
-                      className="h-4 w-4"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden
-                    >
-                      <path
-                        d="M7.5 5L12.5 10L7.5 15"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                    <FaArrowRight className="h-4 w-4" />
                   </button>
                 </div>
 
