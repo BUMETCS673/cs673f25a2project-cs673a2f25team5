@@ -15,6 +15,7 @@ import { getUser } from "@/services/users";
 import type { EventResponse } from "@/types/eventTypes";
 import type { AttendeeStatus } from "@/types/registerTypes";
 import type { UserResponse } from "@/types/userTypes";
+import { clerkClient } from "@clerk/nextjs/server";
 
 type EventDetailData = {
   attendeeCount: number | null;
@@ -66,6 +67,26 @@ export async function fetchEventDetailData(
     attendeeCountPromise,
   ]);
 
+  let normalizedHost = host;
+
+  if (host && !host.profile_picture_url) {
+    try {
+      const clerkUsers = await clerkClient.users.getUserList({
+        externalId: [host.user_id],
+        limit: 1,
+      });
+      const clerkUser = clerkUsers.data?.[0];
+      if (clerkUser?.imageUrl) {
+        normalizedHost = {
+          ...host,
+          profile_picture_url: clerkUser.imageUrl,
+        } satisfies UserResponse;
+      }
+    } catch (error) {
+      console.error("Failed to enhance host profile with Clerk image", error);
+    }
+  }
+
   const attendeeCount =
     typeof attendeeCountResult?.total === "number"
       ? attendeeCountResult.total
@@ -74,7 +95,7 @@ export async function fetchEventDetailData(
   return {
     attendeeCount,
     event,
-    host,
+    host: normalizedHost,
     hostEvents: hostEventsResult?.items ?? [],
   };
 }
