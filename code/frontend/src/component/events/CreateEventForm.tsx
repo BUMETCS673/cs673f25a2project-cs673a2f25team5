@@ -29,6 +29,7 @@ import { createEvent } from "@/services/events";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { EventLocationPickerMap } from "./EventLocationPickerMap";
+import { EventDateTimePicker, parseDateTimeValue } from "./EventDateTimePicker";
 import { getPublicMapboxToken } from "@/component/map/getPublicMapboxToken";
 import { encodeEventLocation } from "@/helpers/locationCodec";
 import { toast } from "sonner";
@@ -73,20 +74,27 @@ export function CreateEventForm() {
 
   const mapboxToken = useMemo(() => getPublicMapboxToken(), []);
 
+  const patchFormValues = useCallback(
+    (updates: Partial<EventFormInput>) => {
+      setFormValues((prev) => ({ ...prev, ...updates }));
+      setValidationErrors([]);
+      setStatus((prev) => (prev === "success" ? "idle" : prev));
+    },
+    [setFormValues, setStatus, setValidationErrors],
+  );
+
   const updateField = useCallback(
     (
       field: keyof EventFormInput,
       value: string,
       options?: { preserveCoordinates?: boolean },
     ) => {
-      setFormValues((prev) => ({ ...prev, [field]: value }));
-      setValidationErrors([]);
+      patchFormValues({ [field]: value } as Partial<EventFormInput>);
       if (field === "location" && !options?.preserveCoordinates) {
         setSelectedCoordinates(null);
       }
-      setStatus((prev) => (prev === "success" ? "idle" : prev));
     },
-    [],
+    [patchFormValues, setSelectedCoordinates],
   );
 
   const handleLocationSelect = useCallback(
@@ -97,6 +105,25 @@ export function CreateEventForm() {
       setSelectedCoordinates(coordinates);
     },
     [setSelectedCoordinates, updateField],
+  );
+
+  const startDateSelection = useMemo(
+    () => parseDateTimeValue(formValues.startDate, formValues.startTime),
+    [formValues.startDate, formValues.startTime],
+  );
+
+  const handleStartDateTimeChange = useCallback(
+    (date: string, time: string) => {
+      patchFormValues({ startDate: date, startTime: time });
+    },
+    [patchFormValues],
+  );
+
+  const handleEndDateTimeChange = useCallback(
+    (date: string, time: string) => {
+      patchFormValues({ endDate: date, endTime: time });
+    },
+    [patchFormValues],
   );
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -212,49 +239,21 @@ export function CreateEventForm() {
           </label>
 
           <div className="grid gap-6 sm:grid-cols-2">
-            <label className="grid gap-2">
-              <span className={labelClass}>Start date</span>
-              <input
-                type="date"
-                value={formValues.startDate}
-                onChange={(event) =>
-                  updateField("startDate", event.target.value)
-                }
-                className={inputClass}
-              />
-            </label>
-            <label className="grid gap-2">
-              <span className={labelClass}>Start time</span>
-              <input
-                type="time"
-                value={formValues.startTime}
-                onChange={(event) =>
-                  updateField("startTime", event.target.value)
-                }
-                className={inputClass}
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            <label className="grid gap-2">
-              <span className={labelClass}>End date</span>
-              <input
-                type="date"
-                value={formValues.endDate}
-                onChange={(event) => updateField("endDate", event.target.value)}
-                className={inputClass}
-              />
-            </label>
-            <label className="grid gap-2">
-              <span className={labelClass}>End time</span>
-              <input
-                type="time"
-                value={formValues.endTime}
-                onChange={(event) => updateField("endTime", event.target.value)}
-                className={inputClass}
-              />
-            </label>
+            <EventDateTimePicker
+              id="event-start"
+              label="Start date & time"
+              dateValue={formValues.startDate}
+              timeValue={formValues.startTime}
+              onChange={handleStartDateTimeChange}
+            />
+            <EventDateTimePicker
+              id="event-end"
+              label="End date & time"
+              dateValue={formValues.endDate}
+              timeValue={formValues.endTime}
+              onChange={handleEndDateTimeChange}
+              minDate={startDateSelection}
+            />
           </div>
 
           <label className="grid gap-2">
