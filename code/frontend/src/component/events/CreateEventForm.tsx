@@ -74,14 +74,11 @@ export function CreateEventForm() {
 
   const mapboxToken = useMemo(() => getPublicMapboxToken(), []);
 
-  const patchFormValues = useCallback(
-    (updates: Partial<EventFormInput>) => {
-      setFormValues((prev) => ({ ...prev, ...updates }));
-      setValidationErrors([]);
-      setStatus((prev) => (prev === "success" ? "idle" : prev));
-    },
-    [setFormValues, setStatus, setValidationErrors],
-  );
+  const patchFormValues = useCallback((updates: Partial<EventFormInput>) => {
+    setFormValues((prev) => ({ ...prev, ...updates }));
+    setValidationErrors([]);
+    setStatus((prev) => (prev === "success" ? "idle" : prev));
+  }, []);
 
   const updateField = useCallback(
     (

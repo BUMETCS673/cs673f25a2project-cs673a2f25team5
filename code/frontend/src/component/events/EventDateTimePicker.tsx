@@ -1,9 +1,10 @@
 /*
-AI-generated code: 70% (tool: Codex - GPT-5, modified and adapted, functions: pad, addMonths, subtractMonths, parseDateTimeValue, formatDateForInput, formatTimeForInput, getDayButtonClasses, getTimeButtonClasses, EventDateTimePicker, useDatePicker, useEffect, useMemo, useRef, useState) 
 
-Human code: 10% (functions: wrapping in useEffect, useMemo, useRef, useState, and adding the FaArrowLeft and FaArrowRight icons)
+AI-generated code: 80% (functions: pad, normalizeTimeParts, parseDateTimeValue, formatDateForInput, formatTimeForInput, getDayButtonClasses, getTimeButtonClasses, EventDateTimePicker component logic)
 
-Framework-generated code: 10% (functions: pad, addMonths, subtractMonths, parseDateTimeValue, formatDateForInput, formatTimeForInput, getDayButtonClasses, getTimeButtonClasses, EventDateTimePicker, useDatePicker, useEffect, useMemo, useRef, useState)
+Human code: 20% (integration adjustments, icon selections, styling refinements)
+
+Framework-generated code: 0%
 
 */
 
@@ -281,7 +282,7 @@ export function EventDateTimePicker({
             viewBox="0 0 20 20"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            aria-hidden
+            aria-hidden={true}
           >
             <path
               d="M5 7.5L10 12.5L15 7.5"
