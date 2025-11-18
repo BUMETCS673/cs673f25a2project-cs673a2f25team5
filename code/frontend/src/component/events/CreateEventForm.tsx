@@ -87,10 +87,11 @@ export function CreateEventForm() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    toast.loading("Creating event...");
+    const loadingToastId = toast.loading("Creating event...");
     if (!userId) {
       setValidationErrors(["You must be logged in to create an event"]);
       setStatus("idle");
+      toast.dismiss(loadingToastId);
       toast.error("You must be logged in to create an event");
       return;
     }
@@ -102,6 +103,7 @@ export function CreateEventForm() {
       const issues = result.error.issues.map((issue) => issue.message);
       setValidationErrors(Array.from(new Set(issues)));
       setStatus("idle");
+      toast.dismiss(loadingToastId);
       return;
     }
 
@@ -121,7 +123,7 @@ export function CreateEventForm() {
         categoryId: "2db3d8ac-257c-4ff9-ad97-ba96bfbf9bc5",
       };
       await createEvent(buildEventCreatePayload(valuesWithCategory, userId));
-      toast.dismiss();
+      toast.dismiss(loadingToastId);
       toast.success("Event created successfully");
       setStatus("success");
       setFormValues(createEmptyFormValues());
@@ -134,6 +136,7 @@ export function CreateEventForm() {
         error instanceof Error
           ? error.message
           : "We could not save the event. Please try again.";
+      toast.dismiss(loadingToastId);
       toast.error(message);
       setStatus("idle");
     }
