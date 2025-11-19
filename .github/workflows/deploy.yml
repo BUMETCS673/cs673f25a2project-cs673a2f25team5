@@ -15,16 +15,34 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     env:
-      # Allow overriding tag at workflow runtime by setting repository secret IMAGE_TAG
-      # IMAGE_TAG (optional) else 'latest'
-      IMAGE_TAG: ${{ secrets.IMAGE_TAG || 'latest' }}
-      # make BACKEND_IMAGE/FRONTEND_IMAGE and DEPLOY_DIR available in remote shell
-      BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/event-manager-backend
-      FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/event-manager-frontend
+      # Deployment Configuration
       DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
-      # export registry creds into remote env if available (used by docker login)
+
+      # Docker Configuration
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+      BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/event-manager-backend
+      FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/event-manager-frontend
+      IMAGE_TAG: ${{ secrets.IMAGE_TAG || 'latest' }}
+
+      # Database Configuration
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_PORT: ${{ secrets.POSTGRES_PORT || 5432 }}
+      POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+
+      # Clerck Configuration
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      CLERK_JWKS_URL: ${{ secrets.CLERK_JWKS_URL }}
+      NEXT_PUBLIC_MAP_BOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAP_BOX_TOKEN }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      # Clerk Auth Configuration
+      CLERK_AUTH_ENABLED: ${{ secrets.CLERK_AUTH_ENABLED || true}}
+
+      # Miscellaneous 
+      BACKEND_URL: ${{ secrets.BACKEND_URL }}
 
     steps:
       - name: Check required secrets
@@ -60,7 +78,25 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || '22' }}
-          envs: IMAGE_TAG,BACKEND_IMAGE,FRONTEND_IMAGE,DEPLOY_DIR,DOCKER_USERNAME,DOCKER_ACCESS_TOKEN
+          envs:
+            DEPLOY_DIR
+            DOCKER_USERNAME
+            DOCKER_ACCESS_TOKEN
+            BACKEND_IMAGE
+            FRONTEND_IMAGE
+            IMAGE_TAG
+            POSTGRES_USER
+            POSTGRES_PASSWORD
+            POSTGRES_PORT
+            POSTGRES_HOST
+            POSTGRES_DB
+            CLERK_SECRET_KEY
+            CLERK_WEBHOOK_SIGNING_SECRET
+            CLERK_JWKS_URL
+            NEXT_PUBLIC_MAP_BOX_TOKEN
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+            CLERK_AUTH_ENABLED
+            BACKEND_URL
           script: |
             set -euo pipefail
             chmod +x "${{ secrets.DEPLOY_DIR }}/deploy-kickaas.sh"
