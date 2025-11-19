@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 0&
+
+ Human code: 0%
+
+ Framework-generated code: 100% (functions: Avatar, AvatarImage, AvatarFallback) from @radix-ui/react-avatar - implemented with cli
+
+*/
+
 "use client";
 
 import * as React from "react";
