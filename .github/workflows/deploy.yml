@@ -57,6 +57,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.EC2_SSH_PORT || '22' }}
+          envs: IMAGE_TAG,BACKEND_IMAGE,FRONTEND_IMAGE,DEPLOY_DIR,DOCKER_USERNAME,DOCKER_ACCESS_TOKEN
           script: |
             set -euo pipefail
             chmod +x "${{ secrets.DEPLOY_DIR }}/deploy-kickaas.sh"
