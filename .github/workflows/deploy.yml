@@ -29,12 +29,12 @@ jobs:
     steps:
       - name: Check required secrets
         run: |
-          [ -z "${{ secrets.EC2_HOST }}" ] && echo "Missing EC2_HOST secret" && exit 1  
-          [ -z "${{ secrets.EC2_USER }}" ] && echo "Missing EC2_USER secret" && exit 1  
-          [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ] && echo "Missing SSH_PRIVATE_KEY secret" && exit 1  
-          [ -z "${{ secrets.DEPLOY_DIR }}" ] && echo "Missing DEPLOY_DIR secret" && exit 1  
-          [ -z "${{ secrets.DOCKER_USERNAME }}" ] && echo "Missing DOCKER_USERNAME secret" && exit 1  
-          [ -z "${{ secrets.DOCKER_ACCESS_TOKEN }}" ] && echo "Missing DOCKER_ACCESS_TOKEN secret" && exit 1  
+          if [ -z "${{ secrets.EC2_HOST }}" ]; then echo "Missing EC2_HOST secret"; exit 1; fi
+          if [ -z "${{ secrets.EC2_USER }}" ]; then echo "Missing EC2_USER secret"; exit 1; fi
+          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then echo "Missing SSH_PRIVATE_KEY secret"; exit 1; fi
+          if [ -z "${{ secrets.DEPLOY_DIR }}" ]; then echo "Missing DEPLOY_DIR secret"; exit 1; fi
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then echo "Missing DOCKER_USERNAME secret"; exit 1; fi
+          if [ -z "${{ secrets.DOCKER_ACCESS_TOKEN }}" ]; then echo "Missing DOCKER_ACCESS_TOKEN secret"; exit 1; fi
         shell: bash
 
       - name: Checkout repository

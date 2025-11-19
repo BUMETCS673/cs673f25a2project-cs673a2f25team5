@@ -57,9 +57,13 @@ OLD_FRONTEND=$(docker ps -q -f name=event-manager-frontend-prod 2>/dev/null || e
 echo "Starting new containers (old containers will be renamed temporarily)..."
 # Rename old containers to keep them running during deployment
 if [ -n "$OLD_BACKEND" ]; then
+  # In case old-old containers exist from a previous failed deploy, remove them first
+  docker rm -f event-manager-backend-prod-old 2>/dev/null || true
   docker rename event-manager-backend-prod event-manager-backend-prod-old 2>/dev/null || true
 fi
 if [ -n "$OLD_FRONTEND" ]; then
+  # In case old-old containers exist from a previous failed deploy, remove them first
+  docker rm -f event-manager-frontend-prod-old 2>/dev/null || true
   docker rename event-manager-frontend-prod event-manager-frontend-prod-old 2>/dev/null || true
 fi
 
