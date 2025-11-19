@@ -1,7 +1,11 @@
 /** 
-  AI-generated code: 0%
-  Human code: 0%
-  Framework-generated code: 100% (functions: useUser, useCallback, useEffect, useState) from @clerk/nextjs
+ * 
+  AI-generated code: 25% (tool: Codex - GPT-5, modified and adapted, functions: UserProfile1, useUser, useCallback, useEffect, useState) 
+
+  Human code: 75% (functions: UserProfile1, useUser, useCallback, useEffect, useState) 
+
+  Framework-generated code: 0%
+
  **/
 
 "use client";
@@ -10,7 +14,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/component/ui/card";
 import { ProfileHeaderSkeleton } from "@/component/profile/ProfileHeaderSkeleton";
 import { useUser } from "@clerk/nextjs";
-import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/component/ui/avatar";
 import { getEvents } from "@/services/events";
 import { EventsResults } from "@/component/events/EventsResults";
 import { EventResponse } from "@/types/eventTypes";
@@ -71,19 +75,15 @@ function UserProfile1() {
       new Set(attendeeResult.items.map((attendee) => attendee.event_id)),
     );
 
-    const fetchedEvents = await Promise.all(
-      uniqueEventIds.map(async (eventId) => {
-        const result = await getEvents({
-          filters: [`event_id:eq:${eventId}`],
-          limit: 1,
-        });
-        return result.items[0] ?? null;
-      }),
-    );
-
-    return fetchedEvents.filter((event): event is EventResponse =>
-      Boolean(event),
-    );
+    if (uniqueEventIds.length === 0) {
+      return [];
+    }
+    // Batch fetch all events in a single API call using the "in" filter
+    const eventsResult = await getEvents({
+      filters: [`event_id:in:${uniqueEventIds.join(",")}`],
+      limit: uniqueEventIds.length,
+    });
+    return eventsResult.items;
   }, [userId]);
 
   useEffect(() => {
@@ -176,7 +176,7 @@ function UserProfile1() {
     !isLoadingEvents && !eventsError && displayedEvents.length === 0;
 
   return (
-    <main className=" w-screen min-h-screen py-10 dark:bg-neutral-950">
+    <main className="w-screen min-h-screen py-10 dark:bg-neutral-950">
       <section className="container mx-auto px-8 py-10 dark:bg-neutral-950">
         <Card className="border border-gray-300 dark:border-neutral-800 rounded-2xl dark:bg-neutral-900">
           {isProfileLoading ? (
