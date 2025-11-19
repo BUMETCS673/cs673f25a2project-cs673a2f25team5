@@ -12,6 +12,12 @@ from fastapi import APIRouter, Query
 
 from app.models import invitations as models_invitations
 from app.models import patch as models_patch
+from app.routes.shared_responses import (
+    RESPONSES_CREATE,
+    RESPONSES_GET_BY_ID,
+    RESPONSES_LIST,
+    RESPONSES_PATCH,
+)
 from app.service import invitations as service_invitations
 
 router = APIRouter()
@@ -45,38 +51,7 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of invitatio
         "- `/invitations?offset=20&limit=10` (get third page of 10 invitations)"
     ),
     tags=["Invitations"],
-    responses={
-        200: {"description": "Paginated list of invitations"},
-        400: {
-            "description": "Invalid parameters",
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "InvalidFilterFormat": {
-                            "summary": "Invalid filter_expression format",
-                            "value": {"detail": "Invalid filter_expression format"},
-                        },
-                        "InvalidColumnName": {
-                            "summary": "Invalid column name",
-                            "value": {"detail": "Invalid column name"},
-                        },
-                        "LimitNotPositive": {
-                            "summary": "Limit must be a positive integer",
-                            "value": {"detail": "Limit must be a positive integer"},
-                        },
-                        "OffsetNegative": {
-                            "summary": "Offset must be non-negative",
-                            "value": {"detail": "Offset must be non-negative"},
-                        },
-                    }
-                }
-            },
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
+    responses=RESPONSES_LIST,
 )
 async def list_invitations(
     filter_expression: list[str] | None = FILTER_QUERY,
@@ -92,31 +67,7 @@ async def list_invitations(
     summary="Invite a user providing a link to accept the invitation",
     tags=["Invitations"],
     status_code=201,
-    responses={
-        201: {"description": "Invitation created successfully"},
-        400: {
-            "description": "Invalid input data",
-            "content": {
-                "application/json": {"example": {"detail": "Invalid invitation data"}}
-            },
-        },
-        404: {
-            "description": "User or event not found",
-            "content": {"application/json": {"example": {"detail": "User not found"}}},
-        },
-        409: {
-            "description": "Duplicate invitation - an active invitation already exists",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "An active invitation already exists for this event"}
-                }
-            },
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
+    responses=RESPONSES_CREATE,
 )
 async def create_invitation(
     invitation: models_invitations.InvitationsCreate,
@@ -130,53 +81,7 @@ async def create_invitation(
     summary="Get invitation details by token",
     tags=["Invitations"],
     status_code=200,
-    responses={
-        200: {
-            "description": "Invitation details retrieved successfully",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "invitation_id": "123e4567-e89b-12d3-a456-426614174000",
-                        "event_id": "123e4567-e89b-12d3-a456-426614174001",
-                        "user_id": "123e4567-e89b-12d3-a456-426614174002",
-                        "status": "Active",
-                        "expires_at": "2025-11-20T00:00:00Z",
-                        "created_at": "2025-11-18T10:00:00Z",
-                        "updated_at": "2025-11-18T10:00:00Z",
-                        "event": {
-                            "event_name": "Tech Conference 2025",
-                            "event_datetime": "2025-11-25T09:00:00Z",
-                            "event_location": "Boston Convention Center",
-                        },
-                        "user": {
-                            "first_name": "John",
-                            "last_name": "Doe",
-                            "email": "john@example.com",
-                        },
-                    }
-                }
-            },
-        },
-        404: {
-            "description": "Invitation not found",
-            "content": {"application/json": {"example": {"detail": "Invitation not found"}}},
-        },
-        410: {
-            "description": "Invitation expired or revoked",
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "expired": {"value": {"detail": "Invitation has expired"}},
-                        "revoked": {"value": {"detail": "Invitation has been revoked"}},
-                    }
-                }
-            },
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
+    responses=RESPONSES_GET_BY_ID,
 )
 async def get_invitation_by_token(
     token: str,
@@ -211,50 +116,7 @@ async def get_invitation_by_token(
         "```"
     ),
     tags=["Invitations"],
-    responses={
-        200: {"description": "Invitations patched successfully"},
-        400: {
-            "description": "Invalid patch operation or data",
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "InvalidOperation": {
-                            "summary": "Invalid JSON Patch operation",
-                            "value": {"detail": "Invalid operation: unsupported_op"},
-                        },
-                        "InvalidPath": {
-                            "summary": "Invalid field path",
-                            "value": {
-                                "detail": "Invalid path: /event_id. "
-                                "Allowed fields: status, expires_at"
-                            },
-                        },
-                        "InvalidValue": {
-                            "summary": "Invalid field value",
-                            "value": {
-                                "detail": "Invalid status: InvalidStatus. "
-                                "Must be one of: Active, Expired, Revoked"
-                            },
-                        },
-                    }
-                }
-            },
-        },
-        404: {
-            "description": "One or more invitations not found",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Invitation 550e8400-e29b-41d4-a716-446655440000 not found"
-                    }
-                }
-            },
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
+    responses=RESPONSES_PATCH,
 )
 async def patch_invitations(
     request: models_patch.PatchRequest,

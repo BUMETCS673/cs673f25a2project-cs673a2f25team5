@@ -95,7 +95,7 @@ async def test_create_user_duplicate_email(
     assert response.status_code == 201
 
     response = await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
-    assert response.status_code == 400
+    assert response.status_code == 409
     assert "is already in use" in response.json()["detail"].lower()
 
 
@@ -261,7 +261,7 @@ async def test_patch_user_duplicate_email(test_client: AsyncClient):
     }
 
     response = await test_client.patch("/users", json=patch_data)
-    assert response.status_code == 400
+    assert response.status_code == 409
 
 
 @pytest.mark.asyncio
