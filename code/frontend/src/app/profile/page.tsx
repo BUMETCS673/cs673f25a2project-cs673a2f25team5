@@ -8,6 +8,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { Card, CardContent, CardHeader } from "@/component/ui/card";
+import { ProfileHeaderSkeleton } from "@/component/profile/ProfileHeaderSkeleton";
 import { useUser } from "@clerk/nextjs";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { getEvents } from "@/services/events";
@@ -17,9 +18,10 @@ import Image from "next/image";
 import { getAttendees } from "@/services/attendees";
 
 function UserProfile1() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const email = user?.emailAddresses[0]?.emailAddress;
   const userId = user?.externalId;
+  const isProfileLoading = !isLoaded;
 
   const [eventSource, setEventSource] = useState<"created" | "registered">(
     "created",
@@ -177,52 +179,59 @@ function UserProfile1() {
     <main className=" w-screen min-h-screen py-10 dark:bg-neutral-950">
       <section className="container mx-auto px-8 py-10 dark:bg-neutral-950">
         <Card className="border border-gray-300 dark:border-neutral-800 rounded-2xl dark:bg-neutral-900">
-          <CardHeader className="h-60 !rounded-lg overflow-hidden">
-            <Image
-              src={"/Hero.jpg"}
-              alt="User profile background"
-              height={1024}
-              width={1024}
-              className="h-full w-full rounded-lg object-cover"
-            />
-          </CardHeader>
-          <CardContent>
-            <div className="flex lg:gap-0 gap-6 flex-wrap justify-between items-center">
-              <div className="flex items-center gap-3">
-                <Avatar className="inline-flex size-[45px] select-none items-center justify-center overflow-hidden rounded-full bg-blackA1 align-middle">
-                  <AvatarImage
-                    className="size-full rounded-[inherit] object-cover"
-                    src={user?.imageUrl || "/img/avatar1.jpg"}
-                    width={200}
-                    height={200}
-                  />
-                  <AvatarFallback
-                    className="leading-1 flex size-full items-center justify-center bg-white text-[15px] font-medium text-violet11"
-                    delayMs={600}
-                  >
-                    {(user?.firstName?.charAt(0) || "A") +
-                      (user?.lastName?.charAt(0) || "A")}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                    {user?.firstName} {user?.lastName}
-                  </h2>
-                  <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                    <em>{email}</em>
-                  </p>
+          {isProfileLoading ? (
+            <ProfileHeaderSkeleton />
+          ) : (
+            <>
+              <CardHeader className="h-60 !rounded-lg overflow-hidden">
+                <Image
+                  src={"/Hero.jpg"}
+                  alt="User profile background"
+                  height={1024}
+                  width={1024}
+                  className="h-full w-full rounded-lg object-cover"
+                  priority
+                />
+              </CardHeader>
+              <CardContent>
+                <div className="flex lg:gap-0 gap-6 flex-wrap justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="inline-flex size-[45px] select-none items-center justify-center overflow-hidden rounded-full bg-blackA1 align-middle">
+                      <AvatarImage
+                        className="size-full rounded-[inherit] object-cover"
+                        src={user?.imageUrl || "/img/avatar1.jpg"}
+                        width={200}
+                        height={200}
+                      />
+                      <AvatarFallback
+                        className="leading-1 flex size-full items-center justify-center bg-white text-[15px] font-medium text-violet11"
+                        delayMs={600}
+                      >
+                        {(user?.firstName?.charAt(0) || "A") +
+                          (user?.lastName?.charAt(0) || "A")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                        {user?.firstName} {user?.lastName}
+                      </h2>
+                      <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                        <em>{email}</em>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                      Joined on {user?.createdAt?.toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                      Events created: {createdEventsCount}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                  Joined on {user?.createdAt?.toLocaleDateString()}
-                </p>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                  Events created: {createdEventsCount}
-                </p>
-              </div>
-            </div>
-          </CardContent>
+              </CardContent>
+            </>
+          )}
         </Card>
         <div className="mt-10 space-y-4">
           <div className="flex flex-wrap items-end justify-between gap-4">

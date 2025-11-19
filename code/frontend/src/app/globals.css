@@ -107,6 +107,8 @@ body {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --shimmer-base: rgba(229, 231, 235, 0.6);
+  --shimmer-highlight: rgba(255, 255, 255, 0.9);
 }
 
 /*
@@ -147,6 +149,8 @@ body {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --shimmer-base: rgba(38, 38, 38, 0.6);
+  --shimmer-highlight: rgba(82, 82, 82, 0.9);
 }
 
 /*
@@ -154,6 +158,33 @@ body {
  ---break---
 
 */
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.shimmer {
+  background-image: linear-gradient(
+    110deg,
+    var(--shimmer-base) 8%,
+    var(--shimmer-highlight) 18%,
+    var(--shimmer-base) 33%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer {
+    animation-duration: 0s;
+    animation-iteration-count: 1;
+  }
+}
 
 @layer base {
   * {
