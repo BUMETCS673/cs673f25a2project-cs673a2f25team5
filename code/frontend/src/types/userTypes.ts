@@ -17,6 +17,7 @@ export const UserSchema = z.object({
   email: z.email(),
   date_of_birth: z.string(),
   color: z.string().nullable().optional(),
+  profile_picture_url: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });

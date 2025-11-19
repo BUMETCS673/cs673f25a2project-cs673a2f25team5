@@ -39,7 +39,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased dark:bg-black dark:text-neutral-100`}
         >
           <Toaster position="bottom-right" />
           <Header />
