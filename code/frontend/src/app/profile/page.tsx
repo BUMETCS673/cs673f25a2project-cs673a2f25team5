@@ -1,3 +1,13 @@
+/*
+
+AI-generated code: 50%
+
+Human code: 50%
+
+Framework-generated code: 0%
+
+*/
+
 "use client";
 
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from "@headlessui/react";
