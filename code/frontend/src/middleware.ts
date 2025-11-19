@@ -17,7 +17,7 @@ const isProtectedRoute = createRouteMatcher([
   "/create-events(.*)",
   "/events/(.*)",
   "/events/[id](.*)",
-  "/profile(.*)"
+  "/profile(.*)",
 ]);
 const shouldBypassAuth = createRouteMatcher(["/api/webhooks/clerk(.*)"]);
 
