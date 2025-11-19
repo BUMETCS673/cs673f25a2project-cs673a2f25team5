@@ -8,10 +8,11 @@ Framework-generated code: 0%
 
 import logging
 from datetime import UTC, date, datetime
-from typing import Any
+from typing import Any, cast
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, Date, DateTime, String, Table, and_, func, select
+from sqlalchemy import Column, DateTime, String, Table, and_, func, select
+from sqlalchemy.dialects.postgresql import ENUM as PG_ENUM
 from sqlalchemy.dialects.postgresql import UUID as SQLAlchemyUUID
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.elements import ColumnElement
@@ -23,6 +24,14 @@ from app.models.invitations import InvitationsCreate, InvitationsReadDB, Invitat
 
 logger = logging.getLogger(__name__)
 
+# Map to existing DB enum type created by init SQL: invitation_status
+invitation_status = PG_ENUM(
+    "Active",
+    "Expired",
+    "Revoked",
+    name="invitation_status",
+    create_type=False,  # Type already exists in DB from init script
+)
 
 invitations = Table(
     "invitations",
@@ -30,9 +39,9 @@ invitations = Table(
     Column("invitation_id", SQLAlchemyUUID(as_uuid=True), primary_key=True),
     Column("event_id", SQLAlchemyUUID(as_uuid=True), nullable=False),
     Column("user_id", SQLAlchemyUUID(as_uuid=True), nullable=False),
-    Column("expires_at", Date, nullable=False),
+    Column("expires_at", DateTime(timezone=True), nullable=False),
     Column("token_hash", String(64), unique=True, nullable=False),
-    Column("status", String, nullable=False),
+    Column("status", cast(Any, invitation_status), nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("updated_at", DateTime(timezone=True), nullable=False),
 )
