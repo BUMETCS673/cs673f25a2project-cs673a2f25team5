@@ -1,5 +1,59 @@
 # Database Guide
 
+## Database Setup
+
+This project uses PostgresSQL as both the local development and production database. Please see below the steps to locally run your own version of the event manager database.
+
+### Database Initialization Files
+
+Database initialization and migrations are managed through SQL scripts located in the `db/init/` directory of the repository. These files are executed during the database setup process, typically as part of the Docker Compose workflow, ensuring all required extensions and tables are created with the proper schema.
+
+- **01_add_extensions.sql**  
+  *Purpose*: This script adds necessary PostgreSQL extensions that are required for the application. Extensions might include support for UUID generation, advanced indexing, or other features to optimize database performance and functionality.
+
+- **02_event_manager_db_schema.sql**  
+  *Purpose*: This script defines the core schema for the Event Manager application. It creates all tables (`Users`, `Events`, `Categories`, `EventAttendees`), sets up primary and foreign key constraints, and establishes the relationships as outlined in the ERD. It ensures the database structure matches the application's data model and enforces referential integrity.
+
+These initialization files ensure that the database environment is consistent and reproducible across development, staging, and production deployments. Any future additions to the init process like database constraints or indexes will be added in sequential files to ensure the init process for the event_manager database is robust and complete.
+
+---
+
+### Database Docker Setup
+
+To clarify, this section uses the DB-docker-compose.yaml file to create the container for the postgres instance which holds the event_manager database as well as the pgadmin container which runs a simple and easy to use web ui to connect to the postgres instance.
+
+1. Run the following command to export all env variables.
+
+```bash
+export POSTGRES_USER=test \
+  POSTGRES_PASSWORD=test1234 \
+  POSTGRES_PORT=5432 \
+  POSTGRES_HOST=localhost \
+  POSTGRES_DB=event_manager \
+  PGADMIN_DEFAULT_EMAIL=admin@example.com \
+  PGADMIN_DEFAULT_PASSWORD=adminpass
+```
+
+2. Run the following command to get the postgres and pgadmin containers running.
+
+```bash
+docker compose -f db/db-docker-compose.yaml --env-file .env up -d --wait
+```
+
+3. Access pgadmin web ui at http://localhost:8080
+
+4. Run the following command when you are done with the database to remove the volumes and containers.
+
+```bash
+docker compose -f db/db-docker-compose.yaml down -v
+```
+
+5. If you want to keep the volumes (persistent storage) and just want to stop the container please run the following command.
+
+```bash
+docker compose -f db/db-docker-compose.yaml down
+```
+
 ## Database Design
 
 The Event Manager application's backend leverages a relational database model implemented with PostgreSQL to ensure data integrity, scalability, and efficient query performance. The database schema is designed to support core functionalities such as user management, event creation, categorization, and attendee registration, while maintaining clear relationships and enforcing referential integrity through foreign key constraints.
@@ -98,20 +152,3 @@ Categories provide a way to group and filter events by type or theme.
 - **Extensibility**: The schema allows for easy addition of new fields, such as event analytics, ticketing, or payment integration.
 
 The database design ensures reliable data storage and efficient access for all application features, while supporting future enhancements and integrations.
-
----
-
-
-## Database Setup
-
-### Database Initialization Files
-
-Database initialization and migrations are managed through SQL scripts located in the `db/init/` directory of the repository. These files are executed during the database setup process, typically as part of the Docker Compose workflow, ensuring all required extensions and tables are created with the proper schema.
-
-- **01_add_extensions.sql**  
-  *Purpose*: This script adds necessary PostgreSQL extensions that are required for the application. Extensions might include support for UUID generation, advanced indexing, or other features to optimize database performance and functionality.
-
-- **02_event_manager_db_schema.sql**  
-  *Purpose*: This script defines the core schema for the Event Manager application. It creates all tables (`Users`, `Events`, `Categories`, `EventAttendees`), sets up primary and foreign key constraints, and establishes the relationships as outlined in the ERD. It ensures the database structure matches the application's data model and enforces referential integrity.
-
-These initialization files ensure that the database environment is consistent and reproducible across development, staging, and production deployments. Any future additions to the init process like database constraints or indexes will be added in sequential files to ensure the init process for the event_manager database is robust and complete.
