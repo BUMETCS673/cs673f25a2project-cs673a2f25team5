@@ -163,15 +163,6 @@ async def batch_update_invitations_db(
         result: dict[UUID, InvitationsReadDB] = {}
 
         async with engine.begin() as conn:
-            for invitation_id in updates.keys():
-                select_stmt = select(invitations).where(
-                    invitations.c.invitation_id == invitation_id
-                )
-                check_result = await conn.execute(select_stmt)
-                if not check_result.fetchone():
-                    logger.error(f"No invitation found with ID: {invitation_id}")
-                    raise NotFoundError(f"No invitation found with ID: {invitation_id}")
-
             for invitation_id, update_data in updates.items():
                 update_data_with_timestamp: dict[str, Any] = {
                     **update_data,
@@ -182,28 +173,14 @@ async def batch_update_invitations_db(
                     invitations.update()
                     .where(invitations.c.invitation_id == invitation_id)
                     .values(**update_data_with_timestamp)
+                    .returning(invitations)
                 )
 
-                update_result = await conn.execute(update_stmt)
+                row = (await conn.execute(update_stmt)).mappings().first()
 
-                if update_result.rowcount != 1:
-                    logger.error(
-                        f"Failed to update invitation {invitation_id}: "
-                        f"{update_result.rowcount} rows affected"
-                    )
-                    raise ValueError(
-                        "Database integrity error: Expected 1 row updated for invitation "
-                        f"{invitation_id}, got {update_result.rowcount}"
-                    )
-
-                select_stmt = select(invitations).where(
-                    invitations.c.invitation_id == invitation_id
-                )
-                fetch_result = await conn.execute(select_stmt)
-                row = fetch_result.mappings().first()
                 if not row:
-                    logger.error(f"Updated invitation not found: {invitation_id}")
-                    raise NotFoundError(f"Updated invitation not found: {invitation_id}")
+                    logger.error(f"No invitation found with ID: {invitation_id}")
+                    raise NotFoundError(f"No invitation found with ID: {invitation_id}")
 
                 result[invitation_id] = InvitationsReadDB.model_validate(dict(row))
 

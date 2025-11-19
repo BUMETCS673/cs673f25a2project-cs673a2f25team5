@@ -7,7 +7,7 @@ Framework-generated code: 0%
 """
 
 import logging
-from datetime import date
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -49,12 +49,16 @@ async def check_and_expire_invitation(invitation: InvitationsReadDB) -> Invitati
         return invitation
 
     if invitation.expires_at:
-        today = date.today()
-        expiration_date = invitation.expires_at.date()
-        if expiration_date < today:
+        now = datetime.now(UTC)
+
+        expiration_datetime = invitation.expires_at
+        if expiration_datetime.tzinfo is None:
+            expiration_datetime = expiration_datetime.replace(tzinfo=UTC)
+
+        if expiration_datetime < now:
             logger.info(
                 f"Auto-expiring invitation {invitation.invitation_id} "
-                f"(expires_at: {expiration_date})"
+                f"(expires_at: {expiration_datetime})"
             )
             updates = {invitation.invitation_id: {"status": InvitationStatus.EXPIRED.value}}
             updated_invitations = await db_invitations.batch_update_invitations_db(updates)

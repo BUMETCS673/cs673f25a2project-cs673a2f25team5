@@ -50,22 +50,19 @@ async def test_engine(test_db_file: str) -> AsyncGenerator[AsyncEngine, None]:
         poolclass=StaticPool,
     )
 
-    # Store original engine and metadata
+    # Store original engine
     original_engine = db.engine
-    original_metadata = db.metadata
 
     # Set test database config
     db.engine = engine
-    db.metadata = events_metadata
     events_db.engine = engine
     users_db.engine = engine
     categories_db.engine = engine
 
     yield engine
 
-    # Restore original engine and metadata
+    # Restore original engine
     db.engine = original_engine
-    db.metadata = original_metadata
     events_db.engine = original_engine
     users_db.engine = original_engine
     categories_db.engine = original_engine
