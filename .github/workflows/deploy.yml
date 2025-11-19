@@ -35,7 +35,6 @@ jobs:
           [ -z "${{ secrets.DEPLOY_DIR }}" ] && echo "Missing DEPLOY_DIR secret" && exit 1  
           [ -z "${{ secrets.DOCKER_USERNAME }}" ] && echo "Missing DOCKER_USERNAME secret" && exit 1  
           [ -z "${{ secrets.DOCKER_ACCESS_TOKEN }}" ] && echo "Missing DOCKER_ACCESS_TOKEN secret" && exit 1  
-          : "${{ secrets.DOCKER_ACCESS_TOKEN }}" || (echo "Missing DOCKER_ACCESS_TOKEN secret" && exit 1)
         shell: bash
 
       - name: Checkout repository

@@ -72,7 +72,7 @@ max_wait=120  # total seconds (increased for service startup)
 interval=5
 elapsed=0
 
-until [ "$elapsed" -ge "$max_wait" ]; do
+until [ "$elapsed" -gt "$max_wait" ]; do
   # Check if all critical services are healthy
   BACKEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' event-manager-backend-prod 2>/dev/null || echo "none")
   FRONTEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' event-manager-frontend-prod 2>/dev/null || echo "none")
