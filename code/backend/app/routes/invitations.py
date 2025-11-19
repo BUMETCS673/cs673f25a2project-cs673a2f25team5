@@ -67,17 +67,7 @@ async def list_invitations(
     summary="Invite a user providing a link to accept the invitation",
     tags=["Invitations"],
     status_code=201,
-    responses={
-        **RESPONSES_CREATE,
-        409: {
-            "description": "Duplicate invitation - an active invitation already exists",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "An active invitation already exists for this event"}
-                }
-            },
-        },
-    },
+    responses=RESPONSES_CREATE,
 )
 async def create_invitation(
     invitation: models_invitations.InvitationsCreate,
@@ -91,46 +81,7 @@ async def create_invitation(
     summary="Get invitation details by token",
     tags=["Invitations"],
     status_code=200,
-    responses={
-        200: {
-            "description": "Invitation details retrieved successfully",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "invitation_id": "123e4567-e89b-12d3-a456-426614174000",
-                        "event_id": "123e4567-e89b-12d3-a456-426614174001",
-                        "user_id": "123e4567-e89b-12d3-a456-426614174002",
-                        "status": "Active",
-                        "expires_at": "2025-11-20T00:00:00Z",
-                        "created_at": "2025-11-18T10:00:00Z",
-                        "updated_at": "2025-11-18T10:00:00Z",
-                        "event": {
-                            "event_name": "Tech Conference 2025",
-                            "event_datetime": "2025-11-25T09:00:00Z",
-                            "event_location": "Boston Convention Center",
-                        },
-                        "user": {
-                            "first_name": "John",
-                            "last_name": "Doe",
-                            "email": "john@example.com",
-                        },
-                    }
-                }
-            },
-        },
-        **{k: v for k, v in RESPONSES_GET_BY_ID.items() if k != 200},
-        410: {
-            "description": "Invitation expired or revoked",
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "expired": {"value": {"detail": "Invitation has expired"}},
-                        "revoked": {"value": {"detail": "Invitation has been revoked"}},
-                    }
-                }
-            },
-        },
-    },
+    responses=RESPONSES_GET_BY_ID,
 )
 async def get_invitation_by_token(
     token: str,

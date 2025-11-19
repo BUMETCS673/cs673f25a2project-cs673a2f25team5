@@ -66,6 +66,16 @@ ERROR_404_NOT_FOUND: dict[str, Any] = {
     "content": {"application/json": {"example": {"detail": "Resource not found"}}},
 }
 
+ERROR_409_CONFLICT: dict[str, Any] = {
+    "description": "Resource conflict - duplicate or constraint violation",
+    "content": {"application/json": {"example": {"detail": "Resource already exists"}}},
+}
+
+ERROR_410_GONE: dict[str, Any] = {
+    "description": "Resource no longer available",
+    "content": {"application/json": {"example": {"detail": "Resource has expired or been removed"}}},
+}
+
 ERROR_422_VALIDATION: dict[str, Any] = {
     "description": "Validation error",
     "content": {"application/json": {"example": {"detail": "Validation error"}}},
@@ -91,6 +101,7 @@ RESPONSES_CREATE: dict[int | str, dict[str, Any]] = {
     201: {"description": "Resource created successfully"},
     400: ERROR_400_INVALID_INPUT,
     404: ERROR_404_NOT_FOUND,
+    409: ERROR_409_CONFLICT,
     422: ERROR_422_VALIDATION,
     500: ERROR_500_INTERNAL,
 }
@@ -99,6 +110,7 @@ RESPONSES_CREATE: dict[int | str, dict[str, Any]] = {
 RESPONSES_GET_BY_ID: dict[int | str, dict[str, Any]] = {
     200: {"description": "Resource retrieved successfully"},
     404: ERROR_404_NOT_FOUND,
+    410: ERROR_410_GONE,
     500: ERROR_500_INTERNAL,
 }
 
@@ -114,6 +126,7 @@ RESPONSES_PATCH: dict[int | str, dict[str, Any]] = {
     200: {"description": "Resources patched successfully"},
     400: ERROR_400_PATCH_OPERATION,
     404: ERROR_404_NOT_FOUND,
+    409: ERROR_409_CONFLICT,
     422: ERROR_422_VALIDATION,
     500: ERROR_500_INTERNAL,
 }
