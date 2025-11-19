@@ -46,3 +46,17 @@ CREATE TABLE IF NOT EXISTS EventAttendees (
     FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
+
+CREATE TYPE invitation_status AS ENUM ('Active', 'Expired', 'Revoked');
+CREATE TABLE IF NOT EXISTS Invitations (
+    invitation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    token_hash VARCHAR(64) UNIQUE NOT NULL,
+    status invitation_status NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);

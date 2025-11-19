@@ -48,6 +48,12 @@ class Settings(BaseSettings):
         description="Toggle Clerk authentication. Set True to enforce token validation.",
     )
 
+    # Frontend settings
+    FRONTEND_URL: str = Field(
+        default="http://localhost:3000",
+        description="Frontend base URL for building invitation links.",
+    )
+
     @field_validator("POSTGRES_PASSWORD")
     @classmethod
     def validate_password(cls, v: str) -> str:
