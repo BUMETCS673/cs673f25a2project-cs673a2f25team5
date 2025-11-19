@@ -73,7 +73,9 @@ ERROR_409_CONFLICT: dict[str, Any] = {
 
 ERROR_410_GONE: dict[str, Any] = {
     "description": "Resource no longer available",
-    "content": {"application/json": {"example": {"detail": "Resource has expired or been removed"}}},
+    "content": {
+        "application/json": {"example": {"detail": "Resource has expired or been removed"}}
+    },
 }
 
 ERROR_422_VALIDATION: dict[str, Any] = {
