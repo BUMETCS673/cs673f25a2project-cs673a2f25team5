@@ -174,7 +174,7 @@ function UserProfile1() {
     !isLoadingEvents && !eventsError && displayedEvents.length === 0;
 
   return (
-    <main className=" w-screen h-screen py-10 dark:bg-neutral-950">
+    <main className=" w-screen min-h-screen py-10 dark:bg-neutral-950">
       <section className="container mx-auto px-8 py-10 dark:bg-neutral-950">
         <Card className="border border-gray-300 dark:border-neutral-800 rounded-2xl dark:bg-neutral-900">
           <CardHeader className="h-60 !rounded-lg overflow-hidden">

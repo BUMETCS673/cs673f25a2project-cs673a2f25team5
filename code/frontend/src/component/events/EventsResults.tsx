@@ -13,6 +13,7 @@ import type { EventResponse } from "@/types/eventTypes";
 import { EventCard } from "./EventCard";
 import { EventsPaginationBanner } from "./EventsPaginationBanner";
 import type { PaginationState } from "./hooks/useEventsBrowserState";
+import { Loader2 } from "lucide-react";
 
 type EventsResultsProps = {
   events: EventResponse[];
@@ -96,8 +97,8 @@ export function EventsResults({
   if (!shouldFetchRemoteSearch && isBaseLoading && events.length === 0) {
     return (
       <div className="rounded-3xl border border-neutral-200 bg-white/80 px-8 py-16 text-center shadow-sm dark:border-white/10 dark:bg-neutral-900/60">
-        <p className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-          Loading events&hellip;
+        <p className="text-sm font-medium text-neutral-700 dark:text-neutral-200 flex items-center justify-center gap-2">
+          <Loader2 className="animate-spin" />
         </p>
       </div>
     );
