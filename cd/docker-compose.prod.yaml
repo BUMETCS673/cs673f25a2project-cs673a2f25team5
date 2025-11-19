@@ -76,9 +76,10 @@ services:
       - frontend
       - backend
 
+# Networks configuration
+# Uses default bridge network with Docker DNS for service discovery.
+# All inter-container communication MUST use service names (backend, frontend, nginx)
+# rather than IP addresses to ensure reliability across container restarts.
 networks:
   app-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16

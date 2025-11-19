@@ -49,6 +49,21 @@ docker pull "${FRONTEND_IMG}" || { echo "Failed to pull ${FRONTEND_IMG}"; exit 1
 
 echo "Running docker compose pull and updating app services..."
 docker compose -f docker-compose.prod.yaml pull
+
+# Store old container IDs for potential rollback
+OLD_BACKEND=$(docker ps -q -f name=event-manager-backend-prod 2>/dev/null || echo "")
+OLD_FRONTEND=$(docker ps -q -f name=event-manager-frontend-prod 2>/dev/null || echo "")
+
+echo "Starting new containers (old containers will be renamed temporarily)..."
+# Rename old containers to keep them running during deployment
+if [ -n "$OLD_BACKEND" ]; then
+  docker rename event-manager-backend-prod event-manager-backend-prod-old 2>/dev/null || true
+fi
+if [ -n "$OLD_FRONTEND" ]; then
+  docker rename event-manager-frontend-prod event-manager-frontend-prod-old 2>/dev/null || true
+fi
+
+# Start new containers
 docker compose -f docker-compose.prod.yaml up -d --no-deps backend frontend nginx
 
 echo "Waiting for services to become healthy (using Docker health checks)..."
@@ -59,8 +74,8 @@ elapsed=0
 
 until [ "$elapsed" -ge "$max_wait" ]; do
   # Check if all critical services are healthy
-  BACKEND_HEALTH=$(docker compose -f docker-compose.prod.yaml ps backend --format json | jq -r '.[0].Health // "none"' 2>/dev/null || echo "none")
-  FRONTEND_HEALTH=$(docker compose -f docker-compose.prod.yaml ps frontend --format json | jq -r '.[0].Health // "none"' 2>/dev/null || echo "none")
+  BACKEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' event-manager-backend-prod 2>/dev/null || echo "none")
+  FRONTEND_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' event-manager-frontend-prod 2>/dev/null || echo "none")
   
   echo "Backend health: ${BACKEND_HEALTH}, Frontend health: ${FRONTEND_HEALTH} (elapsed: ${elapsed}s/${max_wait}s)"
   
@@ -68,6 +83,22 @@ until [ "$elapsed" -ge "$max_wait" ]; do
     echo "✅ All services are healthy!"
     echo "Deployment succeeded for tag: ${TAG}"
     docker compose -f docker-compose.prod.yaml ps
+    
+    # Remove old containers now that new ones are healthy
+    echo "Removing old containers..."
+    if [ -n "$OLD_BACKEND" ]; then
+      docker stop event-manager-backend-prod-old 2>/dev/null || true
+      docker rm event-manager-backend-prod-old 2>/dev/null || true
+    fi
+    if [ -n "$OLD_FRONTEND" ]; then
+      docker stop event-manager-frontend-prod-old 2>/dev/null || true
+      docker rm event-manager-frontend-prod-old 2>/dev/null || true
+    fi
+    
+    # Clean up old/dangling images to prevent disk space accumulation
+    echo "Cleaning up old Docker images..."
+    docker image prune -f --filter "until=24h" || echo "Warning: Image cleanup failed (non-critical)"
+    
     exit 0
   fi
   
@@ -79,5 +110,20 @@ echo "❌ Health check timeout after ${max_wait}s. Services did not become healt
 echo "Dumping compose ps and recent logs for diagnosis..."
 docker compose -f docker-compose.prod.yaml ps
 docker compose -f docker-compose.prod.yaml logs --tail=300
+
+# Rollback: Stop new containers and restore old ones
+echo "🔄 Rolling back to previous containers..."
+docker compose -f docker-compose.prod.yaml down backend frontend 2>/dev/null || true
+
+if [ -n "$OLD_BACKEND" ]; then
+  echo "Restoring old backend container..."
+  docker rename event-manager-backend-prod-old event-manager-backend-prod 2>/dev/null || true
+fi
+if [ -n "$OLD_FRONTEND" ]; then
+  echo "Restoring old frontend container..."
+  docker rename event-manager-frontend-prod-old event-manager-frontend-prod 2>/dev/null || true
+fi
+
+echo "Rollback complete. Old containers restored."
 echo "Deployment failed (services not healthy)."
 exit 1

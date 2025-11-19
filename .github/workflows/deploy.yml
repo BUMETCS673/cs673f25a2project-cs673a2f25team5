@@ -12,6 +12,7 @@ jobs:
   deploy:
     name: Pull images and deploy to EC2
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
 
     env:
       # Allow overriding tag at workflow runtime by setting repository secret IMAGE_TAG
@@ -28,16 +29,19 @@ jobs:
     steps:
       - name: Check required secrets
         run: |
-          : "${{ secrets.EC2_HOST }}" || (echo "Missing EC2_HOST secret" && exit 1)
-          : "${{ secrets.EC2_USER }}" || (echo "Missing EC2_USER secret" && exit 1)
-          : "${{ secrets.SSH_PRIVATE_KEY }}" || (echo "Missing SSH_PRIVATE_KEY secret" && exit 1)
-          : "${{ secrets.DEPLOY_DIR }}" || (echo "Missing DEPLOY_DIR secret" && exit 1)
-          : "${{ secrets.DOCKER_USERNAME }}" || (echo "Missing DOCKER_USERNAME secret" && exit 1)
+          [ -z "${{ secrets.EC2_HOST }}" ] && echo "Missing EC2_HOST secret" && exit 1  
+          [ -z "${{ secrets.EC2_USER }}" ] && echo "Missing EC2_USER secret" && exit 1  
+          [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ] && echo "Missing SSH_PRIVATE_KEY secret" && exit 1  
+          [ -z "${{ secrets.DEPLOY_DIR }}" ] && echo "Missing DEPLOY_DIR secret" && exit 1  
+          [ -z "${{ secrets.DOCKER_USERNAME }}" ] && echo "Missing DOCKER_USERNAME secret" && exit 1  
+          [ -z "${{ secrets.DOCKER_ACCESS_TOKEN }}" ] && echo "Missing DOCKER_ACCESS_TOKEN secret" && exit 1  
           : "${{ secrets.DOCKER_ACCESS_TOKEN }}" || (echo "Missing DOCKER_ACCESS_TOKEN secret" && exit 1)
         shell: bash
 
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Setup deployment environment on EC2
         uses: appleboy/scp-action@v0.1.7
@@ -51,7 +55,7 @@ jobs:
           strip_components: 1
 
       - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
