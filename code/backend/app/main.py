@@ -20,6 +20,7 @@ from app.routes import attendees as route_attendees
 from app.routes import categories as route_categories
 from app.routes import db as route_db
 from app.routes import events as route_events
+from app.routes import payments
 from app.routes import users as route_users
 
 instrumentator = Instrumentator()
@@ -68,6 +69,7 @@ event_manager_app.include_router(route_attendees.router)
 event_manager_app.include_router(route_categories.router)
 event_manager_app.include_router(route_events.router)
 event_manager_app.include_router(route_users.router)
+event_manager_app.include_router(payments.router)
 
 # Create a separate app for public routes (no authentication required)
 public_app = FastAPI(

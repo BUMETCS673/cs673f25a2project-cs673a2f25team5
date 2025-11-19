@@ -48,6 +48,17 @@ class Settings(BaseSettings):
         description="Toggle Clerk authentication. Set True to enforce token validation.",
     )
 
+    # Stripe and frontend/app URLs
+    STRIPE_SECRET_KEY: str = Field(default="", description="Stripe secret API key")
+    STRIPE_WEBHOOK_SECRET: str = Field(default="", description="Stripe webhook signing secret")
+    FRONTEND_BASE_URL: str = Field(
+        default="http://localhost:3000",
+        description="Frontend base URL for redirecting after checkout",
+    )
+    APP_BASE_URL: str = Field(
+        default="http://127.0.0.1:8010", description="Backend API base URL"
+    )
+
     @field_validator("POSTGRES_PASSWORD")
     @classmethod
     def validate_password(cls, v: str) -> str:
@@ -91,3 +102,9 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# Expose these for legacy imports
+STRIPE_SECRET_KEY = settings.STRIPE_SECRET_KEY
+STRIPE_WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET
+FRONTEND_BASE_URL = settings.FRONTEND_BASE_URL
+APP_BASE_URL = settings.APP_BASE_URL
