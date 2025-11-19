@@ -47,6 +47,12 @@ services:
       NODE_ENV: production
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     depends_on:
       backend:
         condition: service_healthy
@@ -60,6 +66,9 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # SSL certificates must be provisioned before starting the container.
+      # Create the ./nginx/ssl directory and place your SSL certificate (cert.pem) and key (key.pem) files inside.
+      # Refer to the project documentation or deployment guide for instructions on obtaining and configuring SSL certificates.
       - ./nginx/ssl:/etc/nginx/ssl:ro
     networks:
       - app-network
