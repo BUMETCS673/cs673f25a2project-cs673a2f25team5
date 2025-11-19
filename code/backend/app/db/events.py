@@ -162,13 +162,6 @@ async def batch_update_events_db(updates: dict[UUID, dict[str, Any]]) -> dict[UU
         result: dict[UUID, EventRead] = {}
 
         async with engine.begin() as conn:
-            for event_id in updates.keys():
-                select_stmt = select(events).where(events.c.event_id == event_id)
-                check_result = await conn.execute(select_stmt)
-                if not check_result.fetchone():
-                    logger.error(f"No event found with ID: {event_id}")
-                    raise NotFoundError(f"No event found with ID: {event_id}")
-
             for event_id, update_data in updates.items():
                 update_data_with_timestamp: dict[str, Any] = {**update_data, "updated_at": now}
 
@@ -176,26 +169,14 @@ async def batch_update_events_db(updates: dict[UUID, dict[str, Any]]) -> dict[UU
                     events.update()
                     .where(events.c.event_id == event_id)
                     .values(**update_data_with_timestamp)
+                    .returning(events)
                 )
 
-                update_result = await conn.execute(update_stmt)
+                row = (await conn.execute(update_stmt)).fetchone()
 
-                if update_result.rowcount != 1:
-                    logger.error(
-                        f"Failed to update event {event_id}: {update_result.rowcount} "
-                        "rows affected"
-                    )
-                    raise ValueError(
-                        "Database integrity error: Expected 1 row updated for event "
-                        f"{event_id}, got {update_result.rowcount}"
-                    )
-
-                select_stmt = select(events).where(events.c.event_id == event_id)
-                fetch_result = await conn.execute(select_stmt)
-                row = fetch_result.fetchone()
                 if not row:
-                    logger.error(f"Updated event not found: {event_id}")
-                    raise NotFoundError(f"Updated event not found: {event_id}")
+                    logger.error(f"No event found with ID: {event_id}")
+                    raise NotFoundError(f"No event found with ID: {event_id}")
 
                 result[event_id] = EventRead(
                     event_id=row.event_id,

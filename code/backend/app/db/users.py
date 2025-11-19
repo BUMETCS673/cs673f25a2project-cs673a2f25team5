@@ -139,13 +139,6 @@ async def batch_update_users_db(updates: dict[UUID, dict[str, Any]]) -> dict[UUI
         result: dict[UUID, UserRead] = {}
 
         async with engine.begin() as conn:
-            for user_id in updates.keys():
-                select_stmt = select(users).where(users.c.user_id == user_id)
-                check_result = await conn.execute(select_stmt)
-                if not check_result.fetchone():
-                    logger.error(f"No user found with ID: {user_id}")
-                    raise NotFoundError(f"No user found with ID: {user_id}")
-
             for user_id, update_data in updates.items():
                 update_data_with_timestamp: dict[str, Any] = {**update_data, "updated_at": now}
 
@@ -153,26 +146,14 @@ async def batch_update_users_db(updates: dict[UUID, dict[str, Any]]) -> dict[UUI
                     users.update()
                     .where(users.c.user_id == user_id)
                     .values(**update_data_with_timestamp)
+                    .returning(users)
                 )
 
-                update_result = await conn.execute(update_stmt)
+                row = (await conn.execute(update_stmt)).fetchone()
 
-                if update_result.rowcount != 1:
-                    logger.error(
-                        f"Failed to update user {user_id}: {update_result.rowcount} "
-                        "rows affected"
-                    )
-                    raise ValueError(
-                        "Database integrity error: Expected 1 row updated for user "
-                        f"{user_id}, got {update_result.rowcount}"
-                    )
-
-                select_stmt = select(users).where(users.c.user_id == user_id)
-                fetch_result = await conn.execute(select_stmt)
-                row = fetch_result.fetchone()
                 if not row:
-                    logger.error(f"Updated user not found: {user_id}")
-                    raise NotFoundError(f"Updated user not found: {user_id}")
+                    logger.error(f"No user found with ID: {user_id}")
+                    raise NotFoundError(f"No user found with ID: {user_id}")
 
                 result[user_id] = UserRead(
                     user_id=row.user_id,

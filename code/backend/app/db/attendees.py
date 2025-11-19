@@ -172,15 +172,6 @@ async def batch_update_attendees_db(
         result: dict[UUID, AttendeeRead] = {}
 
         async with engine.begin() as conn:
-            for attendee_id in updates.keys():
-                select_stmt = select(eventattendees).where(
-                    eventattendees.c.attendee_id == attendee_id
-                )
-                check_result = await conn.execute(select_stmt)
-                if not check_result.fetchone():
-                    logger.error(f"No attendee found with ID: {attendee_id}")
-                    raise NotFoundError(f"No attendee found with ID: {attendee_id}")
-
             for attendee_id, update_data in updates.items():
                 update_data_with_timestamp: dict[str, Any] = {**update_data, "updated_at": now}
 
@@ -188,28 +179,14 @@ async def batch_update_attendees_db(
                     eventattendees.update()
                     .where(eventattendees.c.attendee_id == attendee_id)
                     .values(**update_data_with_timestamp)
+                    .returning(eventattendees)
                 )
 
-                update_result = await conn.execute(update_stmt)
+                row = (await conn.execute(update_stmt)).fetchone()
 
-                if update_result.rowcount != 1:
-                    logger.error(
-                        f"Failed to update attendee {attendee_id}: {update_result.rowcount} "
-                        "rows affected"
-                    )
-                    raise ValueError(
-                        "Database integrity error: Expected 1 row updated for attendee "
-                        f"{attendee_id}, got {update_result.rowcount}"
-                    )
-
-                select_stmt = select(eventattendees).where(
-                    eventattendees.c.attendee_id == attendee_id
-                )
-                fetch_result = await conn.execute(select_stmt)
-                row = fetch_result.fetchone()
                 if not row:
-                    logger.error(f"Updated attendee not found: {attendee_id}")
-                    raise NotFoundError(f"Updated attendee not found: {attendee_id}")
+                    logger.error(f"No attendee found with ID: {attendee_id}")
+                    raise NotFoundError(f"No attendee found with ID: {attendee_id}")
 
                 result[attendee_id] = AttendeeRead(
                     attendee_id=row.attendee_id,
