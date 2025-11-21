@@ -1,7 +1,15 @@
+"""
+AI-generated code: 80%
+
+Human code: 20%
+
+Framework-generated code: 0%
+"""
+
 import logging
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, cast
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
@@ -17,6 +25,7 @@ from sqlalchemy import (
     select,
     update,
 )
+from sqlalchemy.dialects.postgresql import ENUM as PG_ENUM
 from sqlalchemy.dialects.postgresql import UUID as SQLUUID
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.elements import ColumnElement
@@ -29,6 +38,18 @@ logger = logging.getLogger(__name__)
 
 metadata = MetaData()
 
+# Map to existing DB enum type created by init SQL: payment_status
+payment_status = PG_ENUM(
+    "created",
+    "processing",
+    "succeeded",
+    "failed",
+    "canceled",
+    name="payment_status",
+    create_type=False,  # type already exists in DB from init SQL
+)
+
+
 payments = Table(
     "payments",
     metadata,
@@ -37,7 +58,7 @@ payments = Table(
     Column("user_id", SQLUUID(as_uuid=True), nullable=False),
     Column("amount_usd", Numeric(10, 2), nullable=False),
     Column("currency", String(10), nullable=False),
-    Column("status", String(20), nullable=False),
+    Column("status", cast(Any, payment_status), nullable=False),
     Column("stripe_checkout_session_id", String(128)),
     Column("stripe_payment_intent_id", String(128)),
     Column("created_at", DateTime(timezone=True), nullable=False),

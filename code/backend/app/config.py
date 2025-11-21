@@ -79,6 +79,30 @@ class Settings(BaseSettings):
             raise ValueError(f"Database name contains invalid characters: {invalid_chars}")
         return v.strip()
 
+    @field_validator("STRIPE_SECRET_KEY")
+    @classmethod
+    def validate_stripe_key(cls, v: str) -> str:
+        if not v or not v.strip():
+            import warnings
+
+            warnings.warn(
+                "STRIPE_SECRET_KEY is not set payments will not work.",
+                stacklevel=2,
+            )
+        return v
+
+    @field_validator("STRIPE_WEBHOOK_SECRET")
+    @classmethod
+    def validate_webhook_secret(cls, v: str) -> str:
+        if not v or not v.strip():
+            import warnings
+
+            warnings.warn(
+                "STRIPE_WEBHOOK_SECRET is not set webhook verification will fail.",
+                stacklevel=2,
+            )
+        return v
+
     @property
     def DATABASE_URL(self) -> str:
         """Construct the database URL from individual components.
@@ -102,9 +126,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-# Expose these for legacy imports
-STRIPE_SECRET_KEY = settings.STRIPE_SECRET_KEY
-STRIPE_WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET
-FRONTEND_BASE_URL = settings.FRONTEND_BASE_URL
-APP_BASE_URL = settings.APP_BASE_URL
