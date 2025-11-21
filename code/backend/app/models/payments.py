@@ -1,3 +1,11 @@
+"""
+AI-generated code: 80%
+
+Human code: 20%
+
+Framework-generated code: 0%
+"""
+
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
@@ -28,3 +36,14 @@ class PaymentRead(PaymentCreate):
     payment_id: UUID
     created_at: datetime
     updated_at: datetime
+
+
+class CheckoutRequest(BaseModel):
+    event_id: UUID
+    user_id: UUID
+    amount_usd: Decimal = Field(gt=0, max_digits=10, decimal_places=2)
+    email: str | None = None
+
+
+class CheckoutResponse(BaseModel):
+    checkout_url: str

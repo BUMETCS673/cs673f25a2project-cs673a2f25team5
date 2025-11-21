@@ -109,7 +109,7 @@ async def test_create_checkout_session_success(
     Happy path:
     - POST /payments/checkout-session
     - Stripe session is created via a monkeypatched helper
-    - A payments row is written with status=processing and correct amount
+    - A payments row is written with status=created and correct amount
     """
 
     # --- Arrange: monkeypatch the Stripe checkout creator so no real API call happens ---
@@ -171,7 +171,8 @@ async def test_create_checkout_session_success(
     assert payment.amount_usd == Decimal("25.00")
     assert payment.currency == "usd"
     # status is an enum; compare value
-    assert payment.status.value == "processing"
+    # For a freshly created checkout, we start in 'created' state.
+    assert payment.status.value == "created"
     assert payment.stripe_checkout_session_id == "cs_test_123"
 
 

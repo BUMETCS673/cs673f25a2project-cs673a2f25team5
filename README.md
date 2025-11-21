@@ -665,7 +665,7 @@ Stripe is integrated into the backend to handle secure payment processing for ev
 The backend communicates with the Stripe API using the official Stripe SDK and supports the following flow:
 
 1. **Create a Stripe Account:**  
-   - Go to [https://dashboard.stripe.com/register]and sign up for a free Stripe account.  
+   - Go to [https://dashboard.stripe.com/register](https://dashboard.stripe.com/register) and sign up for a free Stripe account.  
    - After login, go to **Developers → API keys** to get your **Publishable key** and **Secret key**.  
    - Use your **test keys** (they start with `pk_test_` and `sk_test_`) for development.
 2. User selects an event → initiates checkout.
@@ -705,7 +705,7 @@ FRONTEND_BASE_URL=http://localhost:3000
 
 ### Stripe SDK & CLI Installation
 
-### Install Stripe Python SDK
+#### Install Stripe Python SDK
 The Stripe SDK enables your FastAPI backend to create checkout sessions and verify webhooks.
 
 ```bash
@@ -716,7 +716,7 @@ Alternatively:
 pip install stripe
 ```
 
-### Install Stripe CLI 
+#### Install Stripe CLI 
 
 The Stripe CLI securely forwards webhooks from Stripe’s cloud to your local backend.
 
