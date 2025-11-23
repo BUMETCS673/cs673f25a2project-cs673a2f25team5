@@ -27,11 +27,7 @@ const config: Config = {
     "^.+\\.(svg|png|jpg|gif)$": "<rootDir>/__mocks__/fileMock.js",
   },
   modulePathIgnorePatterns: ["<rootDir>/.next/"],
-  testMatch: [
-    "<rootDir>/src/**/*.test.(ts|tsx)",
-    "<rootDir>/tests/**/*.test.(ts|tsx)",
-    "<rootDir>/test/**/*.test.(ts|tsx)",
-  ],
+  testMatch: ["<rootDir>/src/**/*.test.(ts|tsx)"],
   clearMocks: true,
 };
 

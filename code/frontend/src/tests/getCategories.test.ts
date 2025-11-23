@@ -56,7 +56,7 @@ describe("getCategories", () => {
     });
 
     const result = await getCategories({
-      filters: ["category_name==Concerts", "location==Boston"],
+      filters: ["category_name:eq:Concerts", "location:eq:Boston"],
       offset: 2,
       limit: 5,
     });
@@ -64,7 +64,7 @@ describe("getCategories", () => {
     expect(mockAuth).toHaveBeenCalledTimes(1);
     expect(mockGetToken).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith(
-      "http://localhost:8000/categories?filter_expression=category_name%3D%3DConcerts&filter_expression=location%3D%3DBoston&offset=2&limit=5",
+      "http://localhost:8000/categories?filter_expression=category_name%3Aeq%3AConcerts&filter_expression=location%3Aeq%3ABoston&offset=2&limit=5",
       expect.objectContaining({
         method: "GET",
         headers: expect.objectContaining({

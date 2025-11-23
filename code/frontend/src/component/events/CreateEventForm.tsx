@@ -80,7 +80,7 @@ const labelClass = "text-sm font-medium text-neutral-700 dark:text-neutral-200";
 type CategoryOption = {
   category_id: string;
   category_name: string;
-  description: string;
+  description: string | null;
 };
 
 export function CreateEventForm() {
