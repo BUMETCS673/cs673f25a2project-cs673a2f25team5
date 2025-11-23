@@ -30,6 +30,7 @@ const config: Config = {
   testMatch: [
     "<rootDir>/src/**/*.test.(ts|tsx)",
     "<rootDir>/tests/**/*.test.(ts|tsx)",
+    "<rootDir>/test/**/*.test.(ts|tsx)",
   ],
   clearMocks: true,
 };
