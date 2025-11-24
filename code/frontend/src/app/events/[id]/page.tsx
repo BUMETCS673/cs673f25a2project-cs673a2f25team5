@@ -60,6 +60,8 @@ export default async function EventPage({
   const onRegister = createRegisterAction({
     hostMessage: HOST_REGISTRATION_MESSAGE,
     hostUserId: event.user_id,
+    eventStartTime: event.event_datetime,
+    eventEndTime: event.event_endtime,
     successMessages: SUCCESS_MESSAGE_BY_STATUS,
   });
 
