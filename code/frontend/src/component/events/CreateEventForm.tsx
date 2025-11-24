@@ -58,6 +58,9 @@ type LocationSelectionPayload = {
   coordinates: Coordinates | null;
 };
 
+const DEFAULT_CATEGORY_DESCRIPTION = "More details about this category soon.";
+const CATEGORY_FIELD_LABEL_ID = "event-category-label";
+
 const createEmptyFormValues = (): EventFormInput => ({
   eventName: "",
   startDate: "",
@@ -77,12 +80,6 @@ const inputClass =
 
 const labelClass = "text-sm font-medium text-neutral-700 dark:text-neutral-200";
 
-type CategoryOption = {
-  category_id: string;
-  category_name: string;
-  description: string | null;
-};
-
 export function CreateEventForm() {
   const router = useRouter();
   const [formValues, setFormValues] = useState<EventFormInput>(
@@ -96,7 +93,9 @@ export function CreateEventForm() {
   const email = user?.primaryEmailAddress?.emailAddress;
   const userId = user?.externalId;
 
-  const [categoryOptions, setCategoryOptions] = useState<CategoryOption[]>([]);
+  const [categoryOptions, setCategoryOptions] = useState<CategoryResponse[]>(
+    [],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -107,14 +106,7 @@ export function CreateEventForm() {
         if (!isMounted) {
           return;
         }
-        setCategoryOptions(
-          categories.items.map((category) => ({
-            category_id: category.category_id,
-            category_name: category.category_name,
-            description:
-              category.description ?? "More details about this category soon.",
-          })),
-        );
+        setCategoryOptions(categories.items);
       } catch (error) {
         console.error("Failed to load categories", error);
         toast.error("We could not load categories. Please try again.");
@@ -226,12 +218,11 @@ export function CreateEventForm() {
             })
           : result.data.location;
 
-      const valuesWithCategory = {
+      const valuesForPayload = {
         ...result.data,
         location: locationValue,
-        categoryId: "2db3d8ac-257c-4ff9-ad97-ba96bfbf9bc5",
       };
-      await createEvent(buildEventCreatePayload(valuesWithCategory, userId));
+      await createEvent(buildEventCreatePayload(valuesForPayload, userId));
       toast.dismiss(loadingToastId);
       toast.success("Event created successfully");
       setStatus("success");
@@ -293,18 +284,23 @@ export function CreateEventForm() {
             />
           </label>
 
-          <span className={labelClass}>Event category</span>
+          <span id={CATEGORY_FIELD_LABEL_ID} className={labelClass}>
+            Event category
+          </span>
           <Menu as="div" className="relative w-full">
             <MenuButton
               className={`${inputClass} flex w-full items-center justify-between gap-4 text-left`}
+              aria-labelledby={CATEGORY_FIELD_LABEL_ID}
             >
               <span className="flex flex-col">
                 <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
                   {selectedCategory?.category_name ?? "Select a category"}
                 </span>
                 <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {selectedCategory?.description ??
-                    "Choose the vibe that best matches your event"}
+                  {selectedCategory
+                    ? (selectedCategory.description ??
+                      DEFAULT_CATEGORY_DESCRIPTION)
+                    : "Select a category for your event"}
                 </span>
               </span>
               <span className="rounded-2xl bg-neutral-100 p-2 text-neutral-600 ring-1 ring-black/5 dark:bg-white/10 dark:text-neutral-200">
@@ -339,7 +335,7 @@ export function CreateEventForm() {
                         <span className="flex flex-col text-left">
                           <span className="font-semibold">{category_name}</span>
                           <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                            {description}
+                            {description ?? DEFAULT_CATEGORY_DESCRIPTION}
                           </span>
                         </span>
                       </MenuItem>

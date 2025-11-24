@@ -48,7 +48,18 @@ export async function getCategories(
   });
 
   if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
+    let errorMessage = `Request failed with status ${response.status}`;
+    try {
+      const errorBody = await response.json();
+      errorMessage =
+        errorBody?.detail ??
+        errorBody?.message ??
+        errorBody?.error ??
+        errorMessage;
+    } catch {
+      // Ignore JSON parse errors, use generic message
+    }
+    throw new Error(errorMessage);
   }
 
   const data = await response.json();

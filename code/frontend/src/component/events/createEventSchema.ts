@@ -22,7 +22,7 @@ export const EventFormSchema = z
   .object({
     eventName: trimmedString().min(1, "Event name is required."),
     startDate: trimmedString().min(1, "Start date is required."),
-    category: trimmedString().min(1, "Category is required."),
+    category: z.string().uuid("Category must be a valid selection."),
     startTime: trimmedString().min(1, "Start time is required."),
     endDate: trimmedString().min(1, "End date is required."),
     endTime: trimmedString().min(1, "End time is required."),
@@ -127,7 +127,7 @@ export const buildEventCreatePayload = (
     capacity: values.capacity ? Number.parseInt(values.capacity, 10) : null,
     price_field: values.price ? Math.round(Number(values.price) * 100) : null,
     user_id: userId,
-    category_id: "2db3d8ac-257c-4ff9-ad97-ba96bfbf9bc5",
+    category_id: values.category,
   };
 
   return EventCreatePayloadSchema.parse(payload);
