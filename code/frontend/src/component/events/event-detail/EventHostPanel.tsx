@@ -86,10 +86,7 @@ function HostDetailsCard({ host }: HostDetailsCardProps) {
     <div
       className={`flex items-center gap-4 rounded-2xl border border-neutral-200/70 bg-neutral-100/60 p-4 shadow-sm dark:border-white/10 dark:bg-neutral-900/40`}
     >
-      <div
-        className="flex h-12 w-12 items-center justify-center rounded-full text-sm font-semibold uppercase text-amber-700 dark:text-amber-200 overflow-hidden"
-        style={host.theme?.avatarStyle}
-      >
+      <div className="text-sm font-semibold dark:text-neutral-500 text-neutral-900">
         {host.hostProfilePictureUrl ? (
           <Image
             src={host.hostProfilePictureUrl}

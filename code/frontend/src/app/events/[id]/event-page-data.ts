@@ -71,8 +71,7 @@ export async function fetchEventDetailData(
 
   if (host && !host.profile_picture_url) {
     try {
-      const client = await clerkClient();
-      const clerkUsers = await client.users.getUserList({
+      const clerkUsers = await clerkClient.users.getUserList({
         externalId: [host.user_id],
         limit: 1,
       });

@@ -21,6 +21,14 @@ jest.mock("@/services/users", () => ({
   getUser: jest.fn(),
 }));
 
+jest.mock("@clerk/nextjs/server", () => ({
+  clerkClient: {
+    users: {
+      getUserList: jest.fn(),
+    },
+  },
+}));
+
 jest.mock("next/navigation", () => ({
   notFound: jest.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
@@ -36,6 +44,15 @@ const mockGetAttendees = getAttendees as jest.MockedFunction<
   typeof getAttendees
 >;
 const mockGetUser = getUser as jest.MockedFunction<typeof getUser>;
+const { clerkClient: mockClerkClient } = jest.requireMock(
+  "@clerk/nextjs/server",
+) as {
+  clerkClient: {
+    users: {
+      getUserList: jest.Mock;
+    };
+  };
+};
 
 const baseEvent: EventResponse = {
   event_id: "11111111-1111-1111-1111-111111111111",
@@ -71,6 +88,7 @@ beforeEach(() => {
   mockNotFound.mockImplementation(() => {
     throw new Error("NEXT_NOT_FOUND");
   });
+  mockClerkClient.users.getUserList.mockResolvedValue({ data: [] });
 });
 
 describe("fetchEventDetailData", () => {

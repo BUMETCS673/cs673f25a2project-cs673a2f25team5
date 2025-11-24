@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 0%
+
+ Human code: 100% (functions: EventCardSkeleton, skeletonLineClasses, EventCardSkeletonProps) 
+
+ No framework-generated code.
+
+*/
+
 import type { ComponentPropsWithoutRef } from "react";
 
 type EventCardSkeletonProps = {
