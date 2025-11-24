@@ -9,6 +9,7 @@ Framework-generated code: 0%
 from fastapi import APIRouter, Query
 
 from app.models import categories as models_categories
+from app.routes.shared_responses import RESPONSES_LIST
 from app.service import categories as categories_service
 
 router = APIRouter()
@@ -37,38 +38,7 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of categorie
         "- `/categories?offset=20&limit=10` (get third page of 10 categories)"
     ),
     tags=["Categories"],
-    responses={
-        200: {"description": "Paginated list of categories"},
-        400: {
-            "description": "Invalid parameters",
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "InvalidFilterFormat": {
-                            "summary": "Invalid filter_expression format",
-                            "value": {"detail": "Invalid filter_expression format"},
-                        },
-                        "InvalidColumnName": {
-                            "summary": "Invalid column name",
-                            "value": {"detail": "Invalid column name"},
-                        },
-                        "LimitNotPositive": {
-                            "summary": "Limit must be a positive integer",
-                            "value": {"detail": "Limit must be a positive integer"},
-                        },
-                        "OffsetNegative": {
-                            "summary": "Offset must be non-negative",
-                            "value": {"detail": "Offset must be non-negative"},
-                        },
-                    }
-                }
-            },
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
+    responses=RESPONSES_LIST,
 )
 async def list_categories(
     filter_expression: list[str] | None = FILTER_QUERY,
