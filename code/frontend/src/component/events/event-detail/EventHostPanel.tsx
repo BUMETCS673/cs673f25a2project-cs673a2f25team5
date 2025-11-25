@@ -11,6 +11,7 @@
 import Link from "next/link";
 
 import type { HostCardData, RelatedEventItem } from "./viewModel";
+import Image from "next/image";
 
 type EventHostPanelProps = {
   host: HostCardData;
@@ -83,27 +84,27 @@ type HostDetailsCardProps = {
 function HostDetailsCard({ host }: HostDetailsCardProps) {
   return (
     <div
-      className="flex items-center gap-4 rounded-2xl border border-neutral-200/70 bg-neutral-100/60 p-4 shadow-sm dark:border-white/10 dark:bg-neutral-900/40"
-      style={host.theme?.containerStyle}
+      className={`flex items-center gap-4 rounded-2xl border border-neutral-200/70 bg-neutral-100/60 p-4 shadow-sm dark:border-white/10 dark:bg-neutral-900/40`}
     >
-      <div
-        className="flex h-12 w-12 items-center justify-center rounded-full text-sm font-semibold uppercase text-amber-700 dark:text-amber-200"
-        style={host.theme?.avatarStyle}
-      >
-        {host.hostInitials}
+      <div className="text-sm font-semibold dark:text-neutral-500 text-neutral-900">
+        {host.hostProfilePictureUrl ? (
+          <Image
+            src={host.hostProfilePictureUrl}
+            alt={host.hostName ?? "Host profile picture"}
+            width={48}
+            height={48}
+            className="rounded-full overflow-hidden object-cover"
+          />
+        ) : (
+          host.hostInitials
+        )}
       </div>
       <div>
-        <p
-          className="text-sm font-semibold text-neutral-900 dark:text-neutral-100"
-          style={host.theme?.primaryTextStyle}
-        >
+        <p className="text-sm font-semibold dark:text-neutral-500 text-neutral-900">
           {host.hostName}
         </p>
         {host.hostEmail ? (
-          <p
-            className="text-xs text-neutral-500 dark:text-neutral-400"
-            style={host.theme?.secondaryTextStyle}
-          >
+          <p className="text-xs dark:text-neutral-500 text-neutral-900">
             {host.hostEmail}
           </p>
         ) : null}

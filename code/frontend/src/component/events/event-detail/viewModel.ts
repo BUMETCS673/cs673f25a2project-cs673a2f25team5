@@ -68,6 +68,7 @@ export type HostCardData = {
   hostName: string | null;
   hostEmail: string | null;
   hostInitials: string;
+  hostProfilePictureUrl: string | null;
   theme: HostProfileTheme | null;
   emptyStateMessage: string;
 };
@@ -214,6 +215,7 @@ export function buildEventViewModel({
     hasHost: Boolean(host),
     hostName: hostFullName,
     hostEmail: host?.email ?? null,
+    hostProfilePictureUrl: host?.profile_picture_url ?? null,
     hostInitials,
     theme: hostTheme,
     emptyStateMessage: "Host details are being finalized.",
