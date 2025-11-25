@@ -18,7 +18,14 @@
 
 "use client";
 
-import { FormEvent, useCallback, useMemo, useState } from "react";
+import {
+  Fragment,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
   EventFormSchema,
@@ -33,6 +40,16 @@ import { EventDateTimePicker, parseDateTimeValue } from "./EventDateTimePicker";
 import { getPublicMapboxToken } from "@/component/map/getPublicMapboxToken";
 import { encodeEventLocation } from "@/helpers/locationCodec";
 import { toast } from "sonner";
+import {
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems,
+  Transition,
+} from "@headlessui/react";
+import { FiChevronDown } from "react-icons/fi";
+import { CategoryResponse } from "@/types/categoryTypes";
+import { getCategories } from "@/services/categories";
 
 type SubmissionState = "idle" | "submitting" | "success";
 type Coordinates = { longitude: number; latitude: number };
@@ -41,10 +58,14 @@ type LocationSelectionPayload = {
   coordinates: Coordinates | null;
 };
 
+const DEFAULT_CATEGORY_DESCRIPTION = "More details about this category soon.";
+const CATEGORY_FIELD_LABEL_ID = "event-category-label";
+
 const createEmptyFormValues = (): EventFormInput => ({
   eventName: "",
   startDate: "",
   startTime: "",
+  category: "",
   endDate: "",
   endTime: "",
   location: "",
@@ -72,7 +93,41 @@ export function CreateEventForm() {
   const email = user?.primaryEmailAddress?.emailAddress;
   const userId = user?.externalId;
 
+  const [categoryOptions, setCategoryOptions] = useState<CategoryResponse[]>(
+    [],
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCategories = async () => {
+      try {
+        const categories = await getCategories();
+        if (!isMounted) {
+          return;
+        }
+        setCategoryOptions(categories.items);
+      } catch (error) {
+        console.error("Failed to load categories", error);
+        toast.error("We could not load categories. Please try again.");
+      }
+    };
+
+    fetchCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const mapboxToken = useMemo(() => getPublicMapboxToken(), []);
+  const selectedCategory = useMemo(
+    () =>
+      categoryOptions.find(
+        (category) => category.category_id === formValues.category,
+      ) ?? null,
+    [categoryOptions, formValues.category],
+  );
 
   const patchFormValues = useCallback((updates: Partial<EventFormInput>) => {
     setFormValues((prev) => ({ ...prev, ...updates }));
@@ -92,6 +147,13 @@ export function CreateEventForm() {
       }
     },
     [patchFormValues, setSelectedCoordinates],
+  );
+
+  const handleCategorySelect = useCallback(
+    (category: CategoryResponse) => {
+      updateField("category", category.category_id);
+    },
+    [updateField],
   );
 
   const handleLocationSelect = useCallback(
@@ -156,12 +218,11 @@ export function CreateEventForm() {
             })
           : result.data.location;
 
-      const valuesWithCategory = {
+      const valuesForPayload = {
         ...result.data,
         location: locationValue,
-        categoryId: "2db3d8ac-257c-4ff9-ad97-ba96bfbf9bc5",
       };
-      await createEvent(buildEventCreatePayload(valuesWithCategory, userId));
+      await createEvent(buildEventCreatePayload(valuesForPayload, userId));
       toast.dismiss(loadingToastId);
       toast.success("Event created successfully");
       setStatus("success");
@@ -222,6 +283,68 @@ export function CreateEventForm() {
               className={inputClass}
             />
           </label>
+
+          <span id={CATEGORY_FIELD_LABEL_ID} className={labelClass}>
+            Event category
+          </span>
+          <Menu as="div" className="relative w-full">
+            <MenuButton
+              className={`${inputClass} flex w-full items-center justify-between gap-4 text-left`}
+              aria-labelledby={CATEGORY_FIELD_LABEL_ID}
+            >
+              <span className="flex flex-col">
+                <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                  {selectedCategory?.category_name ?? "Select a category"}
+                </span>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {selectedCategory
+                    ? (selectedCategory.description ??
+                      DEFAULT_CATEGORY_DESCRIPTION)
+                    : "Select a category for your event"}
+                </span>
+              </span>
+              <span className="rounded-2xl bg-neutral-100 p-2 text-neutral-600 ring-1 ring-black/5 dark:bg-white/10 dark:text-neutral-200">
+                <FiChevronDown className="h-4 w-4" />
+              </span>
+            </MenuButton>
+            <Transition
+              as={Fragment}
+              enter="transition duration-150 ease-out"
+              enterFrom="translate-y-1 scale-95 opacity-0"
+              enterTo="translate-y-0 scale-100 opacity-100"
+              leave="transition duration-100 ease-in"
+              leaveFrom="translate-y-0 scale-100 opacity-100"
+              leaveTo="translate-y-1 scale-95 opacity-0"
+            >
+              <MenuItems className="absolute left-0 right-0 z-30 mt-3 origin-top rounded-3xl border border-neutral-200/80 bg-white/95 p-2 shadow-2xl shadow-amber-500/10 ring-1 ring-black/5 backdrop-blur dark:border-white/10 dark:bg-neutral-900/95">
+                <div className="space-y-1">
+                  {categoryOptions.map(
+                    ({ category_id, category_name, description }) => (
+                      <MenuItem
+                        key={category_id}
+                        as="button"
+                        onClick={() =>
+                          handleCategorySelect({
+                            category_id,
+                            category_name,
+                            description,
+                          })
+                        }
+                        className="group flex w-full items-center gap-4 rounded-2xl px-4 py-3 text-left text-sm text-neutral-800 transition hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 dark:text-neutral-100 dark:hover:bg-white/10"
+                      >
+                        <span className="flex flex-col text-left">
+                          <span className="font-semibold">{category_name}</span>
+                          <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                            {description ?? DEFAULT_CATEGORY_DESCRIPTION}
+                          </span>
+                        </span>
+                      </MenuItem>
+                    ),
+                  )}
+                </div>
+              </MenuItems>
+            </Transition>
+          </Menu>
 
           <label className="grid gap-2">
             <span className={labelClass}>Event image URL</span>

@@ -52,6 +52,8 @@ export type EventRegisterData = {
   ctaLabel: string;
   attendeeCount: number | null;
   capacity: number | null;
+  eventStartTime: string | null;
+  eventEndTime: string | null;
 };
 
 export type HostProfileTheme = {
@@ -198,6 +200,8 @@ export function buildEventViewModel({
       priceLabel === "Free" ? "Register for free" : `Register • ${priceLabel}`,
     attendeeCount: normalizedAttendeeCount,
     capacity: normalizedCapacity,
+    eventStartTime: event.event_datetime ?? null,
+    eventEndTime: event.event_endtime ?? null,
   };
 
   const hostFullName = host

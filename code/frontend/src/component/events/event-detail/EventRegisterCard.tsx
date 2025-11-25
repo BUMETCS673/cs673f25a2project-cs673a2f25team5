@@ -20,7 +20,9 @@ import {
   STATUS_OPTIONS,
   SUCCESS_MESSAGE_BY_STATUS,
   STATUS_LABEL_MAP,
+  REGISTRATION_CLOSED_MESSAGE,
 } from "@/types/registerTypes";
+import { hasEventEnded } from "@/helpers/eventTime";
 
 export function EventRegisterCard({
   ctaLabel,
@@ -28,6 +30,8 @@ export function EventRegisterCard({
   attendeeCount,
   capacity,
   eventId,
+  eventStartTime,
+  eventEndTime,
   onRegister,
   initialStatus,
   isAuthenticated,
@@ -40,6 +44,9 @@ export function EventRegisterCard({
   const [error, setError] = useState<string | null>(null);
   const [currentAttendeeCount, setCurrentAttendeeCount] = useState<number>(
     attendeeCount ?? 0,
+  );
+  const [isRegistrationClosed, setIsRegistrationClosed] = useState(() =>
+    hasEventEnded({ eventStart: eventStartTime, eventEnd: eventEndTime }),
   );
   const hostMessage =
     "You created this event, so there's no need to register as an attendee.";
@@ -66,6 +73,17 @@ export function EventRegisterCard({
     }
   }, [attendeeCount]);
 
+  useEffect(() => {
+    const closed = hasEventEnded({
+      eventStart: eventStartTime,
+      eventEnd: eventEndTime,
+    });
+    setIsRegistrationClosed(closed);
+    if (closed) {
+      setError(REGISTRATION_CLOSED_MESSAGE);
+    }
+  }, [eventEndTime, eventStartTime]);
+
   const normalizedCapacity =
     typeof capacity === "number" && capacity > 0 ? capacity : null;
   const hasCapacityLimit = normalizedCapacity !== null;
@@ -77,6 +95,19 @@ export function EventRegisterCard({
 
   const handleSelect = async (status: AttendeeStatus) => {
     if (isSubmitting) {
+      return;
+    }
+
+    const registrationClosed =
+      isRegistrationClosed ||
+      hasEventEnded({ eventStart: eventStartTime, eventEnd: eventEndTime });
+
+    if (registrationClosed) {
+      if (!isRegistrationClosed) {
+        setIsRegistrationClosed(true);
+      }
+      setError(REGISTRATION_CLOSED_MESSAGE);
+      toast.error(REGISTRATION_CLOSED_MESSAGE);
       return;
     }
 
@@ -140,6 +171,10 @@ export function EventRegisterCard({
       } else if (result.code === "host") {
         setSelectedStatus(null);
         toast.info(result.message ?? hostMessage);
+      } else if (result.code === "eventClosed") {
+        setIsRegistrationClosed(true);
+        setError(result.message);
+        toast.error(result.message);
       } else if (
         hasCapacityLimit &&
         result.message.toLowerCase().includes("capacity")

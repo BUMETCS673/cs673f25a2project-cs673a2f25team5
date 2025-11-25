@@ -12,7 +12,12 @@ type RegisterAttendeeSuccess = {
 
 type RegisterAttendeeFailure = {
   success: false;
-  code: "unauthenticated" | "alreadyRegistered" | "host" | "unknown";
+  code:
+    | "unauthenticated"
+    | "alreadyRegistered"
+    | "host"
+    | "eventClosed"
+    | "unknown";
   message: string;
   status?: AttendeeStatus | null;
 };
@@ -67,10 +72,14 @@ const STATUS_LABEL_MAP: Record<AttendeeStatus, string> = {
   "Not Going": "Not going",
 };
 
+const REGISTRATION_CLOSED_MESSAGE =
+  "This event has already ended, so registration updates are closed.";
+
 export {
   STATUS_OPTIONS,
   SUCCESS_MESSAGE_BY_STATUS,
   STATUS_LABEL_MAP,
+  REGISTRATION_CLOSED_MESSAGE,
   type EventRegisterCardProps,
   type AttendeeStatus,
   type RegisterAttendeeResult,

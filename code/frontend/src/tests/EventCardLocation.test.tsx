@@ -1,8 +1,9 @@
 import { render, screen } from "@testing-library/react";
 
-import { EventCard } from "@/component/events/EventCard";
-import { encodeEventLocation } from "@/helpers/locationCodec";
-import type { EventResponse } from "@/services/events";
+import type { EventResponse } from "../types/eventTypes";
+import { encodeEventLocation } from "../helpers/locationCodec";
+import { EventCard } from "../component/events/EventCard";
+import React from "react";
 
 const baseEvent: EventResponse = {
   event_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",

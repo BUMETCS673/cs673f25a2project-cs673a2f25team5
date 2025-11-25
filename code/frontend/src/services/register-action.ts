@@ -9,10 +9,14 @@ import type {
   AttendeeStatus,
   RegisterAttendeeResult,
 } from "@/types/registerTypes";
+import { REGISTRATION_CLOSED_MESSAGE } from "@/types/registerTypes";
+import { hasEventEnded } from "@/helpers/eventTime";
 
 type RegisterActionOptions = {
   hostMessage: string;
   hostUserId: string;
+  eventStartTime?: string | null;
+  eventEndTime?: string | null;
   successMessages: Record<AttendeeStatus, string>;
 };
 
@@ -22,6 +26,8 @@ export const HOST_REGISTRATION_MESSAGE =
 export function createRegisterAction({
   hostMessage,
   hostUserId,
+  eventStartTime = null,
+  eventEndTime = null,
   successMessages,
 }: RegisterActionOptions) {
   return async function onRegister(
@@ -46,6 +52,14 @@ export function createRegisterAction({
         success: false,
         code: "host",
         message: hostMessage,
+      };
+    }
+
+    if (hasEventEnded({ eventStart: eventStartTime, eventEnd: eventEndTime })) {
+      return {
+        success: false,
+        code: "eventClosed",
+        message: REGISTRATION_CLOSED_MESSAGE,
       };
     }
 
@@ -107,6 +121,17 @@ export function createRegisterAction({
             message:
               "You're already registered with this status. No changes needed.",
             toast: "info",
+          };
+        }
+
+        if (
+          hasEventEnded({ eventStart: eventStartTime, eventEnd: eventEndTime })
+        ) {
+          return {
+            success: false,
+            code: "eventClosed",
+            message: REGISTRATION_CLOSED_MESSAGE,
+            status: existingStatus,
           };
         }
 
