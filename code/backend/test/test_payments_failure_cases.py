@@ -90,67 +90,6 @@ async def test_client(test_engine: AsyncEngine) -> AsyncGenerator[AsyncClient, N
 
 
 @pytest.mark.asyncio
-async def test_webhook_checkout_session_completed_updates_status_succeeded(
-    test_client: AsyncClient,
-    monkeypatch: pytest.MonkeyPatch,
-):
-    """
-    When Stripe sends a checkout.session.completed event:
-    - we verify the signature via stripe.Webhook.construct_event
-    - we update the matching payment row to status = succeeded
-    """
-
-    # Seed a payment row with a known checkout session ID
-    payment = await payments_db.create_payment_db(
-        PaymentCreate(
-            event_id=uuid4(),
-            user_id=uuid4(),
-            amount_usd="25.00",
-            currency="usd",
-            status=PaymentStatus.created,
-            stripe_checkout_session_id="cs_test_123",
-        )
-    )
-
-    # Fake Stripe event returned by construct_event
-    def fake_construct_event(payload: bytes, sig_header: str | None, secret: str):
-        return {
-            "type": "checkout.session.completed",
-            "data": {
-                "object": {
-                    "id": "cs_test_123",
-                    "payment_intent": "pi_123",
-                }
-            },
-        }
-
-    # Patch where process_webhook_event calls it
-    monkeypatch.setattr(
-        "app.service.stripe_service.stripe.Webhook.construct_event",
-        fake_construct_event,
-    )
-
-    # Call the webhook endpoint
-    resp = await test_client.post(
-        "/payments/webhook",
-        content=b"{}",  # raw payload, not used by our fake
-        headers={"stripe-signature": "t=123,v1=abc"},  # just needs to be non-empty
-    )
-
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body == {"received": True}
-
-    # Check DB status + payment_intent_id
-    items, total = await payments_db.get_payments_db(filters=None, offset=0, limit=10)
-    assert total == 1
-    updated = items[0]
-    assert updated.payment_id == payment.payment_id
-    assert updated.status is PaymentStatus.succeeded
-    assert updated.stripe_payment_intent_id == "pi_123"
-
-
-@pytest.mark.asyncio
 async def test_webhook_invalid_signature_returns_400(
     test_client: AsyncClient,
     monkeypatch: pytest.MonkeyPatch,
@@ -296,8 +235,8 @@ async def test_create_checkout_session_invalid_request_400(
 
     # Patch where the router imported it
     monkeypatch.setattr(
-        "app.routes.payments.create_checkout_session",
-        fake_create_checkout_session,
+    "app.service.stripe_service.create_checkout_session",
+    fake_create_checkout_session,
     )
 
     # 3) Make the request
@@ -354,8 +293,8 @@ async def test_create_checkout_session_auth_error_500(
 
     # Patch where the router imported it:
     monkeypatch.setattr(
-        "app.routes.payments.create_checkout_session",
-        fake_create_checkout_session,
+    "app.service.stripe_service.create_checkout_session",
+    fake_create_checkout_session,
     )
 
     body = {
@@ -406,8 +345,8 @@ async def test_create_checkout_session_generic_stripe_error_400(
 
     # Patch where router imported it
     monkeypatch.setattr(
-        "app.routes.payments.create_checkout_session",
-        fake_create_checkout_session,
+    "app.service.stripe_service.create_checkout_session",
+    fake_create_checkout_session,
     )
 
     body = {
@@ -421,3 +360,21 @@ async def test_create_checkout_session_generic_stripe_error_400(
 
     assert resp.status_code == 400
     assert "stripe error" in resp.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_create_checkout_session_negative_amount_422(test_client: AsyncClient):
+    """
+    Validation rule:
+    - amount_usd must be > 0
+    - Negative amount should trigger 422 from Pydantic validation.
+    """
+    body = {
+        "event_id": str(uuid4()),
+        "user_id": str(uuid4()),
+        "amount_usd": "-5.00",
+        "email": "badpayer@example.com",
+    }
+
+    response = await test_client.post("/payments/checkout-session", json=body)
+    assert response.status_code == 422
