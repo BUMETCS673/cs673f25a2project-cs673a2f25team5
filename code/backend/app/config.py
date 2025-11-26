@@ -53,7 +53,7 @@ class Settings(BaseSettings):
         default="http://localhost:3000",
         description="Frontend base URL for building invitation links.",
     )
-    
+
     # Stripe and frontend/app URLs
     STRIPE_SECRET_KEY: str = Field(default="", description="Stripe secret API key")
     STRIPE_WEBHOOK_SECRET: str = Field(default="", description="Stripe webhook signing secret")
