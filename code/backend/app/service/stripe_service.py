@@ -7,8 +7,7 @@ Framework-generated code: 0%
 """
 
 import logging
-
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 import stripe
 from fastapi import HTTPException
@@ -19,6 +18,7 @@ from app.models.payments import CheckoutRequest, CheckoutResponse, PaymentCreate
 
 logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 # ---- helpers ----
 # Stripe expects amounts in the smallest currency unit (e.g. cents).
@@ -79,7 +79,9 @@ async def create_checkout_session_for_payment(data: CheckoutRequest) -> Checkout
     )
 
     # 2) Build redirect URLs using the payment_id
-    success_url = f"{settings.FRONTEND_BASE_URL}/payment/success?payment_id={pending.payment_id}"
+    success_url = (
+        f"{settings.FRONTEND_BASE_URL}/payment/success?payment_id={pending.payment_id}"
+    )
     cancel_url = f"{settings.FRONTEND_BASE_URL}/payment/cancel?payment_id={pending.payment_id}"
 
     # 3) Create Stripe Checkout Session (convert dollars -> cents)

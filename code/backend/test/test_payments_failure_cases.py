@@ -21,7 +21,6 @@ from app.db import db
 from app.db import payments as payments_db
 from app.db.payments import metadata as payments_metadata
 from app.main import event_manager_app
-from app.models.payments import PaymentCreate, PaymentStatus
 from app.service import stripe_service
 
 
@@ -235,8 +234,8 @@ async def test_create_checkout_session_invalid_request_400(
 
     # Patch where the router imported it
     monkeypatch.setattr(
-    "app.service.stripe_service.create_checkout_session",
-    fake_create_checkout_session,
+        "app.service.stripe_service.create_checkout_session",
+        fake_create_checkout_session,
     )
 
     # 3) Make the request
@@ -293,8 +292,8 @@ async def test_create_checkout_session_auth_error_500(
 
     # Patch where the router imported it:
     monkeypatch.setattr(
-    "app.service.stripe_service.create_checkout_session",
-    fake_create_checkout_session,
+        "app.service.stripe_service.create_checkout_session",
+        fake_create_checkout_session,
     )
 
     body = {
@@ -345,8 +344,8 @@ async def test_create_checkout_session_generic_stripe_error_400(
 
     # Patch where router imported it
     monkeypatch.setattr(
-    "app.service.stripe_service.create_checkout_session",
-    fake_create_checkout_session,
+        "app.service.stripe_service.create_checkout_session",
+        fake_create_checkout_session,
     )
 
     body = {

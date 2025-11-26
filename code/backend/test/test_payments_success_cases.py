@@ -139,8 +139,8 @@ async def test_create_checkout_session_success(
     # which calls app.service.stripe_service.create_checkout_session internally.
     # Therefore, we patch the low-level Stripe helper:
     monkeypatch.setattr(
-    "app.service.stripe_service.create_checkout_session",
-    fake_create_checkout_session,
+        "app.service.stripe_service.create_checkout_session",
+        fake_create_checkout_session,
     )
 
     # --- Arrange: input payload (event_id and user_id can be any UUIDs here) ---
@@ -175,7 +175,6 @@ async def test_create_checkout_session_success(
     # For a freshly created checkout, we start in 'created' state.
     assert payment.status.value == "created"
     assert payment.stripe_checkout_session_id == "cs_test_123"
-
 
 
 @pytest.mark.asyncio

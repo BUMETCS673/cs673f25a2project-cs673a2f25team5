@@ -10,7 +10,10 @@ from fastapi import APIRouter, Request
 from starlette.responses import JSONResponse
 
 from app.models.payments import CheckoutRequest, CheckoutResponse
-from app.service.stripe_service import create_checkout_session_for_payment, process_webhook_event
+from app.service.stripe_service import (
+    create_checkout_session_for_payment,
+    process_webhook_event,
+)
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
@@ -46,8 +49,6 @@ router = APIRouter(prefix="/payments", tags=["Payments"])
         },
     },
 )
-
-
 async def create_session(data: CheckoutRequest) -> CheckoutResponse:
     """
     Thin HTTP wrapper for the payment flow:
@@ -58,7 +59,7 @@ async def create_session(data: CheckoutRequest) -> CheckoutResponse:
 
 
 @router.post(
-    "/webhook", 
+    "/webhook",
     summary="Stripe webhook (signature verified)",
     description=(
         "Receives events from Stripe such as `checkout.session.completed` and "
@@ -85,8 +86,6 @@ async def create_session(data: CheckoutRequest) -> CheckoutResponse:
         },
     },
 )
-
-
 async def stripe_webhook(request: Request) -> JSONResponse:
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
