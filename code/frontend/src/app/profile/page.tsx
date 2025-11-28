@@ -57,7 +57,7 @@ export default function Profile() {
       <div className="w-full max-w-2xl py-20">
         <TabGroup>
           {/* Tabs Header */}
-          <TabList className="flex justify-center space-x-3 rounded-2xl bg-neutral-50 text-neutral-900 dark:text-neutral-100 dark:bg-neutral-950 dark:text-neutral-100">
+          <TabList className="flex justify-center space-x-3 rounded-2xl bg-neutral-50 text-neutral-900 dark:text-neutral-100 dark:bg-neutral-950">
             {Object.keys(categories).map((category) => (
               <Tab
                 key={category}
@@ -65,7 +65,7 @@ export default function Profile() {
                   `w-full rounded-xl px-6 py-2 text-sm font-semibold transition-all duration-200 ${
                     selected
                       ? "bg-gradient-to-r from-amber-500 to-amber-300 text-white shadow-lg ring-2 ring-amber-400 ring-offset-2"
-                      : "text-neutral-300 hover:text-white hover:bg-neutral-700/60"
+                      : "text-neutral-700 dark:text-neutral-300 hover:text-white hover:bg-neutral-700/60"
                   }`
                 }
               >

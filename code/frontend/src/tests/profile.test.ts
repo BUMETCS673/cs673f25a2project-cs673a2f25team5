@@ -1,62 +1,98 @@
 /*
-
 AI-generated code: 100%
-
 Human code: 0%
-
 Framework-generated code: 0%
-
 */
 
-import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
-import Profile from "../app/profile/page"; // <- adjust path if needed
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import Profile from "../app/profile/page";
+import * as eventsSvc from "@/services/events";
 
-describe("Profile Component Tabs", () => {
-  test("renders all 3 tabs", () => {
-    render(React.createElement(Profile));
+jest.mock("@/services/events", () => ({
+  ...jest.requireActual("@/services/events"),
+  getAttendingEvents: jest.fn(),
+  getCreatedEvents: jest.fn(),
+  getUpcomingEvents: jest.fn(),
+}));
 
-    expect(screen.getByRole("tab", { name: /Attending/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Created/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /Upcoming/i })).toBeInTheDocument();
+const attendingMock = jest.mocked(eventsSvc.getAttendingEvents);
+const createdMock = jest.mocked(eventsSvc.getCreatedEvents);
+const upcomingMock = jest.mocked(eventsSvc.getUpcomingEvents);
+
+describe("Profile Component Tabs (Service-Driven)", () => {
+  const attendingResults = [
+    { event_id: "1", event_name: "A-Attending" },
+  ];
+  const createdResults = [
+    { event_id: "2", event_name: "B-Created" },
+  ];
+  const upcomingResults = [
+    { event_id: "3", event_name: "C-Upcoming" },
+  ];
+
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    attendingMock.mockReset();
+    createdMock.mockReset();
+    upcomingMock.mockReset();
+    jest.spyOn(console, "log").mockImplementation(() => {});
   });
 
-  test("Attending tab shows correct items", () => {
-    render(React.createElement(Profile));
+  test("initial load fetches attending events (like initial pagination scenario)", async () => {
+    attendingMock.mockResolvedValue(attendingResults);
 
-    // Attending tab should be active by default (Headless UI behavior)
-    expect(screen.getByText("Saniya's Birthday")).toBeInTheDocument();
-    expect(screen.getByText("Christmas Party")).toBeInTheDocument();
+    render(<Profile />);
+
+    await waitFor(() => {
+      expect(eventsSvc.getAttendingEvents).toHaveBeenCalledWith(
+        expect.objectContaining({ offset: 0, limit: 5 })
+      );
+      expect(screen.getByText("A-Attending")).toBeInTheDocument();
+    });
   });
 
-  test("switching to Created tab shows correct events", () => {
-    render(React.createElement(Profile));
+  test("switching to Created triggers service call (like handleNextPage)", async () => {
+    attendingMock.mockResolvedValue(attendingResults);
+    createdMock.mockResolvedValue(createdResults);
+
+    render(<Profile />);
 
     fireEvent.click(screen.getByRole("tab", { name: /Created/i }));
 
-    expect(screen.getByText("Saniya's Birthday")).toBeInTheDocument();
-    expect(screen.getByText("Sai's Birthday")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(eventsSvc.getCreatedEvents).toHaveBeenCalledWith(
+        expect.objectContaining({ offset: 0, limit: 5 })
+      );
+      expect(screen.getByText("B-Created")).toBeInTheDocument();
+    });
   });
 
-  test("switching to Upcoming tab shows correct events", () => {
-    render(React.createElement(Profile));
+  test("switching to Upcoming triggers service call and hides previous results", async () => {
+    attendingMock.mockResolvedValue(attendingResults);
+    upcomingMock.mockResolvedValue(upcomingResults);
+
+    render(<Profile />);
+
+    await waitFor(() =>
+      expect(screen.getByText("A-Attending")).toBeInTheDocument()
+    );
 
     fireEvent.click(screen.getByRole("tab", { name: /Upcoming/i }));
 
-    expect(screen.getByText("Thanksgiving Dinner")).toBeInTheDocument();
-    expect(screen.getByText("Ice Skating Class")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(eventsSvc.getUpcomingEvents).toHaveBeenCalled();
+      expect(screen.getByText("C-Upcoming")).toBeInTheDocument();
+      expect(screen.queryByText("A-Attending")).not.toBeInTheDocument();
+    });
   });
 
-  test("changing tabs hides the previous tab's content", () => {
-    render(React.createElement(Profile));
+  test("if no events return, shows empty state (like showEmptyState check)", async () => {
+    attendingMock.mockResolvedValue([]);
 
-    // Attending is default — assert one item from Attending
-    expect(screen.getByText("Christmas Party")).toBeInTheDocument();
+    render(<Profile />);
 
-    // Switch to Upcoming
-    fireEvent.click(screen.getByRole("tab", { name: /Upcoming/i }));
-
-    // Attending content should disappear
-    expect(screen.queryByText("Christmas Party")).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/No events/i)).toBeInTheDocument();
+    });
   });
 });
