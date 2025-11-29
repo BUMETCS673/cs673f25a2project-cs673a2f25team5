@@ -8,9 +8,10 @@
 
 */
 
-import type { EventResponse } from "@/services/events";
+import type { EventResponse } from "@/types/eventTypes";
 
 import { EventCard } from "./EventCard";
+import { EventCardSkeleton } from "./EventCardSkeleton";
 import { EventsPaginationBanner } from "./EventsPaginationBanner";
 import type { PaginationState } from "./hooks/useEventsBrowserState";
 
@@ -95,10 +96,16 @@ export function EventsResults({
 
   if (!shouldFetchRemoteSearch && isBaseLoading && events.length === 0) {
     return (
-      <div className="rounded-3xl border border-neutral-200 bg-white/80 px-8 py-16 text-center shadow-sm dark:border-white/10 dark:bg-neutral-900/60">
-        <p className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-          Loading events&hellip;
-        </p>
+      <div
+        className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading events"
+      >
+        {Array.from({ length: 6 }).map((_, index) => (
+          <EventCardSkeleton key={index} />
+        ))}
+        <span className="sr-only">Loading events…</span>
       </div>
     );
   }

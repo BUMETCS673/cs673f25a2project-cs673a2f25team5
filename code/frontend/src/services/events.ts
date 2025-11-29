@@ -8,61 +8,32 @@
 
 */
 
-import { z } from "zod";
+"use server";
 
 import { API_BASE_URL } from "./config";
-
-export const EventSchema = z.object({
-  event_id: z.string().uuid(),
-  event_name: z.string(),
-  event_datetime: z.string(),
-  event_endtime: z.string(),
-  event_location: z.string().nullable().optional(),
-  description: z.string().nullable().optional(),
-  picture_url: z.string().nullable().optional(),
-  capacity: z.number().nullable().optional(),
-  price_field: z.number().nullable().optional(),
-  user_id: z.string().uuid(),
-  category_id: z.string().uuid(),
-  created_at: z.string().optional(),
-  updated_at: z.string().optional(),
-});
-
-export type EventResponse = z.infer<typeof EventSchema>;
-
-const EventListSchema = z.object({
-  items: z.array(EventSchema),
-  total: z.number().int().nonnegative(),
-  offset: z.number().int().nonnegative(),
-  limit: z.number().int().positive(),
-});
-
-export type EventListResponse = z.infer<typeof EventListSchema>;
-
-export const EventCreatePayloadSchema = z.object({
-  event_name: z.string().min(1),
-  event_datetime: z.string().min(1),
-  event_endtime: z.string().min(1),
-  event_location: z.string().min(1),
-  description: z.string().nullable().optional(),
-  picture_url: z.string().nullable().optional(),
-  capacity: z.number().int().positive().nullable().optional(),
-  price_field: z.number().int().nonnegative().nullable().optional(),
-  user_id: z.string().uuid(),
-  category_id: z.string().uuid(),
-});
-
-export type EventCreatePayload = z.infer<typeof EventCreatePayloadSchema>;
+import { auth } from "@clerk/nextjs/server";
+import {
+  EventCreatePayload,
+  EventCreatePayloadSchema,
+  EventResponse,
+  EventListResponse,
+  EventSchema,
+} from "../types/eventTypes";
+import { getAttendees } from "./attendees";
 
 export async function createEvent(
   payload: EventCreatePayload,
 ): Promise<EventResponse> {
   const body = EventCreatePayloadSchema.parse(payload);
 
+  const { getToken } = await auth();
+  const token = await getToken();
+
   const response = await fetch(`${API_BASE_URL}/events`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(body),
   });
@@ -90,13 +61,12 @@ type GetEventsParams = {
   filters?: string[];
   offset?: number;
   limit?: number;
-  signal?: AbortSignal;
 };
 
 export async function getEvents(
   params?: GetEventsParams,
 ): Promise<EventListResponse> {
-  const { filters, offset, limit, signal } = params ?? {};
+  const { filters, offset, limit } = params ?? {};
   const url = new URL("/events", API_BASE_URL);
 
   for (const filter of filters ?? []) {
@@ -111,21 +81,39 @@ export async function getEvents(
     url.searchParams.set("limit", limit.toString());
   }
 
-  console.log("filters: ", filters);
-  console.log("url: ", url.toString());
+  const { getToken } = await auth();
+
+  const token = await getToken();
 
   const response = await fetch(url.toString(), {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-    signal,
   });
   if (!response.ok) {
     throw new Error(`Request failed with status ${response.status}`);
   }
   const data = await response.json();
-  return EventListSchema.parse(data);
+  const items = await Promise.all(
+    data.items.map(async (item: EventResponse) => {
+      EventSchema.parse(item);
+      const result = await getAttendees({
+        filters: [`event_id:eq:${item.event_id}`],
+      });
+      return {
+        ...item,
+        attendee_count: result.total,
+      };
+    }),
+  );
+  return {
+    items,
+    total: data.total,
+    offset: data.offset,
+    limit: data.limit,
+  };
 }
 
 type SimpleGetParams = Omit<GetEventsParams, "filters"> & {

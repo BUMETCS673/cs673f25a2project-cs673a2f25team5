@@ -11,6 +11,13 @@ from uuid import UUID
 from fastapi import APIRouter, Query, status
 
 from app.models import attendees as models_attendees
+from app.models import patch as models_patch
+from app.routes.shared_responses import (
+    RESPONSES_CREATE,
+    RESPONSES_DELETE,
+    RESPONSES_LIST,
+    RESPONSES_PATCH,
+)
 from app.service import attendees as attendees_service
 
 router = APIRouter()
@@ -42,30 +49,7 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of attendees
         "- `/attendees?filter_expression=user_id:eq:<uuid>&filter_expression=status:eq:RSVPed`"
     ),
     tags=["Attendees"],
-    responses={
-        200: {"description": "Paginated list of attendees"},
-        400: {
-            "description": "Invalid parameters",
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "InvalidFilterFormat": {
-                            "summary": "Invalid filter_expression format",
-                            "value": {"detail": "Invalid filter_expression format"},
-                        },
-                        "InvalidColumnName": {
-                            "summary": "Invalid column name",
-                            "value": {"detail": "Invalid column name"},
-                        },
-                    }
-                }
-            },
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
+    responses=RESPONSES_LIST,
 )
 async def list_attendees(
     filter_expression: list[str] | None = FILTER_QUERY,
@@ -82,24 +66,44 @@ async def list_attendees(
     description="Creates an attendee row for (event_id, user_id). Prevents duplicates.",
     tags=["Attendees"],
     status_code=status.HTTP_201_CREATED,
-    responses={
-        201: {"description": "Attendee created"},
-        404: {
-            "description": "Event or user not found",
-            "content": {
-                "application/json": {"example": {"detail": "Event or user not found"}}
-            },
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
+    responses=RESPONSES_CREATE,
 )
 async def create_attendee(
     attendee: models_attendees.AttendeeCreate,
 ) -> models_attendees.AttendeeRead:
     return await attendees_service.create_attendee_service(attendee)
+
+
+@router.patch(
+    "/attendees",
+    response_model=dict[UUID, models_attendees.AttendeeRead],
+    summary="Patch multiple attendees using JSON Patch operations",
+    description=(
+        "Apply JSON Patch operations to multiple attendees. Each operation is applied to a "
+        "specific attendee identified by UUID. Returns a dictionary mapping attendee IDs to "
+        "their updated Attendee models.\n\n"
+        "JSON Patch operations supported:\n"
+        "- `replace`: Replace a field value\n"
+        "Example request body:\n"
+        "```json\n"
+        "{\n"
+        '  "patch": {\n'
+        '    "550e8400-e29b-41d4-a716-446655440000": {\n'
+        '      "op": "replace",\n'
+        '      "path": "/status",\n'
+        '      "value": "Not going"\n'
+        "    }\n"
+        "  }\n"
+        "}\n"
+        "```"
+    ),
+    tags=["Attendees"],
+    responses=RESPONSES_PATCH,
+)
+async def patch_attendees(
+    request: models_patch.PatchRequest,
+) -> dict[UUID, models_attendees.AttendeeRead]:
+    return await attendees_service.patch_attendees_service(request)
 
 
 @router.delete(
@@ -108,17 +112,7 @@ async def create_attendee(
     summary="Unregister attendee (delete by attendee_id)",
     tags=["Attendees"],
     status_code=status.HTTP_200_OK,
-    responses={
-        200: {"description": "Attendee deleted and returned"},
-        404: {
-            "description": "Attendee not found",
-            "content": {"application/json": {"example": {"detail": "Attendee not found"}}},
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
+    responses=RESPONSES_DELETE,
 )
 async def delete_attendee(attendee_id: UUID) -> models_attendees.AttendeeRead:
     return await attendees_service.delete_attendee_service(attendee_id)

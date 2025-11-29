@@ -70,6 +70,14 @@ uv run tox -e coverage
 
 ---
 
+#### Test report
+
+```bash
+uv run tox -e report
+```
+
+---
+
 #### Run Ruff linter
 
 ```bash
@@ -98,10 +106,10 @@ uv run ruff format .
 
 ---
 
-#### Check for lint issues
+#### Fix lint issues
 
 ```bash
-uv run ruff check .
+uv run ruff check --fix
 ```
 
 ---

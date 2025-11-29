@@ -171,7 +171,9 @@ export function EventLocationPickerMap({
         </p>
       </div>
 
-      <div ref={containerRef} className={mapboxStyles.mapCard} />
+      <div className={mapboxStyles.mapboxOverrides}>
+        <div ref={containerRef} className={mapboxStyles.mapCard} />
+      </div>
     </div>
   );
 }

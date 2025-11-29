@@ -11,7 +11,7 @@ import { z } from "zod";
 import {
   EventCreatePayloadSchema,
   type EventCreatePayload,
-} from "@/services/events";
+} from "@/types/eventTypes";
 
 const trimmedString = () => z.string().trim();
 
@@ -22,6 +22,7 @@ export const EventFormSchema = z
   .object({
     eventName: trimmedString().min(1, "Event name is required."),
     startDate: trimmedString().min(1, "Start date is required."),
+    category: z.string().uuid("Category must be a valid selection."),
     startTime: trimmedString().min(1, "Start time is required."),
     endDate: trimmedString().min(1, "End date is required."),
     endTime: trimmedString().min(1, "End time is required."),
@@ -35,7 +36,7 @@ export const EventFormSchema = z
     const start = parseDateTime(values.startDate, values.startTime);
     if (Number.isNaN(start.getTime())) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["startDate"],
         message: "Start date and time must be valid.",
       });
@@ -44,7 +45,7 @@ export const EventFormSchema = z
     const end = parseDateTime(values.endDate, values.endTime);
     if (Number.isNaN(end.getTime())) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["endDate"],
         message: "End date and time must be valid.",
       });
@@ -56,7 +57,7 @@ export const EventFormSchema = z
       end <= start
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         path: ["endDate"],
         message: "End date and time must be after the start.",
       });
@@ -70,7 +71,7 @@ export const EventFormSchema = z
         capacityNum <= 0
       ) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           path: ["capacity"],
           message: "Capacity must be a positive whole number.",
         });
@@ -86,7 +87,7 @@ export const EventFormSchema = z
         !pricePattern.test(values.price)
       ) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           path: ["price"],
           message:
             "Ticket price must be a valid amount with up to two decimals.",
@@ -99,7 +100,7 @@ export const EventFormSchema = z
         new URL(values.pictureUrl, "http://placeholder.local");
       } catch {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           path: ["pictureUrl"],
           message: "Event image must be a valid URL.",
         });
@@ -126,7 +127,7 @@ export const buildEventCreatePayload = (
     capacity: values.capacity ? Number.parseInt(values.capacity, 10) : null,
     price_field: values.price ? Math.round(Number(values.price) * 100) : null,
     user_id: userId,
-    category_id: "2db3d8ac-257c-4ff9-ad97-ba96bfbf9bc5",
+    category_id: values.category,
   };
 
   return EventCreatePayloadSchema.parse(payload);

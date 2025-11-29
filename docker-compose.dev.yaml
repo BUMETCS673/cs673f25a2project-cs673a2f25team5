@@ -10,8 +10,10 @@ services:
       - POSTGRES_PORT=${POSTGRES_PORT}
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_DB=${POSTGRES_DB}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_OAUTH_ENABLED=${GOOGLE_OAUTH_ENABLED}
+      - CLERK_JWKS_URL=${CLERK_JWKS_URL}
+      - CLERK_ISSUER=${CLERK_ISSUER}
+      - CLERK_JWT_AUDIENCE=${CLERK_JWT_AUDIENCE}
+      - CLERK_AUTH_ENABLED=${CLERK_AUTH_ENABLED}
     networks:
       - app-network
     healthcheck:
@@ -35,6 +37,12 @@ services:
       - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://frontend:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     depends_on:
       backend:
         condition: service_healthy

@@ -12,6 +12,12 @@ from fastapi import APIRouter, Query
 
 from app.models import patch as models_patch
 from app.models import users as models_users
+from app.routes.shared_responses import (
+    RESPONSES_CREATE,
+    RESPONSES_DELETE,
+    RESPONSES_LIST,
+    RESPONSES_PATCH,
+)
 from app.service import users as users_service
 
 router = APIRouter()
@@ -40,38 +46,7 @@ LIMIT_QUERY = Query(100, ge=1, le=1000, description="Maximum number of users to 
         "- `/users?offset=20&limit=10` (get third page of 10 users)"
     ),
     tags=["Users"],
-    responses={
-        200: {"description": "Paginated list of users"},
-        400: {
-            "description": "Invalid parameters",
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "InvalidFilterFormat": {
-                            "summary": "Invalid filter_expression format",
-                            "value": {"detail": "Invalid filter_expression format"},
-                        },
-                        "InvalidColumnName": {
-                            "summary": "Invalid column name",
-                            "value": {"detail": "Invalid column name"},
-                        },
-                        "LimitNotPositive": {
-                            "summary": "Limit must be a positive integer",
-                            "value": {"detail": "Limit must be a positive integer"},
-                        },
-                        "OffsetNegative": {
-                            "summary": "Offset must be non-negative",
-                            "value": {"detail": "Offset must be non-negative"},
-                        },
-                    }
-                }
-            },
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
+    responses=RESPONSES_LIST,
 )
 async def list_users(
     filter_expression: list[str] | None = FILTER_QUERY,
@@ -88,21 +63,7 @@ async def list_users(
     description="Create a new user with the provided information. Email must be unique.",
     tags=["Users"],
     status_code=201,
-    responses={
-        201: {"description": "User created successfully"},
-        400: {
-            "description": "Invalid input or duplicate email",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "A user with this email already exists"}
-                }
-            },
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
+    responses=RESPONSES_CREATE,
 )
 async def create_user(user: models_users.UserCreate) -> models_users.UserRead:
     return await users_service.create_user_service(user)
@@ -132,44 +93,7 @@ async def create_user(user: models_users.UserCreate) -> models_users.UserRead:
         "```"
     ),
     tags=["Users"],
-    responses={
-        200: {"description": "Users patched successfully"},
-        400: {
-            "description": "Invalid patch operation or data",
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "InvalidOperation": {
-                            "summary": "Invalid JSON Patch operation",
-                            "value": {"detail": "Invalid operation: unsupported_op"},
-                        },
-                        "InvalidPath": {
-                            "summary": "Invalid field path",
-                            "value": {"detail": "Invalid path: /invalid_field"},
-                        },
-                        "InvalidValue": {
-                            "summary": "Invalid field value",
-                            "value": {"detail": "Invalid value for field: email"},
-                        },
-                    }
-                }
-            },
-        },
-        404: {
-            "description": "One or more users not found",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "User not found: 550e8400-e29b-41d4-a716-446655440000"
-                    }
-                }
-            },
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
+    responses=RESPONSES_PATCH,
 )
 async def patch_users(
     request: models_patch.PatchRequest,
@@ -183,21 +107,7 @@ async def patch_users(
     summary="Delete a user by the user id",
     tags=["Users"],
     status_code=200,
-    responses={
-        200: {"description": "User deleted successfully"},
-        400: {
-            "description": "Invalid input",
-            "content": {"application/json": {"example": {"detail": "Invalid user ID"}}},
-        },
-        404: {
-            "description": "User not found",
-            "content": {"application/json": {"example": {"detail": "User not found"}}},
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {"application/json": {"example": {"detail": "Internal server error"}}},
-        },
-    },
+    responses=RESPONSES_DELETE,
 )
 async def delete_user(user_id: UUID) -> models_users.UserRead:
     return await users_service.delete_user_service(user_id)

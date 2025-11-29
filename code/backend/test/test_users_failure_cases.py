@@ -43,20 +43,17 @@ async def test_engine(test_db_file: str) -> AsyncGenerator[AsyncEngine, None]:
         poolclass=StaticPool,
     )
 
-    # Store original engine and metadata
+    # Store original engine
     original_engine = db.engine
-    original_metadata = db.metadata
 
     # Set test database config
     db.engine = engine
-    db.metadata = metadata
     users_db.engine = engine
 
     yield engine
 
-    # Restore original engine and metadata
+    # Restore original engine
     db.engine = original_engine
-    db.metadata = original_metadata
     users_db.engine = original_engine
 
 
@@ -98,7 +95,7 @@ async def test_create_user_duplicate_email(
     assert response.status_code == 201
 
     response = await test_client.post("/users", json=valid_user_data.model_dump(mode="json"))
-    assert response.status_code == 400
+    assert response.status_code == 409
     assert "is already in use" in response.json()["detail"].lower()
 
 
@@ -264,7 +261,7 @@ async def test_patch_user_duplicate_email(test_client: AsyncClient):
     }
 
     response = await test_client.patch("/users", json=patch_data)
-    assert response.status_code == 400
+    assert response.status_code == 409
 
 
 @pytest.mark.asyncio

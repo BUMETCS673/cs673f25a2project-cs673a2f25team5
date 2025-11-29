@@ -10,8 +10,9 @@
 
 import type { CSSProperties } from "react";
 
-import type { EventResponse } from "@/services/events";
-import type { UserResponse } from "@/services/users";
+import type { EventResponse } from "@/types/eventTypes";
+import type { UserResponse } from "@/types/userTypes";
+import { decodeEventLocation } from "@/helpers/locationCodec";
 
 export type EventStatusTone = "past" | "live" | "upcoming";
 
@@ -49,7 +50,10 @@ export type EventAboutData = {
 
 export type EventRegisterData = {
   ctaLabel: string;
-  note: string;
+  attendeeCount: number | null;
+  capacity: number | null;
+  eventStartTime: string | null;
+  eventEndTime: string | null;
 };
 
 export type HostProfileTheme = {
@@ -64,6 +68,7 @@ export type HostCardData = {
   hostName: string | null;
   hostEmail: string | null;
   hostInitials: string;
+  hostProfilePictureUrl: string | null;
   theme: HostProfileTheme | null;
   emptyStateMessage: string;
 };
@@ -89,6 +94,7 @@ type BuildViewModelOptions = {
   host: UserResponse | null;
   hostEvents: EventResponse[];
   currentTimestamp?: number;
+  attendeeCount?: number | null;
 };
 
 export function buildEventViewModel({
@@ -96,6 +102,7 @@ export function buildEventViewModel({
   host,
   hostEvents,
   currentTimestamp = Date.now(),
+  attendeeCount,
 }: BuildViewModelOptions): EventViewModel {
   const parsedStart = parseDate(event.event_datetime);
   const parsedEnd = parseDate(event.event_endtime);
@@ -126,7 +133,8 @@ export function buildEventViewModel({
   const startLabel = formatLongDate(event.event_datetime);
   const endLabel = formatLongDate(event.event_endtime);
   const shortStartLabel = formatShortDateTime(event.event_datetime);
-  const locationLabel = event.event_location ?? "Location to be announced";
+  const decodedLocation = decodeEventLocation(event.event_location);
+  const locationLabel = decodedLocation?.address ?? "Location to be announced";
   const priceLabel = formatPrice(event.price_field);
   const capacityLabel = formatCapacity(event.capacity);
 
@@ -179,10 +187,22 @@ export function buildEventViewModel({
     },
   ];
 
+  const normalizedAttendeeCount =
+    typeof attendeeCount === "number" && attendeeCount >= 0
+      ? attendeeCount
+      : null;
+  const normalizedCapacity =
+    typeof event.capacity === "number" && event.capacity > 0
+      ? event.capacity
+      : null;
+
   const registerData: EventRegisterData = {
     ctaLabel:
       priceLabel === "Free" ? "Register for free" : `Register • ${priceLabel}`,
-    note: "Need accommodations? Reply to the confirmation email and we will do our best to help.",
+    attendeeCount: normalizedAttendeeCount,
+    capacity: normalizedCapacity,
+    eventStartTime: event.event_datetime ?? null,
+    eventEndTime: event.event_endtime ?? null,
   };
 
   const hostFullName = host
@@ -195,6 +215,7 @@ export function buildEventViewModel({
     hasHost: Boolean(host),
     hostName: hostFullName,
     hostEmail: host?.email ?? null,
+    hostProfilePictureUrl: host?.profile_picture_url ?? null,
     hostInitials,
     theme: hostTheme,
     emptyStateMessage: "Host details are being finalized.",

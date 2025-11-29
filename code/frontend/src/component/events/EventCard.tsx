@@ -10,8 +10,9 @@
 
 import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
-
-import type { EventResponse } from "@/services/events";
+import type { EventResponse } from "@/types/eventTypes";
+import { decodeEventLocation } from "@/helpers/locationCodec";
+import { FaArrowRight, FaLocationDot } from "react-icons/fa6";
 
 type EventCardProps = {
   event: EventResponse;
@@ -56,6 +57,11 @@ export function EventCard({
   ...rest
 }: EventCardProps) {
   const dateLabel = formatDateRange(event);
+  const decodedLocation = decodeEventLocation(event.event_location);
+  const locationLabel =
+    decodedLocation?.address ??
+    event.event_location ??
+    "Location to be announced";
 
   return (
     <Link
@@ -70,7 +76,7 @@ export function EventCard({
           </h3>
           {event.capacity ? (
             <span className="rounded-full border border-amber-300/60 px-3 py-1 text-xs font-medium text-amber-600 dark:border-amber-400/40 dark:text-amber-300">
-              {event.capacity} seats
+              {event.capacity - (event.attendee_count ?? 0)} seats available
             </span>
           ) : null}
         </div>
@@ -87,23 +93,11 @@ export function EventCard({
 
         <div className="mt-auto flex items-center justify-between text-sm text-neutral-500 dark:text-neutral-400">
           <span className="flex items-center gap-2">
-            <svg
-              aria-hidden="true"
-              className="h-4 w-4 text-amber-500 transition group-hover:text-amber-400"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            {event.event_location ?? "Location TBA"}
+            <FaLocationDot className="size-4" />
+            {locationLabel}
           </span>
-          <span className="font-medium text-amber-600 transition group-hover:text-amber-500 dark:text-amber-300">
-            View details &gt;
+          <span className="font-medium items-center gap-2 flex text-amber-600 transition group-hover:text-amber-500 dark:text-amber-300">
+            View details <FaArrowRight className="size-4" />
           </span>
         </div>
       </article>

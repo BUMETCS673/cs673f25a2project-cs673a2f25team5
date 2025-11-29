@@ -18,7 +18,14 @@
 
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import {
+  Fragment,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
   EventFormSchema,
@@ -27,16 +34,38 @@ import {
 } from "./createEventSchema";
 import { createEvent } from "@/services/events";
 import { useUser } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { EventLocationPickerMap } from "./EventLocationPickerMap";
+import { EventDateTimePicker, parseDateTimeValue } from "./EventDateTimePicker";
 import { getPublicMapboxToken } from "@/component/map/getPublicMapboxToken";
+import { encodeEventLocation } from "@/helpers/locationCodec";
+import { toast } from "sonner";
+import {
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems,
+  Transition,
+} from "@headlessui/react";
+import { FiChevronDown } from "react-icons/fi";
+import { CategoryResponse } from "@/types/categoryTypes";
+import { getCategories } from "@/services/categories";
 
 type SubmissionState = "idle" | "submitting" | "success";
+type Coordinates = { longitude: number; latitude: number };
+type LocationSelectionPayload = {
+  placeName: string | null;
+  coordinates: Coordinates | null;
+};
+
+const DEFAULT_CATEGORY_DESCRIPTION = "More details about this category soon.";
+const CATEGORY_FIELD_LABEL_ID = "event-category-label";
 
 const createEmptyFormValues = (): EventFormInput => ({
   eventName: "",
   startDate: "",
   startTime: "",
+  category: "",
   endDate: "",
   endTime: "",
   location: "",
@@ -52,75 +81,161 @@ const inputClass =
 const labelClass = "text-sm font-medium text-neutral-700 dark:text-neutral-200";
 
 export function CreateEventForm() {
+  const router = useRouter();
   const [formValues, setFormValues] = useState<EventFormInput>(
     createEmptyFormValues,
   );
-  const [selectedCoordinates, setSelectedCoordinates] = useState<{
-    longitude: number;
-    latitude: number;
-  } | null>(null);
+  const [selectedCoordinates, setSelectedCoordinates] =
+    useState<Coordinates | null>(null);
   const [status, setStatus] = useState<SubmissionState>("idle");
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
-  const [serverError, setServerError] = useState<string | null>(null);
   const { user } = useUser();
   const email = user?.primaryEmailAddress?.emailAddress;
   const userId = user?.externalId;
 
-  const mapboxToken = useMemo(() => getPublicMapboxToken(), []);
+  const [categoryOptions, setCategoryOptions] = useState<CategoryResponse[]>(
+    [],
+  );
 
-  const updateField = (
-    field: keyof EventFormInput,
-    value: string,
-    options?: { preserveCoordinates?: boolean },
-  ) => {
-    setFormValues((prev) => ({ ...prev, [field]: value }));
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCategories = async () => {
+      try {
+        const categories = await getCategories();
+        if (!isMounted) {
+          return;
+        }
+        setCategoryOptions(categories.items);
+      } catch (error) {
+        console.error("Failed to load categories", error);
+        toast.error("We could not load categories. Please try again.");
+      }
+    };
+
+    fetchCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const mapboxToken = useMemo(() => getPublicMapboxToken(), []);
+  const selectedCategory = useMemo(
+    () =>
+      categoryOptions.find(
+        (category) => category.category_id === formValues.category,
+      ) ?? null,
+    [categoryOptions, formValues.category],
+  );
+
+  const patchFormValues = useCallback((updates: Partial<EventFormInput>) => {
+    setFormValues((prev) => ({ ...prev, ...updates }));
     setValidationErrors([]);
-    setServerError(null);
-    if (field === "location" && !options?.preserveCoordinates) {
-      setSelectedCoordinates(null);
-    }
-    if (status === "success") {
-      setStatus("idle");
-    }
-  };
+    setStatus((prev) => (prev === "success" ? "idle" : prev));
+  }, []);
+
+  const updateField = useCallback(
+    (
+      field: keyof EventFormInput,
+      value: string,
+      options?: { preserveCoordinates?: boolean },
+    ) => {
+      patchFormValues({ [field]: value } as Partial<EventFormInput>);
+      if (field === "location" && !options?.preserveCoordinates) {
+        setSelectedCoordinates(null);
+      }
+    },
+    [patchFormValues, setSelectedCoordinates],
+  );
+
+  const handleCategorySelect = useCallback(
+    (category: CategoryResponse) => {
+      updateField("category", category.category_id);
+    },
+    [updateField],
+  );
+
+  const handleLocationSelect = useCallback(
+    ({ placeName, coordinates }: LocationSelectionPayload) => {
+      if (placeName) {
+        updateField("location", placeName, { preserveCoordinates: true });
+      }
+      setSelectedCoordinates(coordinates);
+    },
+    [setSelectedCoordinates, updateField],
+  );
+
+  const startDateSelection = useMemo(
+    () => parseDateTimeValue(formValues.startDate, formValues.startTime),
+    [formValues.startDate, formValues.startTime],
+  );
+
+  const handleStartDateTimeChange = useCallback(
+    (date: string, time: string) => {
+      patchFormValues({ startDate: date, startTime: time });
+    },
+    [patchFormValues],
+  );
+
+  const handleEndDateTimeChange = useCallback(
+    (date: string, time: string) => {
+      patchFormValues({ endDate: date, endTime: time });
+    },
+    [patchFormValues],
+  );
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const loadingToastId = toast.loading("Creating event...");
     if (!userId) {
       setValidationErrors(["You must be logged in to create an event"]);
       setStatus("idle");
+      toast.dismiss(loadingToastId);
+      toast.error("You must be logged in to create an event");
       return;
     }
     setStatus("submitting");
     setValidationErrors([]);
-    setServerError(null);
 
     const result = EventFormSchema.safeParse(formValues);
     if (!result.success) {
       const issues = result.error.issues.map((issue) => issue.message);
       setValidationErrors(Array.from(new Set(issues)));
       setStatus("idle");
+      toast.dismiss(loadingToastId);
+      toast.error("Please fix the validation errors");
       return;
     }
 
     try {
-      const valuesWithCategory = {
+      const locationValue =
+        selectedCoordinates && formValues.location
+          ? encodeEventLocation({
+              address: formValues.location,
+              longitude: selectedCoordinates.longitude,
+              latitude: selectedCoordinates.latitude,
+            })
+          : result.data.location;
+
+      const valuesForPayload = {
         ...result.data,
-        categoryId: "2db3d8ac-257c-4ff9-ad97-ba96bfbf9bc5",
+        location: locationValue,
       };
-      await createEvent(buildEventCreatePayload(valuesWithCategory, userId));
+      await createEvent(buildEventCreatePayload(valuesForPayload, userId));
+      toast.dismiss(loadingToastId);
+      toast.success("Event created successfully");
       setStatus("success");
       setFormValues(createEmptyFormValues());
       setSelectedCoordinates(null);
-      setTimeout(() => {
-        redirect(`/events`);
-      }, 3000);
+      router.push(`/events`);
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
           : "We could not save the event. Please try again.";
-      setServerError(message);
+      toast.dismiss(loadingToastId);
+      toast.error(message);
       setStatus("idle");
     }
   };
@@ -157,18 +272,6 @@ export function CreateEventForm() {
         </div>
       ) : null}
 
-      {serverError ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-200">
-          {serverError}
-        </div>
-      ) : null}
-
-      {status === "success" ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-          New Event Created Successfully!
-        </div>
-      ) : null}
-
       <div className="space-y-8">
         <div className="space-y-6">
           <label className="grid gap-2">
@@ -180,6 +283,68 @@ export function CreateEventForm() {
               className={inputClass}
             />
           </label>
+
+          <span id={CATEGORY_FIELD_LABEL_ID} className={labelClass}>
+            Event category
+          </span>
+          <Menu as="div" className="relative w-full">
+            <MenuButton
+              className={`${inputClass} flex w-full items-center justify-between gap-4 text-left`}
+              aria-labelledby={CATEGORY_FIELD_LABEL_ID}
+            >
+              <span className="flex flex-col">
+                <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                  {selectedCategory?.category_name ?? "Select a category"}
+                </span>
+                <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {selectedCategory
+                    ? (selectedCategory.description ??
+                      DEFAULT_CATEGORY_DESCRIPTION)
+                    : "Select a category for your event"}
+                </span>
+              </span>
+              <span className="rounded-2xl bg-neutral-100 p-2 text-neutral-600 ring-1 ring-black/5 dark:bg-white/10 dark:text-neutral-200">
+                <FiChevronDown className="h-4 w-4" />
+              </span>
+            </MenuButton>
+            <Transition
+              as={Fragment}
+              enter="transition duration-150 ease-out"
+              enterFrom="translate-y-1 scale-95 opacity-0"
+              enterTo="translate-y-0 scale-100 opacity-100"
+              leave="transition duration-100 ease-in"
+              leaveFrom="translate-y-0 scale-100 opacity-100"
+              leaveTo="translate-y-1 scale-95 opacity-0"
+            >
+              <MenuItems className="absolute left-0 right-0 z-30 mt-3 origin-top rounded-3xl border border-neutral-200/80 bg-white/95 p-2 shadow-2xl shadow-amber-500/10 ring-1 ring-black/5 backdrop-blur dark:border-white/10 dark:bg-neutral-900/95">
+                <div className="space-y-1">
+                  {categoryOptions.map(
+                    ({ category_id, category_name, description }) => (
+                      <MenuItem
+                        key={category_id}
+                        as="button"
+                        onClick={() =>
+                          handleCategorySelect({
+                            category_id,
+                            category_name,
+                            description,
+                          })
+                        }
+                        className="group flex w-full items-center gap-4 rounded-2xl px-4 py-3 text-left text-sm text-neutral-800 transition hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 dark:text-neutral-100 dark:hover:bg-white/10"
+                      >
+                        <span className="flex flex-col text-left">
+                          <span className="font-semibold">{category_name}</span>
+                          <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                            {description ?? DEFAULT_CATEGORY_DESCRIPTION}
+                          </span>
+                        </span>
+                      </MenuItem>
+                    ),
+                  )}
+                </div>
+              </MenuItems>
+            </Transition>
+          </Menu>
 
           <label className="grid gap-2">
             <span className={labelClass}>Event image URL</span>
@@ -194,49 +359,21 @@ export function CreateEventForm() {
           </label>
 
           <div className="grid gap-6 sm:grid-cols-2">
-            <label className="grid gap-2">
-              <span className={labelClass}>Start date</span>
-              <input
-                type="date"
-                value={formValues.startDate}
-                onChange={(event) =>
-                  updateField("startDate", event.target.value)
-                }
-                className={inputClass}
-              />
-            </label>
-            <label className="grid gap-2">
-              <span className={labelClass}>Start time</span>
-              <input
-                type="time"
-                value={formValues.startTime}
-                onChange={(event) =>
-                  updateField("startTime", event.target.value)
-                }
-                className={inputClass}
-              />
-            </label>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            <label className="grid gap-2">
-              <span className={labelClass}>End date</span>
-              <input
-                type="date"
-                value={formValues.endDate}
-                onChange={(event) => updateField("endDate", event.target.value)}
-                className={inputClass}
-              />
-            </label>
-            <label className="grid gap-2">
-              <span className={labelClass}>End time</span>
-              <input
-                type="time"
-                value={formValues.endTime}
-                onChange={(event) => updateField("endTime", event.target.value)}
-                className={inputClass}
-              />
-            </label>
+            <EventDateTimePicker
+              id="event-start"
+              label="Start date & time"
+              dateValue={formValues.startDate}
+              timeValue={formValues.startTime}
+              onChange={handleStartDateTimeChange}
+            />
+            <EventDateTimePicker
+              id="event-end"
+              label="End date & time"
+              dateValue={formValues.endDate}
+              timeValue={formValues.endTime}
+              onChange={handleEndDateTimeChange}
+              minDate={startDateSelection}
+            />
           </div>
 
           <label className="grid gap-2">
@@ -253,14 +390,7 @@ export function CreateEventForm() {
             <EventLocationPickerMap
               mapboxToken={mapboxToken}
               coordinates={selectedCoordinates}
-              onLocationSelect={({ placeName, coordinates }) => {
-                if (placeName) {
-                  updateField("location", placeName, {
-                    preserveCoordinates: true,
-                  });
-                }
-                setSelectedCoordinates(coordinates);
-              }}
+              onLocationSelect={handleLocationSelect}
             />
             <div className="rounded-3xl border border-neutral-200/70 bg-white/85 p-6 shadow-lg shadow-amber-500/10 backdrop-blur dark:border-white/10 dark:bg-neutral-900/60">
               <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-neutral-500 dark:text-neutral-400">

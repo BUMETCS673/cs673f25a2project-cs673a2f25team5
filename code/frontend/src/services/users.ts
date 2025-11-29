@@ -9,39 +9,25 @@
 */
 
 import { z } from "zod";
-
 import { API_BASE_URL } from "./config";
-
-export const UserSchema = z.object({
-  user_id: z.string().uuid(),
-  first_name: z.string(),
-  last_name: z.string(),
-  email: z.string().email(),
-  date_of_birth: z.string(),
-  color: z.string().nullable().optional(),
-  created_at: z.string(),
-  updated_at: z.string(),
-});
-
-export type UserResponse = z.infer<typeof UserSchema>;
-
-const UserListSchema = z.object({
-  items: z.array(UserSchema),
-  total: z.number().int().nonnegative(),
-  offset: z.number().int().nonnegative(),
-  limit: z.number().int().positive(),
-});
+import { UserResponse, UserListSchema } from "@/types/userTypes";
+import { auth } from "@clerk/nextjs/server";
 
 export async function getUser(id: string): Promise<UserResponse> {
-  const userId = z.string().uuid().parse(id);
+  const userId = z.uuid().parse(id);
   const url = new URL("/users", API_BASE_URL);
   url.searchParams.append("filter_expression", `user_id:eq:${userId}`);
   url.searchParams.set("limit", "1");
+
+  const { getToken } = await auth();
+
+  const token = await getToken();
 
   const response = await fetch(url.toString(), {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
   });
 

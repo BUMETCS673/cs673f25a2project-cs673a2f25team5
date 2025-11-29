@@ -8,7 +8,7 @@ Framework-generated code: 0%
 
 import logging
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, cast
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
@@ -49,9 +49,9 @@ eventattendees = Table(
     Column("attendee_id", SQLAlchemyUUID(as_uuid=True), primary_key=True),
     Column("event_id", SQLAlchemyUUID(as_uuid=True), nullable=False),
     Column("user_id", SQLAlchemyUUID(as_uuid=True), nullable=False),
-    Column("status", attendee_status, nullable=True),
-    Column("created_at", DateTime(timezone=True)),
-    Column("updated_at", DateTime(timezone=True)),
+    Column("status", cast(Any, attendee_status), nullable=True),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
 )
 
 
@@ -162,6 +162,51 @@ async def create_attendee_db(att: AttendeeCreate) -> AttendeeRead:
     except Exception as e:
         logger.error(f"Unexpected error while creating attendee: {str(e)}")
         raise ValueError(f"Unexpected error while creating attendee: {str(e)}") from e
+
+
+async def batch_update_attendees_db(
+    updates: dict[UUID, dict[str, Any]],
+) -> dict[UUID, AttendeeRead]:
+    try:
+        now = datetime.now(UTC)
+        result: dict[UUID, AttendeeRead] = {}
+
+        async with engine.begin() as conn:
+            for attendee_id, update_data in updates.items():
+                update_data_with_timestamp: dict[str, Any] = {**update_data, "updated_at": now}
+
+                update_stmt = (
+                    eventattendees.update()
+                    .where(eventattendees.c.attendee_id == attendee_id)
+                    .values(**update_data_with_timestamp)
+                    .returning(eventattendees)
+                )
+
+                row = (await conn.execute(update_stmt)).fetchone()
+
+                if not row:
+                    logger.error(f"No attendee found with ID: {attendee_id}")
+                    raise NotFoundError(f"No attendee found with ID: {attendee_id}")
+
+                result[attendee_id] = AttendeeRead(
+                    attendee_id=row.attendee_id,
+                    event_id=row.event_id,
+                    user_id=row.user_id,
+                    status=AttendeeStatus(row.status) if row.status is not None else None,
+                    created_at=row.created_at,
+                    updated_at=row.updated_at,
+                )
+
+        return result
+
+    except NotFoundError:
+        raise
+    except SQLAlchemyError as e:
+        logger.error(f"Database error while batch updating attendees: {str(e)}")
+        raise ValueError(f"Database error while batch updating attendees: {str(e)}") from e
+    except Exception as e:
+        logger.error(f"Unexpected error while batch updating attendees: {str(e)}")
+        raise ValueError(f"Unexpected error while batch updating attendees: {str(e)}") from e
 
 
 async def delete_attendee_db(attendee_id: UUID) -> None:
