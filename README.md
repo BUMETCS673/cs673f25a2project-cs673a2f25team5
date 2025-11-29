@@ -658,6 +658,102 @@ in.
 
 ---
 
+## Stripe Payment Setup
+
+### **Overview**
+Stripe is integrated into the backend to handle secure payment processing for event registrations.  
+The backend communicates with the Stripe API using the official Stripe SDK and supports the following flow:
+
+1. **Create a Stripe Account:**  
+   - Go to [https://dashboard.stripe.com/register](https://dashboard.stripe.com/register) and sign up for a free Stripe account.  
+   - After login, go to **Developers → API keys** to get your **Publishable key** and **Secret key**.  
+   - Use your **test keys** (they start with `pk_test_` and `sk_test_`) for development.
+2. User selects an event → initiates checkout.
+3. Backend creates a **Stripe Checkout Session**.
+4. Stripe redirects user to hosted payment page.
+5. Stripe sends **webhook events** (e.g. `checkout.session.completed`) to the backend for payment confirmation.
+6. Payment details are stored in the `payments` table.
+
+### Required environment variables
+
+Add the following to your root `.env` (and mirror into your CI secrets if needed). These are used by the backend FastAPI service.
+
+```bash
+STRIPE_SECRET_KEY=sk_test_********************************
+STRIPE_WEBHOOK_SECRET=whsec_********************************
+APP_BASE_URL=http://127.0.0.1:8010
+FRONTEND_BASE_URL=http://localhost:3000
+```
+
+1. Run the following command to export all env variables.
+
+```bash
+export POSTGRES_USER=test
+POSTGRES_PASSWORD=test1234
+POSTGRES_PORT=5432
+POSTGRES_HOST=localhost
+POSTGRES_DB=event_manager
+PGADMIN_DEFAULT_EMAIL=admin@example.com
+PGADMIN_DEFAULT_PASSWORD=adminpass
+STRIPE_SECRET_KEY=sk_test_********************************
+STRIPE_WEBHOOK_SECRET=whsec_********************************
+APP_BASE_URL=http://127.0.0.1:8010
+FRONTEND_BASE_URL=http://localhost:3000
+```
+
+---
+
+### Stripe SDK & CLI Installation
+
+#### Install Stripe Python SDK
+The Stripe SDK enables your FastAPI backend to create checkout sessions and verify webhooks.
+
+```bash
+uv pip install stripe
+```
+Alternatively:
+```
+pip install stripe
+```
+
+#### Install Stripe CLI 
+
+The Stripe CLI securely forwards webhooks from Stripe’s cloud to your local backend.
+
+Windows (system-wide):-
+```
+winget install Stripe.StripeCLI
+```
+
+### Stripe CLI Setup
+
+Login to Stripe
+
+Authenticate your CLI with your Stripe account:
+```
+stripe login
+```
+This opens a browser window to confirm access and link your local CLI.
+
+### Start the Webhook Listener
+
+Forward live events from Stripe → your local FastAPI backend:
+```
+stripe listen --forward-to http://127.0.0.1:8010/payments/webhook
+```
+You’ll see an output like:
+```
+Ready! Your webhook signing secret is whsec_XXXXXXXX
+```
+Copy this whsec_XXXXXXXX value into your .env file as:
+```
+STRIPE_WEBHOOK_SECRET=whsec_XXXXXXXX
+```
+Then restart your backend so it loads the new secret.
+
+Ready to test payments and webhooks locally!
+
+
 ### GitHub Actions secrets
 
 `.github/workflows/frontend-ci.yml` now pulls Clerk secrets during the `check`

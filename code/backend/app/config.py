@@ -54,6 +54,17 @@ class Settings(BaseSettings):
         description="Frontend base URL for building invitation links.",
     )
 
+    # Stripe and frontend/app URLs
+    STRIPE_SECRET_KEY: str = Field(default="", description="Stripe secret API key")
+    STRIPE_WEBHOOK_SECRET: str = Field(default="", description="Stripe webhook signing secret")
+    FRONTEND_BASE_URL: str = Field(
+        default="http://localhost:3000",
+        description="Frontend base URL for redirecting after checkout",
+    )
+    APP_BASE_URL: str = Field(
+        default="http://127.0.0.1:8010", description="Backend API base URL"
+    )
+
     @field_validator("POSTGRES_PASSWORD")
     @classmethod
     def validate_password(cls, v: str) -> str:
@@ -73,6 +84,30 @@ class Settings(BaseSettings):
         if any(char in v for char in invalid_chars):
             raise ValueError(f"Database name contains invalid characters: {invalid_chars}")
         return v.strip()
+
+    @field_validator("STRIPE_SECRET_KEY")
+    @classmethod
+    def validate_stripe_key(cls, v: str) -> str:
+        if not v or not v.strip():
+            import warnings
+
+            warnings.warn(
+                "STRIPE_SECRET_KEY is not set payments will not work.",
+                stacklevel=2,
+            )
+        return v
+
+    @field_validator("STRIPE_WEBHOOK_SECRET")
+    @classmethod
+    def validate_webhook_secret(cls, v: str) -> str:
+        if not v or not v.strip():
+            import warnings
+
+            warnings.warn(
+                "STRIPE_WEBHOOK_SECRET is not set webhook verification will fail.",
+                stacklevel=2,
+            )
+        return v
 
     @property
     def DATABASE_URL(self) -> str:
