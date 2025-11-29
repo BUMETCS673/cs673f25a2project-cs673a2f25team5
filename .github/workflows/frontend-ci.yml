@@ -1,0 +1,140 @@
+name: Frontend CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: code/frontend
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: code/frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run ESLint
+        run: npm run lint
+
+  check:
+    name: Check Frontend
+    runs-on: ubuntu-latest
+    needs: lint
+    defaults:
+      run:
+        working-directory: code/frontend
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      CLERK_JWKS_URL: ${{ secrets.CLERK_JWKS_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      BACKEND_URL: ${{ secrets.BACKEND_URL }}
+      NEXT_PUBLIC_MAP_BOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAP_BOX_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: code/frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run build
+        run: npm run build
+
+  hadolint:
+    name: Lint frontend Dockerfile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint Dockerfile.frontend
+        uses: hadolint/hadolint-action@v3.2.0
+        with:
+          dockerfile: Dockerfile.frontend
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    needs: lint
+    defaults:
+      run:
+        working-directory: code/frontend
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_E2E: "1" # bypass auth in tests if needed
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: code/frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run unit tests
+        run: npm test -- --ci
+
+  docker:
+    name: Build and Push Docker image
+    runs-on: ubuntu-latest
+    needs: [check, hadolint, test]
+    env:
+      CLERK_JWKS_URL: ${{ secrets.CLERK_JWKS_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      BACKEND_URL: ${{ secrets.BACKEND_URL }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      NEXT_PUBLIC_MAP_BOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAP_BOX_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.frontend
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/event-manager-frontend:latest
+          build-args: |
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+            NEXT_PUBLIC_MAP_BOX_TOKEN=${{ secrets.NEXT_PUBLIC_MAP_BOX_TOKEN }}
+  semgrep:
+    name: Semgrep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Semgrep
+        run: pip install semgrep
+      - name: Run Semgrep (React rules)
+        run: semgrep --config p/react code/frontend
