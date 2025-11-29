@@ -127,3 +127,34 @@ export async function getEvents(
   const data = await response.json();
   return EventListSchema.parse(data);
 }
+
+type SimpleGetParams = Omit<GetEventsParams, "filters"> & {
+  offset?: number;
+  limit?: number;
+  signal?: AbortSignal;
+};
+
+/** Convenience wrappers used by UI code/tests. These call `getEvents` with a
+ * category-specific filter and return the raw EventListResponse. Tests may
+ * mock these functions and return either an array of events or an EventListResponse.
+ */
+export async function getAttendingEvents(
+  params?: SimpleGetParams,
+): Promise<EventListResponse | EventResponse[]> {
+  const { offset, limit, signal } = params ?? {};
+  return getEvents({ filters: ["attending"], offset, limit, signal });
+}
+
+export async function getCreatedEvents(
+  params?: SimpleGetParams,
+): Promise<EventListResponse | EventResponse[]> {
+  const { offset, limit, signal } = params ?? {};
+  return getEvents({ filters: ["created_by_me"], offset, limit, signal });
+}
+
+export async function getUpcomingEvents(
+  params?: SimpleGetParams,
+): Promise<EventListResponse | EventResponse[]> {
+  const { offset, limit, signal } = params ?? {};
+  return getEvents({ filters: ["upcoming"], offset, limit, signal });
+}

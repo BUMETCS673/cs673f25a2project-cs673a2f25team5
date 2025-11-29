@@ -10,55 +10,65 @@ Framework-generated code: 0%
 
 "use client";
 
+import { useEffect, useState } from "react";
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from "@headlessui/react";
+import {
+  getAttendingEvents,
+  getCreatedEvents,
+  getUpcomingEvents,
+} from "@/services/events";
+
+type AnyEvent = { event_id?: string; event_name?: string } & Record<string, any>;
+
+const TABS = ["Attending", "Created", "Upcoming"] as const;
 
 export default function Profile() {
-  const categories = {
-    Attending: [
-      {
-        id: 1,
-        title: "Saniya's Birthday",
-        date: "Aug 11",
-      },
-      {
-        id: 2,
-        title: "Christmas Party",
-        date: "Dec 25",
-      },
-    ],
-    Created: [
-      {
-        id: 1,
-        title: "Saniya's Birthday",
-        date: "Aug 11",
-      },
-      {
-        id: 2,
-        title: "Sai's Birthday",
-        date: "April 5",
-      },
-    ],
-    Upcoming: [
-      {
-        id: 1,
-        title: "Thanksgiving Dinner",
-        date: "Nov 27",
-      },
-      {
-        id: 2,
-        title: "Ice Skating Class",
-        date: "Nov 13",
-      },
-    ],
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [eventsMap, setEventsMap] = useState<Record<string, AnyEvent[]>>({});
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const fetchForTab = async (tab: string) => {
+    setLoading(true);
+    try {
+      let res: any;
+      if (tab === "Attending") {
+        res = await getAttendingEvents({ offset: 0, limit: 5 });
+      } else if (tab === "Created") {
+        res = await getCreatedEvents({ offset: 0, limit: 5 });
+      } else {
+        res = await getUpcomingEvents({ offset: 0, limit: 5 });
+      }
+
+      const items: AnyEvent[] = Array.isArray(res) ? res : res?.items ?? [];
+      setEventsMap((prev) => ({ ...prev, [tab]: items }));
+    } catch (err) {
+      console.error("Failed to fetch events for tab", tab, err);
+      setEventsMap((prev) => ({ ...prev, [tab]: [] }));
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    // initial load: fetch Attending
+    fetchForTab(TABS[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // when selected tab changes, fetch if not already fetched
+    const tab = TABS[selectedIndex];
+    if (!eventsMap[tab]) fetchForTab(tab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIndex]);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-start bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
       <div className="w-full max-w-2xl py-20">
-        <TabGroup>
+        <TabGroup selectedIndex={selectedIndex} onChange={setSelectedIndex}>
           {/* Tabs Header */}
           <TabList className="flex justify-center space-x-3 rounded-2xl bg-neutral-50 text-neutral-900 dark:text-neutral-100 dark:bg-neutral-950">
-            {Object.keys(categories).map((category) => (
+            {TABS.map((category) => (
               <Tab
                 key={category}
                 className={({ selected }) =>
@@ -76,28 +86,39 @@ export default function Profile() {
 
           {/* Tab Content */}
           <TabPanels className="mt-6">
-            {Object.values(categories).map((posts, idx) => (
-              <TabPanel
-                key={idx}
-                className="rounded-xl bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 p-5 shadow-lg ring-1 ring-neutral-400"
-              >
-                <ul className="space-y-4">
-                  {posts.map((post) => (
-                    <li
-                      key={post.id}
-                      className="rounded-md p-3 transition hover:bg-neutral-200 dark:hover:bg-neutral-800"
-                    >
-                      <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                        {post.title}
-                      </h3>
-                      <ul className="mt-1 flex space-x-1 text-xs text-neutral-500">
-                        <li>{post.date}</li>
-                      </ul>
-                    </li>
-                  ))}
-                </ul>
-              </TabPanel>
-            ))}
+            {TABS.map((tab) => {
+              const posts = eventsMap[tab] ?? [];
+              return (
+                <TabPanel
+                  key={tab}
+                  className="rounded-xl bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 p-5 shadow-lg ring-1 ring-neutral-400"
+                >
+                  {loading && posts.length === 0 ? (
+                    <div>Loading…</div>
+                  ) : posts.length === 0 ? (
+                    <div>No events</div>
+                  ) : (
+                    <ul className="space-y-4">
+                      {posts.map((post, idx) => (
+                        <li
+                          key={post.event_id ?? post.id ?? idx}
+                          className="rounded-md p-3 transition hover:bg-neutral-200 dark:hover:bg-neutral-800"
+                        >
+                          <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+                            {post.event_name ?? post.title}
+                          </h3>
+                          {post.event_datetime || post.date ? (
+                            <ul className="mt-1 flex space-x-1 text-xs text-neutral-500">
+                              <li>{post.event_datetime ?? post.date}</li>
+                            </ul>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </TabPanel>
+              );
+            })}
           </TabPanels>
         </TabGroup>
       </div>
