@@ -43,7 +43,7 @@ export function InvitationTray({ invitations }: InvitationTrayProps) {
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="relative inline-flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-neutral-900/40 transition hover:bg-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 dark:bg-neutral-800 dark:text-amber-100 dark:hover:bg-neutral-700"
+        className="relative inline-flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-3 text-sm font-semibold text-white shadow-xl shadow-neutral-900/40 transition hover:bg-neutral-800 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-amber-300 dark:bg-neutral-800 dark:text-amber-100 dark:hover:bg-neutral-700"
         aria-expanded={isOpen}
         aria-controls="invitation-tray-panel"
       >

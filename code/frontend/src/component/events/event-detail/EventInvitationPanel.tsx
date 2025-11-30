@@ -204,7 +204,7 @@ export function EventInvitationPanel({
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex items-center justify-center rounded-2xl bg-amber-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-200/60 transition hover:bg-amber-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-amber-500 dark:text-neutral-900 dark:shadow-amber-500/30 dark:hover:bg-amber-400 dark:focus-visible:outline-amber-300"
+            className="inline-flex items-center justify-center rounded-2xl bg-amber-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-200/60 transition hover:bg-amber-700 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-amber-300 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-amber-500 dark:text-neutral-900 dark:shadow-amber-500/30 dark:hover:bg-amber-400 dark:focus-visible:outline-amber-300"
           >
             {isPending ? "Sending..." : "Send invite"}
           </button>
