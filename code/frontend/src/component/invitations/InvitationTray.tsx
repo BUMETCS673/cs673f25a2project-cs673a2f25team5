@@ -53,9 +53,9 @@ export function InvitationTray({ invitations }: InvitationTrayProps) {
           {badgeLabel}
         </span>
         {isOpen ? (
-          <FaChevronDown className="h-3 w-3 opacity-80" />
-        ) : (
           <FaChevronUp className="h-3 w-3 opacity-80" />
+        ) : (
+          <FaChevronDown className="h-3 w-3 opacity-80" />
         )}
       </button>
 

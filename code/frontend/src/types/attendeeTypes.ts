@@ -2,7 +2,7 @@
 
  AI-generated code: 0%
 
- Human code: 100% (AttendeeSchema, AttendeeResponse, AttendeeListSchema, AttendeeListResponse, AttendeeCreatePayloadSchema, AttendeeCreatePayload, GetAttendeesParams) 
+ Human code: 100% (AttendeeSchema, AttendeeResponse, AttendeeStatusSchema, AttendeeStatus, AttendeeListSchema, AttendeeListResponse, AttendeeCreatePayloadSchema, AttendeeCreatePayload, GetAttendeesParams) 
 
  No framework-generated code.
 

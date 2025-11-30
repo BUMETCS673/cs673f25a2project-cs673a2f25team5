@@ -67,13 +67,13 @@ export default async function EventPage({
     successMessages: SUCCESS_MESSAGE_BY_STATUS,
   });
   const onInvite = isHostUser
-    ? createInviteAction({
+    ? await createInviteAction({
         eventId: event.event_id,
         hostUserId: event.user_id,
       })
     : null;
   const onResolveInvitee = isHostUser
-    ? createResolveInviteeAction({
+    ? await createResolveInviteeAction({
         hostUserId: event.user_id,
       })
     : null;

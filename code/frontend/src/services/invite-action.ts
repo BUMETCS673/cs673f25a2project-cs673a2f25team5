@@ -1,3 +1,15 @@
+/*
+
+ AI-generated code: 0%
+
+ Human code: 100% (functions: createInviteAction, createResolveInviteeAction, findInviteeCandidates)
+
+ Framework-generated code: 0%
+
+*/
+
+"use server";
+
 import { currentUser } from "@clerk/nextjs/server";
 import { z } from "zod";
 
@@ -73,7 +85,7 @@ async function findInviteeCandidates(
   return candidates.slice(0, limit);
 }
 
-export function createInviteAction({
+export async function createInviteAction({
   eventId,
   hostUserId,
 }: InviteActionOptions) {
@@ -213,7 +225,7 @@ type ResolveInviteeOptions = {
   hostUserId: string;
 };
 
-export function createResolveInviteeAction({
+export async function createResolveInviteeAction({
   hostUserId,
 }: ResolveInviteeOptions) {
   return async function resolveInvitee(

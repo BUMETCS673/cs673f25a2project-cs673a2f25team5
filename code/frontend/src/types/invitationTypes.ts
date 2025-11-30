@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 0%
+
+ Human code: 100% (types: InviteActionResult, InviteActionHandler, InviteeLookupResult, InviteeLookupHandler, InvitationSummary, InviteActionSuccess, InviteActionFailure, InviteeLookupSuccess, InviteeLookupFailure)
+
+ Framework-generated code: 0%
+
+*/
+
 import type { UserResponse } from "./userTypes";
 
 export type InviteActionSuccess = {

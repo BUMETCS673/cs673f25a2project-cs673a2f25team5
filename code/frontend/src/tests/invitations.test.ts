@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 0%
+
+ Human code: 100% (tests: fetchPendingInvitations filters past events and decodes locations)
+
+ Framework-generated code: 0%
+
+*/
+
 import { fetchPendingInvitations } from "@/services/invitations";
 import { getAttendees } from "@/services/attendees";
 import { getEvents } from "@/services/events";

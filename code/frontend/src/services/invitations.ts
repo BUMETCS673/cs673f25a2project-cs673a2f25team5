@@ -1,9 +1,21 @@
 "use server";
 
+/*
+
+ AI-generated code: 0%
+
+ Human code: 100% (functions: fetchPendingInvitations, formatEventDate, isEventUpcoming)
+
+ Framework-generated code: 0%
+
+*/
+
 import { getAttendees } from "./attendees";
 import { getEvents } from "./events";
 import type { InvitationSummary } from "@/types/invitationTypes";
 import { decodeEventLocation } from "@/helpers/locationCodec";
+
+const MAX_PENDING_INVITATIONS_FETCH_LIMIT = 200;
 
 function formatEventDate(value: string | null | undefined) {
   if (!value) return null;
@@ -37,7 +49,7 @@ export async function fetchPendingInvitations(
   try {
     const attendeeResult = await getAttendees({
       filters: [`user_id:eq:${userId}`],
-      limit: 50,
+      limit: MAX_PENDING_INVITATIONS_FETCH_LIMIT,
     });
 
     const pending = attendeeResult.items.filter((item) => item.status === null);
