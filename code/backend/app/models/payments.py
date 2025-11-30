@@ -20,6 +20,7 @@ class PaymentStatus(str, Enum):
     succeeded = "succeeded"
     failed = "failed"
     canceled = "canceled"
+    refunded = "refunded"
 
 
 class PaymentCreate(BaseModel):
@@ -29,6 +30,7 @@ class PaymentCreate(BaseModel):
     currency: str = "usd"
     stripe_checkout_session_id: str | None = None
     stripe_payment_intent_id: str | None = None
+    stripe_refund_id: str | None = None
     status: PaymentStatus = PaymentStatus.created
 
 
@@ -45,5 +47,16 @@ class CheckoutRequest(BaseModel):
     email: str | None = None
 
 
+class RefundRequest(BaseModel):
+    event_id: UUID
+    user_id: UUID
+
+
+class RefundResponse(BaseModel):
+    status: str
+    refund_id: str | None = None
+
+
 class CheckoutResponse(BaseModel):
-    checkout_url: str
+    checkout_url: str | None = None
+    already_paid: bool = False
