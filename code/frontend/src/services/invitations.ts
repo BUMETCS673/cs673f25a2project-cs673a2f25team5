@@ -15,6 +15,7 @@ import { getEvents } from "./events";
 import type { InvitationSummary } from "@/types/invitationTypes";
 import { decodeEventLocation } from "@/helpers/locationCodec";
 
+// Limit pending invites shown in the tray to keep loading snappy and UI readable.
 const MAX_PENDING_INVITATIONS_FETCH_LIMIT = 200;
 
 function formatEventDate(value: string | null | undefined) {

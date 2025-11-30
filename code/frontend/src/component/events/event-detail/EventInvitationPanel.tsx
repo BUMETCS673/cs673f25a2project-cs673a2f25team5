@@ -28,6 +28,8 @@ type EventInvitationPanelProps = {
 
 type BannerTone = "success" | "info" | "error";
 
+const INVITEE_LOOKUP_DEBOUNCE_MS = 400;
+
 function bannerClasses(tone: BannerTone) {
   if (tone === "success") {
     return "border-emerald-200/70 bg-emerald-50 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-100";
@@ -96,7 +98,7 @@ export function EventInvitationPanel({
         .finally(() => {
           setIsResolving(false);
         });
-    }, 400);
+    }, INVITEE_LOOKUP_DEBOUNCE_MS);
 
     return () => clearTimeout(timer);
   }, [inviteeQuery, resolveInvitee]);

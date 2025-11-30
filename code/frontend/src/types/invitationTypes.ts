@@ -58,6 +58,9 @@ export type InviteeLookupHandler = (
   identifier: string,
 ) => Promise<InviteeLookupResult>;
 
+/**
+ * Pending invitation used by the invitation tray; contains denormalized event info for quick rendering.
+ */
 export type InvitationSummary = {
   attendeeId: string;
   eventId: string;

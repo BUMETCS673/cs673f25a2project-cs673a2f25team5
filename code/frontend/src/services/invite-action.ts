@@ -35,10 +35,12 @@ function isUuidLike(value: string) {
   return z.string().uuid().safeParse(value).success;
 }
 
+const MAX_INVITEE_CANDIDATES = 5;
+
 async function findInviteeCandidates(
   identifier: string,
   hostUserId: string,
-  limit = 5,
+  limit = MAX_INVITEE_CANDIDATES,
 ): Promise<UserResponse[]> {
   const attempts: Array<{ filters: string[]; limit?: number }> = [];
   const trimmed = identifier.trim();
