@@ -9,9 +9,15 @@ Framework-generated code: 0%
 from fastapi import APIRouter, Request
 from starlette.responses import JSONResponse
 
-from app.models.payments import CheckoutRequest, CheckoutResponse
+from app.models.payments import (
+    CheckoutRequest,
+    CheckoutResponse,
+    RefundRequest,
+    RefundResponse,
+)
 from app.service.stripe_service import (
     create_checkout_session_for_payment,
+    refund_payment_for_event_user,
     process_webhook_event,
 )
 
@@ -56,6 +62,19 @@ async def create_session(data: CheckoutRequest) -> CheckoutResponse:
     - lets the service raise HTTPException on Stripe / internal errors
     """
     return await create_checkout_session_for_payment(data)
+
+
+@router.post(
+    "/refund",
+    response_model=RefundResponse,
+    summary="Refund latest successful payment for an event/user",
+    description=(
+        "Finds the most recent successful payment for the given event and user, "
+        "and issues a Stripe refund if it has not already been refunded."
+    ),
+)
+async def refund_payment(data: RefundRequest) -> RefundResponse:
+    return await refund_payment_for_event_user(data)
 
 
 @router.post(

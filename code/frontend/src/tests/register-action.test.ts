@@ -12,12 +12,21 @@ import {
   getAttendees,
   patchAttendees,
 } from "@/services/attendees";
+import {
+  createCheckoutSession,
+  refundPayment,
+} from "@/services/payments";
 import { currentUser } from "@clerk/nextjs/server";
 
 jest.mock("@/services/attendees", () => ({
   createAttendee: jest.fn(),
   getAttendees: jest.fn(),
   patchAttendees: jest.fn(),
+}));
+
+jest.mock("@/services/payments", () => ({
+  createCheckoutSession: jest.fn(),
+  refundPayment: jest.fn(),
 }));
 
 jest.mock("@clerk/nextjs/server", () => ({
@@ -33,6 +42,10 @@ const mockGetAttendees = getAttendees as jest.MockedFunction<
 const mockPatchAttendees = patchAttendees as jest.MockedFunction<
   typeof patchAttendees
 >;
+const mockCreateCheckoutSession =
+  createCheckoutSession as jest.MockedFunction<typeof createCheckoutSession>;
+const mockRefundPayment =
+  refundPayment as jest.MockedFunction<typeof refundPayment>;
 const mockCurrentUser = currentUser as jest.MockedFunction<typeof currentUser>;
 
 beforeEach(() => {
@@ -276,5 +289,50 @@ describe("createRegisterAction", () => {
     );
     expect(result.toast).toBeUndefined();
     mute.mockRestore();
+  });
+
+  it("skips checkout when a successful payment already exists", async () => {
+    mockCurrentUser.mockResolvedValueOnce({
+      externalId: VIEWER_ID,
+      primaryEmailAddress: { emailAddress: "person@example.com" },
+    } as never);
+    mockCreateAttendee.mockResolvedValueOnce(undefined as never);
+    mockCreateCheckoutSession.mockResolvedValueOnce({
+      checkout_url: null,
+      already_paid: true,
+    });
+
+    const onRegister = baseAction({ priceCents: 1500 });
+    const result = await onRegister(EVENT_ID, "RSVPed");
+
+    expect(mockCreateCheckoutSession).toHaveBeenCalledWith({
+      event_id: EVENT_ID,
+      user_id: VIEWER_ID,
+      amount_usd: "15.00",
+      email: "person@example.com",
+    });
+    expect(result.redirectUrl).toBeUndefined();
+    expect(result.message).toMatch(/already paid/i);
+    expect(result.toast).toBe("info");
+  });
+
+  it("issues a refund when changing a paid RSVP to Not Going", async () => {
+    mockCurrentUser.mockResolvedValueOnce({
+      externalId: VIEWER_ID,
+    } as never);
+    mockCreateAttendee.mockResolvedValueOnce(undefined as never);
+    mockRefundPayment.mockResolvedValueOnce({
+      status: "refunded",
+      refund_id: "re_123",
+    });
+
+    const onRegister = baseAction({ priceCents: 2000 });
+    const result = await onRegister(EVENT_ID, "Not Going");
+
+    expect(result.success).toBe(true);
+    expect(mockRefundPayment).toHaveBeenCalledWith({
+      event_id: EVENT_ID,
+      user_id: VIEWER_ID,
+    });
   });
 });
