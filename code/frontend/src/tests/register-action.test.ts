@@ -12,10 +12,7 @@ import {
   getAttendees,
   patchAttendees,
 } from "@/services/attendees";
-import {
-  createCheckoutSession,
-  refundPayment,
-} from "@/services/payments";
+import { createCheckoutSession, refundPayment } from "@/services/payments";
 import { currentUser } from "@clerk/nextjs/server";
 
 jest.mock("@/services/attendees", () => ({
@@ -42,10 +39,12 @@ const mockGetAttendees = getAttendees as jest.MockedFunction<
 const mockPatchAttendees = patchAttendees as jest.MockedFunction<
   typeof patchAttendees
 >;
-const mockCreateCheckoutSession =
-  createCheckoutSession as jest.MockedFunction<typeof createCheckoutSession>;
-const mockRefundPayment =
-  refundPayment as jest.MockedFunction<typeof refundPayment>;
+const mockCreateCheckoutSession = createCheckoutSession as jest.MockedFunction<
+  typeof createCheckoutSession
+>;
+const mockRefundPayment = refundPayment as jest.MockedFunction<
+  typeof refundPayment
+>;
 const mockCurrentUser = currentUser as jest.MockedFunction<typeof currentUser>;
 
 beforeEach(() => {

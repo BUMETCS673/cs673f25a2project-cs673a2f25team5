@@ -11,6 +11,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 import stripe
 from fastapi import HTTPException
+from stripe import error as stripe_error
 
 import app.db.payments as payments_db
 from app.config import settings
@@ -22,7 +23,6 @@ from app.models.payments import (
     RefundRequest,
     RefundResponse,
 )
-from stripe import error as stripe_error
 
 logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -87,7 +87,11 @@ async def create_checkout_session_for_payment(data: CheckoutRequest) -> Checkout
         user_id=data.user_id,
         statuses=(PaymentStatus.succeeded,),
     )
-    if existing and existing.status == PaymentStatus.succeeded and existing.stripe_refund_id is None:
+    if (
+        existing
+        and existing.status == PaymentStatus.succeeded
+        and existing.stripe_refund_id is None
+    ):
         return CheckoutResponse(checkout_url=None, already_paid=True)
 
     # 1) Create an initial payment record in 'created' state
