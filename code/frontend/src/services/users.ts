@@ -10,7 +10,12 @@
 
 import { z } from "zod";
 import { API_BASE_URL } from "./config";
-import { UserResponse, UserListSchema } from "@/types/userTypes";
+import {
+  UserResponse,
+  UserListSchema,
+  UserListResponse,
+  GetUsersParams,
+} from "@/types/userTypes";
 import { auth } from "@clerk/nextjs/server";
 
 export async function getUser(id: string): Promise<UserResponse> {
@@ -44,4 +49,42 @@ export async function getUser(id: string): Promise<UserResponse> {
   }
 
   return user;
+}
+
+export async function getUsers(
+  params?: GetUsersParams,
+): Promise<UserListResponse> {
+  const { filters, offset, limit, signal } = params ?? {};
+  const url = new URL("/users", API_BASE_URL);
+
+  for (const filter of filters ?? []) {
+    url.searchParams.append("filter_expression", filter);
+  }
+
+  if (typeof offset === "number") {
+    url.searchParams.set("offset", offset.toString());
+  }
+
+  if (typeof limit === "number") {
+    url.searchParams.set("limit", limit.toString());
+  }
+
+  const { getToken } = await auth();
+  const token = await getToken();
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  const data = await response.json();
+  return UserListSchema.parse(data);
 }

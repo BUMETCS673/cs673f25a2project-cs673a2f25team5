@@ -1,7 +1,5 @@
 import { EventRegisterData } from "@/component/events/event-detail/viewModel";
-import type { AttendeeCreatePayload } from "./attendeeTypes";
-
-type AttendeeStatus = AttendeeCreatePayload["status"];
+import type { AttendeeStatus } from "./attendeeTypes";
 
 type RegisterAttendeeSuccess = {
   success: true;

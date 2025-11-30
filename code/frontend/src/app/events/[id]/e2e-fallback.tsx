@@ -45,10 +45,13 @@ export async function renderE2EEventPage(eventId: string) {
   return (
     <EventPageLayout
       eventId={event.event_id}
+      eventName={event.event_name}
       eventLocation={event.event_location}
       initialStatus={null}
       isAuthenticated={false}
       isHost={false}
+      inviteAction={null}
+      resolveInvitee={null}
       onRegister={disabledRegister}
       viewModel={viewModel}
     />

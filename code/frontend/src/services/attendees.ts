@@ -20,12 +20,13 @@ import {
   AttendeeListSchema,
   AttendeeListResponse,
   GetAttendeesParams,
+  AttendeeStatus,
 } from "../types/attendeeTypes";
 
 type AttendeePatchOperation = {
   op: "replace";
   path: "/status";
-  value: AttendeeCreatePayload["status"];
+  value: AttendeeStatus;
 };
 
 export type AttendeePatchRequest = Record<string, AttendeePatchOperation>;
