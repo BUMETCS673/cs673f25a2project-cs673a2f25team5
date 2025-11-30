@@ -7,9 +7,9 @@ Framework-generated code: 0%
 """
 
 import logging
+from datetime import UTC, datetime
 from uuid import UUID
 
-from datetime import datetime, UTC
 from fastapi import HTTPException
 
 import app.db.attendees as attendees_db
@@ -42,7 +42,7 @@ async def create_attendee_service(att: AttendeeCreate) -> AttendeeRead:
     if not existing_events:
         logger.warning(f"Event with event_id '{att.event_id}' does not exist.")
         raise HTTPException(status_code=404, detail="No such event exists")
-    
+
     event = existing_events[0]
 
     event_dt = event.event_datetime
