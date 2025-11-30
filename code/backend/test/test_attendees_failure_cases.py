@@ -474,3 +474,48 @@ async def test_patch_attendee_invalid_uuid_format(test_client: AsyncClient):
 
     response = await test_client.patch("/attendees", json=patch_data)
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_cannot_rsvp_to_past_event(test_client: AsyncClient):
+    """Attendee creation must return 404 when event_datetime is in the past."""
+
+    cat_id = await categories_db.create_category_db("General", "General")
+
+    user_resp = await test_client.post(
+        "/users",
+        json={
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "john.doe@example.com",
+            "date_of_birth": "1990-01-01",
+        },
+    )
+    assert user_resp.status_code == 201
+    user_id = user_resp.json()["user_id"]
+
+    start = datetime.now(UTC) - timedelta(hours=1)
+    end = start + timedelta(hours=2)
+    event_resp = await test_client.post(
+        "/events",
+        json={
+            "event_name": "Tech Talk",
+            "event_location": "Test Location",
+            "event_datetime": start.isoformat(),
+            "event_endtime": end.isoformat(),
+            "capacity": 10,
+            "price_field": 0,
+            "user_id": user_id,
+            "category_id": str(cat_id),
+        },
+    )
+    assert event_resp.status_code == 201
+    event_id = event_resp.json()["event_id"]
+
+    resp = await test_client.post(
+        "/attendees",
+        json={"event_id": event_id, "user_id": user_id, "status": "RSVPed"},
+    )
+    assert resp.status_code == 404
+    detail = resp.json().get("detail", "")
+    assert "time has already passed" in detail.lower()
