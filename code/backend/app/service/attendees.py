@@ -9,6 +9,7 @@ Framework-generated code: 0%
 import logging
 from uuid import UUID
 
+from datetime import datetime, UTC
 from fastapi import HTTPException
 
 import app.db.attendees as attendees_db
@@ -41,6 +42,21 @@ async def create_attendee_service(att: AttendeeCreate) -> AttendeeRead:
     if not existing_events:
         logger.warning(f"Event with event_id '{att.event_id}' does not exist.")
         raise HTTPException(status_code=404, detail="No such event exists")
+    
+    event = existing_events[0]
+
+    event_dt = event.event_datetime
+    if event_dt.tzinfo is None:
+        event_dt = event_dt.replace(tzinfo=UTC)
+
+    now = datetime.now(UTC)
+
+    # Check full date + time
+    if event_dt < now:
+        raise HTTPException(
+            status_code=404,
+            detail="Cannot RSVP: The event date and time has already passed",
+        )
 
     existing_users, _ = await users_db.get_users_db(
         [FilterOperation("user_id", "eq", att.user_id)], limit=1
