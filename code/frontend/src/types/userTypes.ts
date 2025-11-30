@@ -32,3 +32,10 @@ export const UserListSchema = z.object({
 });
 
 export type UserListResponse = z.infer<typeof UserListSchema>;
+
+export type GetUsersParams = {
+  filters?: string[];
+  offset?: number;
+  limit?: number;
+  signal?: AbortSignal;
+};

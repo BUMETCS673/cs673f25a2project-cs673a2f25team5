@@ -14,12 +14,15 @@ export const AttendeeSchema = z.object({
   attendee_id: z.uuid(),
   event_id: z.uuid(),
   user_id: z.uuid(),
-  status: z.enum(["RSVPed", "Maybe", "Not Going"]),
+  status: z.enum(["RSVPed", "Maybe", "Not Going"]).nullable(),
   created_at: z.string(),
   updated_at: z.string(),
 });
 
 export type AttendeeResponse = z.infer<typeof AttendeeSchema>;
+
+export const AttendeeStatusSchema = z.enum(["RSVPed", "Maybe", "Not Going"]);
+export type AttendeeStatus = z.infer<typeof AttendeeStatusSchema>;
 
 export const AttendeeListSchema = z.object({
   items: z.array(AttendeeSchema),
@@ -32,7 +35,7 @@ export type AttendeeListResponse = z.infer<typeof AttendeeListSchema>;
 export const AttendeeCreatePayloadSchema = z.object({
   event_id: z.uuid(),
   user_id: z.uuid(),
-  status: z.enum(["RSVPed", "Maybe", "Not Going"]),
+  status: AttendeeStatusSchema.nullable().optional(),
 });
 export type AttendeeCreatePayload = z.infer<typeof AttendeeCreatePayloadSchema>;
 

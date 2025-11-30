@@ -20,6 +20,10 @@ import {
 } from "./event-page-data";
 import { renderE2EEventPage } from "./e2e-fallback";
 import {
+  createInviteAction,
+  createResolveInviteeAction,
+} from "@/services/invite-action";
+import {
   HOST_REGISTRATION_MESSAGE,
   createRegisterAction,
 } from "../../../services/register-action";
@@ -62,14 +66,28 @@ export default async function EventPage({
     hostUserId: event.user_id,
     successMessages: SUCCESS_MESSAGE_BY_STATUS,
   });
+  const onInvite = isHostUser
+    ? createInviteAction({
+        eventId: event.event_id,
+        hostUserId: event.user_id,
+      })
+    : null;
+  const onResolveInvitee = isHostUser
+    ? createResolveInviteeAction({
+        hostUserId: event.user_id,
+      })
+    : null;
 
   return (
     <EventPageLayout
       eventId={event.event_id}
+      eventName={viewModel.header.title}
       eventLocation={event.event_location ?? null}
       initialStatus={initialStatus}
       isAuthenticated={Boolean(attendeeExternalId)}
       isHost={isHostUser}
+      inviteAction={onInvite}
+      resolveInvitee={onResolveInvitee}
       onRegister={onRegister}
       viewModel={viewModel}
     />

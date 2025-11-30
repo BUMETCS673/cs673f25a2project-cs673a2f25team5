@@ -14,6 +14,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/component/ui/Header";
 import { Toaster } from "sonner";
+import { InvitationTrayLoader } from "@/component/invitations/InvitationTrayLoader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,7 @@ export default function RootLayout({
           <Toaster position="bottom-right" />
           <Header />
           {children}
+          <InvitationTrayLoader />
         </body>
       </html>
     </ClerkProvider>
