@@ -190,6 +190,7 @@ class EventRead(EventBase):
         description="Current number of attendees for this event",
     )
 
+
 class PaginatedEvents(BaseModel):
     items: list[EventRead] = Field(..., description="List of events in the current page")
     total: int = Field(..., description="Total number of events")

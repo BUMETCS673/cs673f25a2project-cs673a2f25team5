@@ -118,6 +118,8 @@ async def get_attendees_db(
     except Exception as e:
         logger.error(f"Unexpected error while getting attendees: {str(e)}")
         raise ValueError(f"Unexpected error while getting attendees: {str(e)}") from e
+
+
 async def get_attendee_counts_for_events_db(
     event_ids: list[UUID],
 ) -> dict[UUID, int]:
@@ -149,19 +151,16 @@ async def get_attendee_counts_for_events_db(
             return counts
 
     except SQLAlchemyError as e:
-        logger.error(
-            "Database error while getting attendee counts for events: %s", str(e)
-        )
+        logger.error("Database error while getting attendee counts for events: %s", str(e))
         raise ValueError(
             f"Database error while getting attendee counts for events: {str(e)}"
         ) from e
     except Exception as e:
-        logger.error(
-            "Unexpected error while getting attendee counts for events: %s", str(e)
-        )
+        logger.error("Unexpected error while getting attendee counts for events: %s", str(e))
         raise ValueError(
             f"Unexpected error while getting attendee counts for events: {str(e)}"
         ) from e
+
 
 async def create_attendee_db(att: AttendeeCreate) -> AttendeeRead:
     try:
