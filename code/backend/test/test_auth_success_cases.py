@@ -110,7 +110,9 @@ async def test_verify_clerk_token_success(valid_clerk_payload: dict[str, Any]):
         assert isinstance(result, ClerkTokenPayload)
         assert result.sub == "user_123456"
         assert result.email == "test@example.com"
-        mock_jwk_client.assert_called_once_with("https://clerk.example.com/.well-known/jwks.json")
+        mock_jwk_client.assert_called_once_with(
+            "https://clerk.example.com/.well-known/jwks.json"
+        )
         mock_jwt_decode.assert_called_once()
 
 
@@ -156,7 +158,9 @@ async def test_get_current_user_dev_mode():
 @pytest.mark.asyncio
 @patch("app.auth.settings.CLERK_AUTH_ENABLED", True)
 @patch("app.auth.verify_clerk_token")
-async def test_get_current_user_with_valid_token(mock_verify: MagicMock, valid_clerk_payload: dict[str, Any]):
+async def test_get_current_user_with_valid_token(
+    mock_verify: MagicMock, valid_clerk_payload: dict[str, Any]
+):
     mock_verify.return_value = ClerkTokenPayload(valid_clerk_payload)
     credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="valid-token")
 
