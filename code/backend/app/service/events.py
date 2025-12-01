@@ -14,6 +14,7 @@ from fastapi import HTTPException
 import app.db.categories as categories_db
 import app.db.events as events_db
 import app.db.users as users_db
+import app.db.attendees as attendees_db
 from app.db.filters import FilterOperation
 from app.models.events import EventBase, EventCreate, EventRead, PaginatedEvents
 from app.models.patch import PatchRequest
@@ -25,12 +26,31 @@ logger = logging.getLogger(__name__)
 
 @handle_service_exceptions
 async def get_events_service(
-    filter_expression: list[str] | None = None, offset: int = 0, limit: int = 100
+    filter_expression: list[str] | None = None,
+    offset: int = 0,
+    limit: int = 100,
 ) -> PaginatedEvents:
     filters = [parse_filter(f) for f in (filter_expression or [])]
-
     events, total = await events_db.get_events_db(filters, offset, limit)
-    return PaginatedEvents(items=events, total=total, offset=offset, limit=limit)
+
+    if not events:
+        return PaginatedEvents(items=[], total=total, offset=offset, limit=limit)
+
+    event_ids = [event.event_id for event in events]
+    attendee_counts = await attendees_db.get_attendee_counts_for_events_db(event_ids)
+
+    events_with_counts: list[EventRead] = []
+    for event in events:
+        count = attendee_counts.get(event.event_id, 0)
+        event_with_count = event.model_copy(update={"attendee_count": count})
+        events_with_counts.append(event_with_count)
+
+    return PaginatedEvents(
+        items=events_with_counts,
+        total=total,
+        offset=offset,
+        limit=limit,
+    )
 
 
 @handle_service_exceptions
