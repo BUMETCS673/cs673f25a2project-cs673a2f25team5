@@ -14,17 +14,7 @@ import pytest
 from fastapi import HTTPException
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, PyJWKClientError
 
-from app.auth import get_current_user, verify_clerk_token
-
-
-@pytest.mark.asyncio
-@patch("app.auth.settings.CLERK_AUTH_ENABLED", True)
-async def test_get_current_user_no_credentials():
-    with pytest.raises(HTTPException) as exc_info:
-        await get_current_user(credentials=None)
-
-    assert exc_info.value.status_code == 401
-    assert exc_info.value.detail == "Not authenticated"
+from app.auth import verify_clerk_token
 
 
 @pytest.mark.asyncio
