@@ -20,7 +20,6 @@ import {
   EventSchema,
   EventListSchema,
 } from "../types/eventTypes";
-//import { getAttendees } from "./attendees";
 
 export async function createEvent(
   payload: EventCreatePayload,

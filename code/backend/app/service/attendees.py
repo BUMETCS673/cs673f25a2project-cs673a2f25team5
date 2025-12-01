@@ -14,6 +14,7 @@ from fastapi import HTTPException
 import app.db.attendees as attendees_db
 import app.db.events as events_db
 import app.db.users as users_db
+
 from app.db.filters import FilterOperation
 from app.models.attendees import AttendeeBase, AttendeeCreate, AttendeeRead, PaginatedAttendees
 from app.models.patch import PatchRequest
