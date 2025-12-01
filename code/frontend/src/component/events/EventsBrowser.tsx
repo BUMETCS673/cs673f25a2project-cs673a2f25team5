@@ -1,23 +1,14 @@
-/*
-
-
-AI-generated code: 65% (tool: Codex - GPT-5, query, setQuery, trimmedQuery, hasQuery, shouldFetchRemoteSearch, eventsToRender, isRemoteLoading, isBaseLoading, baseError, remoteError, showEmptyState, pagination, handlePreviousPage, handleNextPage, handleBaseRetry, handleRemoteRetry, useEventsBrowserState, initialResult)
-Human code: 35% (functions: EventsBrowser, EventsBrowserProps, useEventsBrowserState)
-
-
-No framework-generated code.
-
-
-*/
-
 "use client";
+
 import { useState, useMemo } from "react";
 import type { EventListResponse } from "@/types/eventTypes";
+import { CalendarFilter, CalendarFilterValue } from "./CalendarFilter";
 import { EventFilter } from "@/component/events/EventFilter";
 import { EventSearchField } from "./EventSearchField";
 import { EventsResults } from "./EventsResults";
 import { useEventsBrowserState } from "./hooks/useEventsBrowserState";
 import { MapDiscoveryModalTrigger } from "./MapDiscoveryModal";
+import { FaCalendarDays } from "react-icons/fa6";
 
 type EventsBrowserProps = {
   initialResult: EventListResponse;
@@ -44,9 +35,33 @@ export function EventsBrowser({ initialResult }: EventsBrowserProps) {
   } = useEventsBrowserState(initialResult);
 
   const [sort, setSort] = useState("Date");
+  const [calendarValue, setCalendarValue] =
+    useState<CalendarFilterValue | null>(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const filteredEvents = useMemo(() => {
+    if (!calendarValue) return eventsToRender;
+
+    return eventsToRender.filter((event) => {
+      const eventDate = new Date(event.event_datetime).getTime();
+
+      switch (calendarValue.type) {
+        case "before":
+          return eventDate <= new Date(calendarValue.date).getTime();
+        case "after":
+          return eventDate >= new Date(calendarValue.date).getTime();
+        case "between":
+          const start = new Date(calendarValue.start).getTime();
+          const end = new Date(calendarValue.end).getTime();
+          return eventDate >= start && eventDate <= end;
+        default:
+          return true;
+      }
+    });
+  }, [eventsToRender, calendarValue]);
 
   const sortedEvents = useMemo(() => {
-    return [...eventsToRender].sort((a, b) => {
+    return [...filteredEvents].sort((a, b) => {
       switch (sort) {
         case "Date":
           return (
@@ -67,13 +82,28 @@ export function EventsBrowser({ initialResult }: EventsBrowserProps) {
           return 0;
       }
     });
-  }, [eventsToRender, sort]);
+  }, [filteredEvents, sort]);
 
   return (
-    <div className="space-y-8">
-      <div>
+    <div className="space-y-8 relative">
+      <div className="flex justify-end items-center gap-2 relative">
+        <button
+          type="button"
+          className="p-2 rounded-xl text-amber-300 cursor-pointer"
+          onClick={() => setIsCalendarOpen((prev) => !prev)}
+        >
+          <FaCalendarDays className="h-6 w-6" />
+        </button>
+
+        {isCalendarOpen && (
+          <div className="absolute right-0 top-full mt-2 z-50">
+            <CalendarFilter value={calendarValue} onChange={setCalendarValue} />
+          </div>
+        )}
+
         <EventFilter value={sort} onChange={setSort} />
       </div>
+
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="w-full lg:max-w-[540px]">
           <EventSearchField
