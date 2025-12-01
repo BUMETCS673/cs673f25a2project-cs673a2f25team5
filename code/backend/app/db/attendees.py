@@ -11,15 +11,7 @@ from datetime import UTC, datetime
 from typing import Any, cast
 from uuid import UUID, uuid4
 
-from sqlalchemy import (
-    Column,
-    DateTime,
-    MetaData,
-    Table,
-    and_,
-    func,
-    select,
-)
+from sqlalchemy import Column, DateTime, MetaData, Table, and_, func, select
 from sqlalchemy.dialects.postgresql import ENUM as PG_ENUM
 from sqlalchemy.dialects.postgresql import UUID as SQLAlchemyUUID
 from sqlalchemy.exc import SQLAlchemyError

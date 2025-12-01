@@ -11,10 +11,10 @@ from uuid import UUID
 
 from fastapi import HTTPException
 
+import app.db.attendees as attendees_db
 import app.db.categories as categories_db
 import app.db.events as events_db
 import app.db.users as users_db
-import app.db.attendees as attendees_db
 from app.db.filters import FilterOperation
 from app.models.events import EventBase, EventCreate, EventRead, PaginatedEvents
 from app.models.patch import PatchRequest
