@@ -11,7 +11,6 @@ from decimal import ROUND_HALF_UP, Decimal
 
 import stripe
 from fastapi import HTTPException
-from stripe import error as stripe_error
 
 import app.db.payments as payments_db
 from app.config import settings
@@ -61,7 +60,7 @@ def create_checkout_session(
         )
         logger.info("Stripe checkout session created: %s", session.id)
         return session
-    except stripe_error.StripeError as e:
+    except stripe.error.StripeError as e:
         logger.error("Stripe error: %s", str(e))
         raise
 
@@ -117,21 +116,21 @@ async def create_checkout_session_for_payment(data: CheckoutRequest) -> Checkout
         # Return a model instance or dict; both work with response_model
         return CheckoutResponse(checkout_url=session.url)
 
-    except stripe_error.InvalidRequestError as err:
+    except stripe.error.InvalidRequestError as err:
         # Bad parameters sent to Stripe (amount, currency, etc.)
         raise HTTPException(
             status_code=400,
             detail=f"Invalid Stripe request: {getattr(err, 'user_message', None) or str(err)}",
         ) from err
 
-    except stripe_error.AuthenticationError as err:
+    except stripe.error.AuthenticationError as err:
         # Misconfigured API key / Stripe account
         raise HTTPException(
             status_code=500,
             detail="Stripe authentication failed. Check STRIPE_SECRET_KEY.",
         ) from err
 
-    except stripe_error.StripeError as err:
+    except stripe.error.StripeError as err:
         # Generic Stripe error (network, rate limit, etc.)
         raise HTTPException(
             status_code=400,
