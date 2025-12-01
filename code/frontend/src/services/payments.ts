@@ -53,11 +53,7 @@ export async function createCheckoutSession(
 
   const data = (await response.json()) as Partial<CheckoutSessionResponse>;
 
-  if (
-    data.checkout_url !== null &&
-    typeof data.checkout_url !== "undefined" &&
-    typeof data.checkout_url !== "string"
-  ) {
+  if (data.checkout_url != null && typeof data.checkout_url !== "string") {
     throw new Error("Invalid checkout session response");
   }
 

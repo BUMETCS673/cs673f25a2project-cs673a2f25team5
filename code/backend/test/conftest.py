@@ -2,6 +2,7 @@
 AI-generated code: 100%
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -18,6 +19,8 @@ from app.main import event_manager_app  # noqa: E402
 @pytest.fixture(autouse=True, scope="session")
 def override_auth_dependency():
     """Provide a static authenticated user for all test requests."""
+    os.environ.setdefault("STRIPE_SECRET_KEY", "sk_test_dummy")
+    os.environ.setdefault("STRIPE_WEBHOOK_SECRET", "whsec_dummy")
 
     def _fake_user() -> ClerkTokenPayload:
         return ClerkTokenPayload(

@@ -13,7 +13,6 @@ from app.models.payments import CheckoutRequest, CheckoutResponse
 from app.service.stripe_service import (
     create_checkout_session_for_payment,
     process_webhook_event,
-    refund_payment_for_event_user,
 )
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
@@ -57,14 +56,6 @@ async def create_session(data: CheckoutRequest) -> CheckoutResponse:
     - lets the service raise HTTPException on Stripe / internal errors
     """
     return await create_checkout_session_for_payment(data)
-
-
-@router.post(
-    "/refund",
-    include_in_schema=False,
-)
-async def refund_payment():
-    return await refund_payment_for_event_user()
 
 
 @router.post(
