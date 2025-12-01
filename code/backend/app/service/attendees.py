@@ -54,7 +54,7 @@ async def create_attendee_service(att: AttendeeCreate) -> AttendeeRead:
     # Check full date + time
     if event_dt < now:
         raise HTTPException(
-            status_code=404,
+            status_code=400,
             detail="Cannot RSVP: The event date and time has already passed",
         )
 

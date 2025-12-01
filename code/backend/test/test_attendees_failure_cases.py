@@ -36,7 +36,10 @@ def test_db_file() -> Generator[str, None, None]:
     db_fd, db_path = tempfile.mkstemp(suffix=".db")
     yield f"sqlite+aiosqlite:///{db_path}"
     os.close(db_fd)
-    os.remove(db_path)
+    try:
+        os.remove(db_path)
+    except PermissionError:
+        pass
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -478,7 +481,7 @@ async def test_patch_attendee_invalid_uuid_format(test_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_cannot_rsvp_to_past_event(test_client: AsyncClient):
-    """Attendee creation must return 404 when event_datetime is in the past."""
+    """Attendee creation must return 400 when event_datetime is in the past."""
 
     cat_id = await categories_db.create_category_db("General", "General")
 
@@ -516,6 +519,6 @@ async def test_cannot_rsvp_to_past_event(test_client: AsyncClient):
         "/attendees",
         json={"event_id": event_id, "user_id": user_id, "status": "RSVPed"},
     )
-    assert resp.status_code == 404
+    assert resp.status_code == 400
     detail = resp.json().get("detail", "")
     assert "time has already passed" in detail.lower()

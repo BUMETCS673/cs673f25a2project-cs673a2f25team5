@@ -17,10 +17,17 @@ from app.routes.shared_responses import (
     RESPONSES_DELETE,
     RESPONSES_LIST,
     RESPONSES_PATCH,
+    ERROR_400_EVENT_PASSED,
 )
 from app.service import attendees as attendees_service
 
 router = APIRouter()
+
+ATTENDEE_CREATE_RESPONSES = RESPONSES_CREATE.copy()
+ATTENDEE_CREATE_RESPONSES[400] = ERROR_400_EVENT_PASSED
+
+ATTENDEE_PATCH_RESPONSES = RESPONSES_PATCH.copy()
+ATTENDEE_PATCH_RESPONSES[400] = ERROR_400_EVENT_PASSED
 
 
 FILTER_QUERY = Query(
@@ -66,7 +73,7 @@ async def list_attendees(
     description="Creates an attendee row for (event_id, user_id). Prevents duplicates.",
     tags=["Attendees"],
     status_code=status.HTTP_201_CREATED,
-    responses=RESPONSES_CREATE,
+    responses=ATTENDEE_CREATE_RESPONSES,
 )
 async def create_attendee(
     attendee: models_attendees.AttendeeCreate,
@@ -98,7 +105,7 @@ async def create_attendee(
         "```"
     ),
     tags=["Attendees"],
-    responses=RESPONSES_PATCH,
+    responses=ATTENDEE_PATCH_RESPONSES,
 )
 async def patch_attendees(
     request: models_patch.PatchRequest,
