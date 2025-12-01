@@ -8,6 +8,7 @@ Framework-generated code: 0%
 */
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useEventsBrowserState } from "../component/events/hooks/useEventsBrowserState";
+import { getEvents } from "@/services/events";
 import type { EventListResponse } from "@/services/events";
 
 jest.mock("@/services/events", () => {
@@ -37,6 +38,10 @@ jest.mock("@/services/events", () => {
       limit: 9,
     } as EventListResponse),
   };
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
 });
 
 const base: EventListResponse = {
@@ -88,5 +93,23 @@ test("sorts base items and toggles remote search when no local matches", async (
   await waitFor(() => {
     expect(result.current.isRemoteLoading).toBe(false);
     expect(result.current.eventsToRender[0].event_name).toBe("Remote Match");
+  });
+});
+
+test("filters events when selecting a category", async () => {
+  const { result } = renderHook(() => useEventsBrowserState(base));
+
+  act(() => result.current.handleSelectCategory("category-123"));
+
+  await waitFor(() => {
+    expect(getEvents).toHaveBeenCalledWith({
+      filters: ["category_id:eq:category-123"],
+      offset: 0,
+      limit: base.limit,
+    });
+  });
+
+  await waitFor(() => {
+    expect(result.current.eventsToRender[0].event_id).toBe("remote-1");
   });
 });
