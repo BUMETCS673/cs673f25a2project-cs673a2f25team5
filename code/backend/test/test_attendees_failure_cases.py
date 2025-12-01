@@ -28,6 +28,7 @@ from app.db.categories import metadata as categories_metadata
 from app.db.events import metadata as events_metadata
 from app.db.users import metadata as users_metadata
 from app.main import event_manager_app
+from app.models.attendees import AttendeeCreate, AttendeeStatus
 
 
 @pytest.fixture(scope="session")
@@ -519,6 +520,69 @@ async def test_cannot_rsvp_to_past_event(test_client: AsyncClient):
         "/attendees",
         json={"event_id": event_id, "user_id": user_id, "status": "RSVPed"},
     )
+    assert resp.status_code == 400
+    detail = resp.json().get("detail", "")
+    assert "time has already passed" in detail.lower()
+
+
+@pytest.mark.asyncio
+async def test_cannot_patch_attendee_for_past_event(test_client: AsyncClient):
+    """PATCH must return 400 when the attendee's event is in the past."""
+
+    cat_id = await categories_db.create_category_db(
+        "General", "General category"
+    )
+
+    user_resp = await test_client.post(
+        "/users",
+        json={
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "john.doe@example.com",
+            "date_of_birth": "1990-01-01",
+        },
+    )
+    assert user_resp.status_code == 201
+    user_id = user_resp.json()["user_id"]
+
+    start = datetime.now(UTC) - timedelta(hours=2)
+    end = start + timedelta(hours=1)
+
+    event_resp = await test_client.post(
+        "/events",
+        json={
+            "event_name": "Tech Talk",
+            "event_location": "Test Location",
+            "event_datetime": start.isoformat(),
+            "event_endtime": end.isoformat(),
+            "capacity": 10,
+            "price_field": 0,
+            "user_id": user_id,
+            "category_id": str(cat_id),
+        },
+    )
+    assert event_resp.status_code == 201
+    event_id = event_resp.json()["event_id"]
+
+    attendee_model = AttendeeCreate(
+        event_id=event_id,
+        user_id=user_id,
+        status=AttendeeStatus.RSVPED,
+    )
+    attendee = await attendees_db.create_attendee_db(attendee_model)
+    attendee_id = attendee.attendee_id
+
+    patch_data = {
+        "patch": {
+            str(attendee_id): {
+                "op": "replace",
+                "path": "/status",
+                "value": "Maybe", 
+            }
+        }
+    }
+
+    resp = await test_client.patch("/attendees", json=patch_data)
     assert resp.status_code == 400
     detail = resp.json().get("detail", "")
     assert "time has already passed" in detail.lower()

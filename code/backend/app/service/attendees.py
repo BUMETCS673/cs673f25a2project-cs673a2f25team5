@@ -106,6 +106,39 @@ async def delete_attendee_service(attendee_id: UUID) -> AttendeeRead:
 async def patch_attendees_service(request: PatchRequest) -> dict[UUID, AttendeeRead]:
     updates = await AttendeeBase.validate_patch_operations(request.patch)
 
+    attendee_ids = list(updates.keys())
+    if not attendee_ids:
+        return {}
+
+    now = datetime.now(UTC)
+
+    for attendee_id in attendee_ids:
+        attendees, _ = await attendees_db.get_attendees_db(
+            [FilterOperation("attendee_id", "eq", attendee_id)], limit=1
+        )
+        if not attendees:
+            raise HTTPException(status_code=404, detail="Attendee not found")
+
+        attendee = attendees[0]
+
+        events, _ = await events_db.get_events_db(
+            [FilterOperation("event_id", "eq", attendee.event_id)], limit=1
+        )
+        if not events:
+            raise HTTPException(status_code=404, detail="Event not found")
+
+        event = events[0]
+        event_dt = event.event_datetime
+
+        if event_dt.tzinfo is None:
+            event_dt = event_dt.replace(tzinfo=UTC)
+
+        if event_dt < now:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot modify attendee: The event date and time has already passed",
+            )
+
     result = await attendees_db.batch_update_attendees_db(updates)
 
     logger.info(f"Successfully updated {len(result)} attendees in batch operation")
