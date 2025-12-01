@@ -9,10 +9,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
-import pytest
+import pytest  # noqa: E402
 
-from app.auth import ClerkTokenPayload, get_current_user
-from app.main import event_manager_app
+from app.auth import ClerkTokenPayload, get_current_user  # noqa: E402
+from app.main import event_manager_app  # noqa: E402
 
 
 @pytest.fixture(autouse=True, scope="session")
