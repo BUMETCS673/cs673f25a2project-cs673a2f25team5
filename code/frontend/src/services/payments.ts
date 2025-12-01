@@ -11,7 +11,7 @@ import { API_BASE_URL } from "./config";
 export type CheckoutSessionRequest = {
   event_id: string;
   user_id: string;
-  amount_usd: string;
+  amount_usd: number;
   email?: string | null;
 };
 
@@ -53,7 +53,7 @@ export async function createCheckoutSession(
 
   const data = (await response.json()) as Partial<CheckoutSessionResponse>;
 
-  if (data.checkout_url != null && typeof data.checkout_url !== "string") {
+  if (data.checkout_url !== null && typeof data.checkout_url !== "string") {
     throw new Error("Invalid checkout session response");
   }
 

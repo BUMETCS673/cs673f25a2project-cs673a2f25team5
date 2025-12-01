@@ -303,11 +303,29 @@ describe("createRegisterAction", () => {
     expect(mockCreateCheckoutSession).toHaveBeenCalledWith({
       event_id: EVENT_ID,
       user_id: VIEWER_ID,
-      amount_usd: "15.00",
+      amount_usd: 15,
       email: "person@example.com",
     });
     expect(result.redirectUrl).toBeUndefined();
     expect(result.message).toMatch(/already paid/i);
     expect(result.toast).toBe("info");
+  });
+
+  it("returns paymentFailed when checkout session creation throws", async () => {
+    mockCurrentUser.mockResolvedValueOnce({
+      externalId: VIEWER_ID,
+      primaryEmailAddress: { emailAddress: "person@example.com" },
+    } as never);
+    mockCreateAttendee.mockResolvedValueOnce(undefined as never);
+    mockCreateCheckoutSession.mockRejectedValueOnce(
+      new Error("network down"),
+    );
+
+    const onRegister = baseAction({ priceCents: 2500 });
+    const result = await onRegister(EVENT_ID, "RSVPed");
+
+    expect(result.success).toBe(false);
+    expect(result.code).toBe("paymentFailed");
+    expect(result.message).toMatch(/couldn't start checkout/i);
   });
 });

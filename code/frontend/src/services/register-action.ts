@@ -37,6 +37,10 @@ export function createRegisterAction({
   priceCents = null,
   successMessages,
 }: RegisterActionOptions) {
+  // Prevent concurrent payment attempts for the same user/event within this server runtime.
+  // This keeps rapid double-submits from creating multiple checkout sessions.
+  const inFlightPaidRegistrations = new Set<string>();
+
   return async function onRegister(
     eventId: string,
     status: AttendeeStatus,
@@ -54,7 +58,7 @@ export function createRegisterAction({
       Number.isFinite(priceCents) &&
       priceCents > 0;
     const amountUsd = isPaidEvent
-      ? (Math.round(priceCents) / 100).toFixed(2)
+      ? Number((Math.round(priceCents) / 100).toFixed(2))
       : null;
 
     if (!viewerExternalId) {
@@ -202,11 +206,24 @@ export function createRegisterAction({
       })();
 
     if (registrationResult.success && status === "RSVPed" && isPaidEvent) {
+      const inflightKey = `${eventId}:${viewerExternalId}`;
+
+      if (inFlightPaidRegistrations.has(inflightKey)) {
+        return {
+          success: true,
+          status: registrationResult.status ?? status,
+          message:
+            "Your payment is already in progress. If you aren’t redirected, refresh and try again.",
+          toast: "info",
+        };
+      }
+
+      inFlightPaidRegistrations.add(inflightKey);
       try {
         const checkout = await createCheckoutSession({
           event_id: eventId,
           user_id: viewerExternalId,
-          amount_usd: amountUsd ?? "0.00",
+          amount_usd: amountUsd ?? 0,
           email: viewerEmail,
         });
 
@@ -238,6 +255,8 @@ export function createRegisterAction({
             "We couldn't start checkout for this event. Please try again.",
           status: registrationResult.status ?? null,
         };
+      } finally {
+        inFlightPaidRegistrations.delete(inflightKey);
       }
     }
 
