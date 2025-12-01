@@ -529,9 +529,7 @@ async def test_cannot_rsvp_to_past_event(test_client: AsyncClient):
 async def test_cannot_patch_attendee_for_past_event(test_client: AsyncClient):
     """PATCH must return 400 when the attendee's event is in the past."""
 
-    cat_id = await categories_db.create_category_db(
-        "General", "General category"
-    )
+    cat_id = await categories_db.create_category_db("General", "General category")
 
     user_resp = await test_client.post(
         "/users",
@@ -577,7 +575,7 @@ async def test_cannot_patch_attendee_for_past_event(test_client: AsyncClient):
             str(attendee_id): {
                 "op": "replace",
                 "path": "/status",
-                "value": "Maybe", 
+                "value": "Maybe",
             }
         }
     }
