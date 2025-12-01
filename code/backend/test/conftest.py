@@ -21,6 +21,7 @@ def override_auth_dependency():
     """Provide a static authenticated user for all test requests."""
     os.environ.setdefault("STRIPE_SECRET_KEY", "sk_test_dummy")
     os.environ.setdefault("STRIPE_WEBHOOK_SECRET", "whsec_dummy")
+    os.environ.setdefault("ENABLE_DUMMY_STRIPE", "1")
 
     def _fake_user() -> ClerkTokenPayload:
         return ClerkTokenPayload(
