@@ -129,20 +129,20 @@ type SimpleGetParams = Omit<GetEventsParams, "filters"> & {
 export async function getAttendingEvents(
   params?: SimpleGetParams,
 ): Promise<EventListResponse | EventResponse[]> {
-  const { offset, limit, signal } = params ?? {};
-  return getEvents({ filters: ["attending"], offset, limit, signal });
+  const { offset, limit } = params ?? {};
+  return getEvents({ filters: ["attending"], offset, limit });
 }
 
 export async function getCreatedEvents(
   params?: SimpleGetParams,
 ): Promise<EventListResponse | EventResponse[]> {
-  const { offset, limit, signal } = params ?? {};
-  return getEvents({ filters: ["created_by_me"], offset, limit, signal });
+  const { offset, limit } = params ?? {};
+  return getEvents({ filters: ["created_by_me"], offset, limit });
 }
 
 export async function getUpcomingEvents(
   params?: SimpleGetParams,
 ): Promise<EventListResponse | EventResponse[]> {
-  const { offset, limit, signal } = params ?? {};
-  return getEvents({ filters: ["upcoming"], offset, limit, signal });
+  const { offset, limit } = params ?? {};
+  return getEvents({ filters: ["upcoming"], offset, limit });
 }
