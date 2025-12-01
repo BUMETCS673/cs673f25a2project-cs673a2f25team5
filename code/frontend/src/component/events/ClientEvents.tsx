@@ -1,15 +1,16 @@
 "use client";
 
-import { EventFilter } from "@/component/events/EventFilter";
 import { EventsBrowser } from "@/component/events/EventsBrowser";
 
-import { EventListResponse } from "@/types/eventTypes";
+import type { EventListResponse } from "@/types/eventTypes";
+import type { CategoryResponse } from "@/types/categoryTypes";
 
-export function ClientEvents({
-  initialResult,
-}: {
+type ClientEventsProps = {
   initialResult: EventListResponse;
-}) {
+  categories: CategoryResponse[];
+};
+
+export function ClientEvents({ initialResult, categories }: ClientEventsProps) {
   return (
     <main className="relative min-h-screen overflow-hidden bg-neutral-50/80 px-4 py-16 sm:px-6 lg:px-16 dark:bg-neutral-950">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-amber-200/40 via-transparent to-rose-200/35 blur-3xl dark:from-amber-400/10 dark:to-rose-500/15" />
@@ -28,8 +29,8 @@ export function ClientEvents({
             details to RSVP.
           </p>
         </header>
-        <EventFilter value="Date" onChange={() => {}} />
-        <EventsBrowser initialResult={initialResult} />
+
+        <EventsBrowser initialResult={initialResult} categories={categories} />
       </div>
     </main>
   );

@@ -74,6 +74,9 @@ export type EventsBrowserState = {
   handleRemoteRetry: () => void;
   selectedCategoryId: string | null;
   handleSelectCategory: (categoryId: string | null) => void;
+  selectedMinPrice: number | null;
+  selectedMaxPrice: number | null;
+  handleSelectPriceRange: (min: number | null, max: number | null) => void;
 };
 
 export function useEventsBrowserState(
@@ -103,6 +106,8 @@ export function useEventsBrowserState(
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
   );
+  const [selectedMinPrice, setSelectedMinPrice] = useState<number | null>(null);
+  const [selectedMaxPrice, setSelectedMaxPrice] = useState<number | null>(null);
   const [isBaseLoading, setIsBaseLoading] = useState(false);
   const [baseError, setBaseError] = useState<string | null>(null);
   const [pendingBaseIndex, setPendingBaseIndex] = useState<number | null>(null);
@@ -112,6 +117,8 @@ export function useEventsBrowserState(
     baseCacheRef.current = new Map([[resetKey, sortedInitialResult]]);
     setBaseResult(sortedInitialResult);
     setSelectedCategoryId(null);
+    setSelectedMinPrice(null);
+    setSelectedMaxPrice(null);
     setPageIndex(initialPageIndex);
     setBaseError(null);
     setIsBaseLoading(false);
@@ -135,7 +142,22 @@ export function useEventsBrowserState(
   const normalizedQuery = trimmedQuery.toLowerCase();
 
   const baseEvents = baseResult.items;
-  const filteredBaseEvents = useMemo(() => {
+
+  const matchesPriceRange = useCallback(
+    (priceCents: number | null | undefined) => {
+      const priceDollars = (priceCents ?? 0) / 100;
+      if (selectedMinPrice !== null && priceDollars < selectedMinPrice) {
+        return false;
+      }
+      if (selectedMaxPrice !== null && priceDollars > selectedMaxPrice) {
+        return false;
+      }
+      return true;
+    },
+    [selectedMaxPrice, selectedMinPrice],
+  );
+
+  const baseEventsMatchingQuery = useMemo(() => {
     if (!normalizedQuery) {
       return baseEvents;
     }
@@ -154,8 +176,17 @@ export function useEventsBrowserState(
     });
   }, [baseEvents, normalizedQuery]);
 
+  const filteredBaseEvents = useMemo(
+    () =>
+      baseEventsMatchingQuery.filter((event) =>
+        matchesPriceRange(event.price_field),
+      ),
+    [baseEventsMatchingQuery, matchesPriceRange],
+  );
+
   const hasQuery = Boolean(trimmedQuery);
-  const shouldFetchRemoteSearch = hasQuery && filteredBaseEvents.length === 0;
+  const shouldFetchRemoteSearch =
+    hasQuery && baseEventsMatchingQuery.length === 0;
 
   const [remoteResult, setRemoteResult] = useState<EventListResponse | null>(
     null,
@@ -405,8 +436,20 @@ export function useEventsBrowserState(
     setIsRemoteLoading(false);
   };
 
+  const handleSelectPriceRange = (
+    minPrice: number | null,
+    maxPrice: number | null,
+  ) => {
+    setSelectedMinPrice(minPrice);
+    setSelectedMaxPrice(maxPrice);
+  };
+
   const totalRemote = remoteResult?.total ?? 0;
-  const remoteEvents = remoteResult?.items ?? [];
+  const remoteEvents = useMemo(() => remoteResult?.items ?? [], [remoteResult]);
+  const priceFilteredRemoteEvents = useMemo(
+    () => remoteEvents.filter((event) => matchesPriceRange(event.price_field)),
+    [matchesPriceRange, remoteEvents],
+  );
   const totalRemotePages =
     totalRemote > 0 ? Math.ceil(totalRemote / REMOTE_SEARCH_PAGE_SIZE) : 0;
   const currentRemotePage = remoteResult
@@ -421,7 +464,7 @@ export function useEventsBrowserState(
   const baseEnd = baseResult.offset + baseEvents.length;
 
   const eventsToRender = shouldFetchRemoteSearch
-    ? remoteEvents
+    ? priceFilteredRemoteEvents
     : filteredBaseEvents;
 
   const showEmptyState =
@@ -486,5 +529,8 @@ export function useEventsBrowserState(
     handleRemoteRetry,
     selectedCategoryId,
     handleSelectCategory,
+    selectedMinPrice,
+    selectedMaxPrice,
+    handleSelectPriceRange,
   };
 }

@@ -55,7 +55,7 @@ const base: EventListResponse = {
       description: null,
       picture_url: null,
       capacity: null,
-      price_field: null,
+      price_field: 0,
       user_id: "user-2",
       category_id: "category-2",
       created_at: "2025-09-01T00:00:00Z",
@@ -70,7 +70,7 @@ const base: EventListResponse = {
       description: null,
       picture_url: null,
       capacity: null,
-      price_field: null,
+      price_field: 3000,
       user_id: "user-3",
       category_id: "category-3",
       created_at: "2025-09-01T00:00:00Z",
@@ -112,4 +112,15 @@ test("filters events when selecting a category", async () => {
   await waitFor(() => {
     expect(result.current.eventsToRender[0].event_id).toBe("remote-1");
   });
+});
+
+test("filters events locally when selecting a price range without hitting backend", async () => {
+  const { result } = renderHook(() => useEventsBrowserState(base));
+  jest.mocked(getEvents).mockClear();
+
+  act(() => result.current.handleSelectPriceRange(10, 50));
+
+  expect(getEvents).not.toHaveBeenCalled();
+  expect(result.current.eventsToRender).toHaveLength(1);
+  expect(result.current.eventsToRender[0].event_id).toBe("base-2");
 });
