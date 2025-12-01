@@ -70,7 +70,6 @@ async def create_attendee_service(att: AttendeeCreate) -> AttendeeRead:
             [FilterOperation("event_id", "eq", att.event_id)],
             limit=1,
         )
-
         if attendee_total >= event.capacity:
             logger.info(
                 "Capacity reached for event_id='%s' (capacity=%s, current=%s)",
@@ -79,7 +78,6 @@ async def create_attendee_service(att: AttendeeCreate) -> AttendeeRead:
                 attendee_total,
             )
             raise HTTPException(status_code=400, detail="Event is full")
-
     # DB will default status to NULL if not provided (meaning no response yet)
     sanitized = AttendeeCreate(
         event_id=att.event_id,
