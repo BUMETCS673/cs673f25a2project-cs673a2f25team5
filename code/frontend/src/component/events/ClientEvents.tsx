@@ -1,6 +1,5 @@
 "use client";
 
-import { EventFilter } from "@/component/events/EventFilter";
 import { EventsBrowser } from "@/component/events/EventsBrowser";
 
 import { EventListResponse } from "@/types/eventTypes";
@@ -28,7 +27,6 @@ export function ClientEvents({
             details to RSVP.
           </p>
         </header>
-        <EventFilter value="Date" onChange={() => {}} />
         <EventsBrowser initialResult={initialResult} />
       </div>
     </main>

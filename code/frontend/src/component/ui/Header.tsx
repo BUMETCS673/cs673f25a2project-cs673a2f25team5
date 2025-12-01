@@ -68,16 +68,6 @@ export default function Header() {
                 Home
               </Link>
               <Link
-                href="/events"
-                className={`inline-flex items-center border-b-2 ${
-                  pathname === "/events"
-                    ? "border-amber-600 px-1 pt-1 text-sm font-medium text-gray-900 dark:border-amber-500 dark:text-white"
-                    : "border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:border-white/20 dark:hover:text-white"
-                }`}
-              >
-                Events
-              </Link>
-              <Link
                 href="/create-events"
                 className={`inline-flex items-center border-b-2 ${
                   pathname === "/create-events"
@@ -86,6 +76,16 @@ export default function Header() {
                 }`}
               >
                 Create Event
+              </Link>
+              <Link
+                href="/events"
+                className={`inline-flex items-center border-b-2 ${
+                  pathname === "/events"
+                    ? "border-amber-600 px-1 pt-1 text-sm font-medium text-gray-900 dark:border-amber-500 dark:text-white"
+                    : "border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:border-white/20 dark:hover:text-white"
+                }`}
+              >
+                Events
               </Link>
               <Link
                 href="/profile"

@@ -1,17 +1,19 @@
 /*
 
- AI-generated code: 65% (tool: Codex - GPT-5, query, setQuery, trimmedQuery, hasQuery, shouldFetchRemoteSearch, eventsToRender, isRemoteLoading, isBaseLoading, baseError, remoteError, showEmptyState, pagination, handlePreviousPage, handleNextPage, handleBaseRetry, handleRemoteRetry, useEventsBrowserState, initialResult) 
- 
- Human code: 35% (functions: EventsBrowser, EventsBrowserProps, useEventsBrowserState) 
 
- No framework-generated code.
+AI-generated code: 65% (tool: Codex - GPT-5, query, setQuery, trimmedQuery, hasQuery, shouldFetchRemoteSearch, eventsToRender, isRemoteLoading, isBaseLoading, baseError, remoteError, showEmptyState, pagination, handlePreviousPage, handleNextPage, handleBaseRetry, handleRemoteRetry, useEventsBrowserState, initialResult)
+Human code: 35% (functions: EventsBrowser, EventsBrowserProps, useEventsBrowserState)
+
+
+No framework-generated code.
+
 
 */
 
 "use client";
-
+import { useState, useMemo } from "react";
 import type { EventListResponse } from "@/types/eventTypes";
-
+import { EventFilter } from "@/component/events/EventFilter";
 import { EventSearchField } from "./EventSearchField";
 import { EventsResults } from "./EventsResults";
 import { useEventsBrowserState } from "./hooks/useEventsBrowserState";
@@ -41,8 +43,37 @@ export function EventsBrowser({ initialResult }: EventsBrowserProps) {
     handleRemoteRetry,
   } = useEventsBrowserState(initialResult);
 
+  const [sort, setSort] = useState("Date");
+
+  const sortedEvents = useMemo(() => {
+    return [...eventsToRender].sort((a, b) => {
+      switch (sort) {
+        case "Date":
+          return (
+            new Date(a.event_datetime).getTime() -
+            new Date(b.event_datetime).getTime()
+          );
+        case "Distance":
+          return a.distance - b.distance;
+        case "Price":
+          return (a.price_field ?? 0) - (b.price_field ?? 0);
+        case "Capacity":
+          return (a.capacity ?? 0) - (b.capacity ?? 0);
+        case "A to Z":
+          return a.event_name.localeCompare(b.event_name);
+        case "Z to A":
+          return b.event_name.localeCompare(a.event_name);
+        default:
+          return 0;
+      }
+    });
+  }, [eventsToRender, sort]);
+
   return (
     <div className="space-y-8">
+      <div>
+        <EventFilter value={sort} onChange={setSort} />
+      </div>
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="w-full lg:max-w-[540px]">
           <EventSearchField
@@ -55,7 +86,7 @@ export function EventsBrowser({ initialResult }: EventsBrowserProps) {
       </div>
 
       <EventsResults
-        events={eventsToRender}
+        events={sortedEvents}
         hasQuery={hasQuery}
         trimmedQuery={trimmedQuery}
         shouldFetchRemoteSearch={shouldFetchRemoteSearch}
