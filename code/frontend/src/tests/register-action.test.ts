@@ -317,9 +317,7 @@ describe("createRegisterAction", () => {
       primaryEmailAddress: { emailAddress: "person@example.com" },
     } as never);
     mockCreateAttendee.mockResolvedValueOnce(undefined as never);
-    mockCreateCheckoutSession.mockRejectedValueOnce(
-      new Error("network down"),
-    );
+    mockCreateCheckoutSession.mockRejectedValueOnce(new Error("network down"));
 
     const onRegister = baseAction({ priceCents: 2500 });
     const result = await onRegister(EVENT_ID, "RSVPed");
