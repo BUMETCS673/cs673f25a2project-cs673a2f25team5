@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS Invitations (
 
 
 CREATE TYPE payment_status AS ENUM
-  ('created', 'processing', 'succeeded', 'failed', 'canceled', 'refunded');
+  ('created', 'processing', 'succeeded', 'failed', 'canceled');
 CREATE TABLE IF NOT EXISTS Payments (
     payment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_id UUID NOT NULL,
@@ -73,7 +73,6 @@ CREATE TABLE IF NOT EXISTS Payments (
     status payment_status NOT NULL DEFAULT 'created',
     stripe_checkout_session_id VARCHAR(128),
     stripe_payment_intent_id   VARCHAR(128),
-    stripe_refund_id           VARCHAR(128),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (event_id) REFERENCES Events(event_id) ON DELETE CASCADE,

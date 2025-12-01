@@ -15,14 +15,7 @@ from stripe import error as stripe_error
 
 import app.db.payments as payments_db
 from app.config import settings
-from app.models.payments import (
-    CheckoutRequest,
-    CheckoutResponse,
-    PaymentCreate,
-    PaymentStatus,
-    RefundRequest,
-    RefundResponse,
-)
+from app.models.payments import CheckoutRequest, CheckoutResponse, PaymentCreate, PaymentStatus
 
 logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -87,11 +80,7 @@ async def create_checkout_session_for_payment(data: CheckoutRequest) -> Checkout
         user_id=data.user_id,
         statuses=(PaymentStatus.succeeded,),
     )
-    if (
-        existing
-        and existing.status == PaymentStatus.succeeded
-        and existing.stripe_refund_id is None
-    ):
+    if existing and existing.status == PaymentStatus.succeeded:
         return CheckoutResponse(checkout_url=None, already_paid=True)
 
     # 1) Create an initial payment record in 'created' state
@@ -198,53 +187,5 @@ async def process_webhook_event(payload: bytes, sig_header: str | None) -> dict:
     return {"received": True}
 
 
-async def refund_payment_for_event_user(data: RefundRequest) -> RefundResponse:
-    if not settings.STRIPE_SECRET_KEY:
-        raise HTTPException(
-            status_code=500,
-            detail="Stripe is not configured. Set STRIPE_SECRET_KEY.",
-        )
-
-    latest = await payments_db.get_latest_payment_for_event_user(
-        event_id=data.event_id,
-        user_id=data.user_id,
-        statuses=(PaymentStatus.succeeded, PaymentStatus.refunded),
-    )
-
-    if latest is None:
-        return RefundResponse(status="no_payment")
-
-    if latest.status == PaymentStatus.refunded or latest.stripe_refund_id:
-        return RefundResponse(status="already_refunded", refund_id=latest.stripe_refund_id)
-
-    # Need payment_intent to refund
-    payment_intent_id = latest.stripe_payment_intent_id
-    if not payment_intent_id and latest.stripe_checkout_session_id:
-        session = stripe.checkout.Session.retrieve(latest.stripe_checkout_session_id)
-        payment_intent_id = session.get("payment_intent")
-
-    if not payment_intent_id:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot refund payment without a payment_intent_id",
-        )
-
-    try:
-        refund = stripe.Refund.create(payment_intent=payment_intent_id)
-        await payments_db.set_status_by_payment_id(
-            latest.payment_id,
-            status=PaymentStatus.refunded,
-            stripe_refund_id=refund.id,
-        )
-        return RefundResponse(status="refunded", refund_id=refund.id)
-    except stripe_error.InvalidRequestError as err:
-        raise HTTPException(status_code=400, detail=str(err)) from err
-    except stripe_error.AuthenticationError as err:
-        raise HTTPException(
-            status_code=500,
-            detail="Stripe authentication failed. Check STRIPE_SECRET_KEY.",
-        ) from err
-    except stripe_error.StripeError as err:
-        raise HTTPException(status_code=400, detail=str(err)) from err
-    except Exception as err:
-        raise HTTPException(status_code=500, detail="Unexpected refund error.") from err
+async def refund_payment_for_event_user():
+    raise HTTPException(status_code=410, detail="Refunds are not supported.")

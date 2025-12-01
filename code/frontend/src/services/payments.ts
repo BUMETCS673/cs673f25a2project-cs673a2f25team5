@@ -20,16 +20,6 @@ export type CheckoutSessionResponse = {
   already_paid?: boolean;
 };
 
-export type RefundRequest = {
-  event_id: string;
-  user_id: string;
-};
-
-export type RefundResponse = {
-  status: string;
-  refund_id?: string | null;
-};
-
 export async function createCheckoutSession(
   payload: CheckoutSessionRequest,
 ): Promise<CheckoutSessionResponse> {
@@ -77,24 +67,4 @@ export async function createCheckoutSession(
   };
 }
 
-export async function refundPayment(
-  payload: RefundRequest,
-): Promise<RefundResponse> {
-  const { getToken } = await auth();
-  const token = await getToken();
-
-  const response = await fetch(`${API_BASE_URL}/payments/refund`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to refund payment (status ${response.status})`);
-  }
-
-  return (await response.json()) as RefundResponse;
-}
+// Refunds are not supported in this build.

@@ -45,7 +45,6 @@ payment_status = PG_ENUM(
     "succeeded",
     "failed",
     "canceled",
-    "refunded",
     name="payment_status",
     create_type=False,  # type already exists in DB from init SQL
 )
@@ -62,7 +61,6 @@ payments = Table(
     Column("status", cast(Any, payment_status), nullable=False),
     Column("stripe_checkout_session_id", String(128)),
     Column("stripe_payment_intent_id", String(128)),
-    Column("stripe_refund_id", String(128)),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("updated_at", DateTime(timezone=True), nullable=False),
 )
@@ -114,7 +112,6 @@ async def create_payment_db(p: PaymentCreate) -> PaymentRead:
             "status": p.status.value,
             "stripe_checkout_session_id": p.stripe_checkout_session_id,
             "stripe_payment_intent_id": p.stripe_payment_intent_id,
-            "stripe_refund_id": p.stripe_refund_id,
             "created_at": now,
             "updated_at": now,
         }
@@ -165,15 +162,12 @@ async def set_status_by_payment_id(
     payment_id: UUID,
     *,
     status: PaymentStatus,
-    stripe_refund_id: str | None = None,
 ) -> None:
     try:
         vals: dict[str, Any] = {
             "status": status.value,
             "updated_at": datetime.now(UTC),
         }
-        if stripe_refund_id:
-            vals["stripe_refund_id"] = stripe_refund_id
         stmt = update(payments).where(payments.c.payment_id == payment_id).values(**vals)
         async with engine.begin() as conn:
             await conn.execute(stmt)

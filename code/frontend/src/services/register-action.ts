@@ -9,7 +9,7 @@ import {
   getAttendees,
   patchAttendees,
 } from "@/services/attendees";
-import { createCheckoutSession, refundPayment } from "./payments";
+import { createCheckoutSession } from "./payments";
 import type {
   AttendeeStatus,
   RegisterAttendeeResult,
@@ -200,16 +200,6 @@ export function createRegisterAction({
           };
         }
       })();
-
-    if (registrationResult.success && status === "Not Going" && isPaidEvent) {
-      // Best-effort refund; errors are logged but won't block the status change
-      refundPayment({
-        event_id: eventId,
-        user_id: viewerExternalId,
-      }).catch((error) => {
-        console.error("Failed to issue refund", error);
-      });
-    }
 
     if (registrationResult.success && status === "RSVPed" && isPaidEvent) {
       try {

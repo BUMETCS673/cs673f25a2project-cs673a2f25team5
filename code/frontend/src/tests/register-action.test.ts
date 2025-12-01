@@ -12,7 +12,7 @@ import {
   getAttendees,
   patchAttendees,
 } from "@/services/attendees";
-import { createCheckoutSession, refundPayment } from "@/services/payments";
+import { createCheckoutSession } from "@/services/payments";
 import { currentUser } from "@clerk/nextjs/server";
 
 jest.mock("@/services/attendees", () => ({
@@ -23,7 +23,6 @@ jest.mock("@/services/attendees", () => ({
 
 jest.mock("@/services/payments", () => ({
   createCheckoutSession: jest.fn(),
-  refundPayment: jest.fn(),
 }));
 
 jest.mock("@clerk/nextjs/server", () => ({
@@ -41,9 +40,6 @@ const mockPatchAttendees = patchAttendees as jest.MockedFunction<
 >;
 const mockCreateCheckoutSession = createCheckoutSession as jest.MockedFunction<
   typeof createCheckoutSession
->;
-const mockRefundPayment = refundPayment as jest.MockedFunction<
-  typeof refundPayment
 >;
 const mockCurrentUser = currentUser as jest.MockedFunction<typeof currentUser>;
 
@@ -313,25 +309,5 @@ describe("createRegisterAction", () => {
     expect(result.redirectUrl).toBeUndefined();
     expect(result.message).toMatch(/already paid/i);
     expect(result.toast).toBe("info");
-  });
-
-  it("issues a refund when changing a paid RSVP to Not Going", async () => {
-    mockCurrentUser.mockResolvedValueOnce({
-      externalId: VIEWER_ID,
-    } as never);
-    mockCreateAttendee.mockResolvedValueOnce(undefined as never);
-    mockRefundPayment.mockResolvedValueOnce({
-      status: "refunded",
-      refund_id: "re_123",
-    });
-
-    const onRegister = baseAction({ priceCents: 2000 });
-    const result = await onRegister(EVENT_ID, "Not Going");
-
-    expect(result.success).toBe(true);
-    expect(mockRefundPayment).toHaveBeenCalledWith({
-      event_id: EVENT_ID,
-      user_id: VIEWER_ID,
-    });
   });
 });
