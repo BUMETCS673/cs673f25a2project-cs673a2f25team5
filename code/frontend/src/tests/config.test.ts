@@ -29,6 +29,6 @@ describe("API_BASE_URL", () => {
   test("falls back to default", async () => {
     delete process.env.NEXT_PUBLIC_BACKEND_URL;
     const { API_BASE_URL } = await import("../services/config");
-    expect(API_BASE_URL).toBe("http://backend:8000");
+    expect(API_BASE_URL).toBe("http://localhost:8000");
   });
 });
