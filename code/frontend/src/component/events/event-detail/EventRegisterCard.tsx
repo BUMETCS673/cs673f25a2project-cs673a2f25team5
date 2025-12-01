@@ -156,6 +156,9 @@ export function EventRegisterCard({
         } else {
           toast.success(normalizedMessage);
         }
+        if (result.redirectUrl) {
+          window.location.assign(result.redirectUrl);
+        }
         return;
       }
 
@@ -181,6 +184,9 @@ export function EventRegisterCard({
       ) {
         setError(result.message);
         toast.info(result.message);
+      } else if (result.code === "paymentFailed") {
+        setError(result.message);
+        toast.error(result.message);
       } else {
         setError(result.message);
         toast.error(result.message);

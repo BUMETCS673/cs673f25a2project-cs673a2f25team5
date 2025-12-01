@@ -129,7 +129,10 @@ async def set_checkout_id(payment_id: UUID, checkout_id: str) -> None:
         stmt = (
             update(payments)
             .where(payments.c.payment_id == payment_id)
-            .values(stripe_checkout_session_id=checkout_id, updated_at=datetime.now(UTC))
+            .values(
+                stripe_checkout_session_id=checkout_id,
+                updated_at=datetime.now(UTC),
+            )
         )
         async with engine.begin() as conn:
             await conn.execute(stmt)
@@ -151,6 +154,42 @@ async def set_status_by_checkout_session(
         )
         async with engine.begin() as conn:
             await conn.execute(stmt)
+    except SQLAlchemyError as e:
+        raise ValueError(str(e)) from e
+
+
+async def set_status_by_payment_id(
+    payment_id: UUID,
+    *,
+    status: PaymentStatus,
+) -> None:
+    try:
+        vals: dict[str, Any] = {
+            "status": status.value,
+            "updated_at": datetime.now(UTC),
+        }
+        stmt = update(payments).where(payments.c.payment_id == payment_id).values(**vals)
+        async with engine.begin() as conn:
+            await conn.execute(stmt)
+    except SQLAlchemyError as e:
+        raise ValueError(str(e)) from e
+
+
+async def get_latest_payment_for_event_user(
+    *,
+    event_id: UUID,
+    user_id: UUID,
+    statuses: tuple[PaymentStatus, ...] | None = None,
+) -> PaymentRead | None:
+    try:
+        q = select(payments).where(payments.c.event_id == event_id)
+        q = q.where(payments.c.user_id == user_id)
+        if statuses:
+            q = q.where(payments.c.status.in_([s.value for s in statuses]))
+        q = q.order_by(payments.c.created_at.desc()).limit(1)
+        async with engine.begin() as conn:
+            row = (await conn.execute(q)).mappings().first()
+            return PaymentRead.model_validate(dict(row)) if row else None
     except SQLAlchemyError as e:
         raise ValueError(str(e)) from e
 

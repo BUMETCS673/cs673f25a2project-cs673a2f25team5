@@ -16,6 +16,15 @@ Please go to the [frontend readme](https://github.com/BUMETCS673/cs673f25a2proje
 
 Please go to the [backend readme](https://github.com/BUMETCS673/cs673f25a2project-cs673a2f25team5/blob/main/code/backend/backend-README.md) for a detailed explanation of the backend structure and guidelines followed by the event manager application.
 
+### Stripe payments (backend + frontend)
+
+- **Endpoints**: `POST /payments/checkout-session` creates a Stripe Checkout Session and stores the checkout id on a `payments` row. `POST /payments/webhook` processes Stripe webhooks (e.g., `checkout.session.completed`) to mark payments as `succeeded`. Refunds are not supported in this build.
+- **Env vars (backend)**: set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in `.env` (backend container uses these). `FRONTEND_BASE_URL` is used to build the success/cancel redirect URLs.
+- **Env vars (frontend)**: set `NEXT_PUBLIC_BACKEND_URL`/`BACKEND_URL` to point to the backend (defaults to `http://localhost:8000` for tests). Clerk is still required for auth tokens.
+- **Database**: `payments` table tracks `event_id`, `user_id`, `amount_usd`, `status`, and Stripe ids (`stripe_checkout_session_id`, `stripe_payment_intent_id`).
+- **Behavior**: If a user already has a successful payment for an event, checkout is skipped and the frontend shows an “already paid” message instead of charging again.
+- **Local testing**: Use Stripe CLI or test keys; webhook secret is required for `/payments/webhook`. No live key should be committed—set via environment only.
+
 ## 📁 Overall Folder Structure
 
 ```

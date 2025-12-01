@@ -21,9 +21,9 @@ describe("API_BASE_URL", () => {
   });
 
   test("trims trailing slash", async () => {
-    process.env.NEXT_PUBLIC_BACKEND_URL = "http://localhost:8000/";
+    process.env.NEXT_PUBLIC_BACKEND_URL = "http://backend:8000/";
     const { API_BASE_URL } = await import("../services/config");
-    expect(API_BASE_URL).toBe("http://localhost:8000");
+    expect(API_BASE_URL).toBe("http://backend:8000");
   });
 
   test("falls back to default", async () => {

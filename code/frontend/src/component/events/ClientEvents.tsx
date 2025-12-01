@@ -17,7 +17,7 @@ export function ClientEvents({
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-12">
         <header className="max-w-3xl space-y-4">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-amber-500 dark:text-amber-300/80">
-            Discover experiences
+            Discover new experiences
           </p>
           <h1 className="text-4xl font-bold text-neutral-900 sm:text-5xl dark:text-neutral-50">
             Events that spark connection

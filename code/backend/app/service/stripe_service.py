@@ -7,6 +7,7 @@ Framework-generated code: 0%
 """
 
 import logging
+import os
 from decimal import ROUND_HALF_UP, Decimal
 
 import stripe
@@ -67,6 +68,24 @@ def create_checkout_session(
 
 # high-level: our app's payment flow, main "service" API
 async def create_checkout_session_for_payment(data: CheckoutRequest) -> CheckoutResponse:
+    dummy_mode = not settings.STRIPE_SECRET_KEY and os.getenv("ENABLE_DUMMY_STRIPE") == "1"
+    if not settings.STRIPE_SECRET_KEY and not dummy_mode:
+        raise HTTPException(
+            status_code=500,
+            detail="Stripe is not configured. Set STRIPE_SECRET_KEY.",
+        )
+    if dummy_mode:
+        stripe.api_key = "sk_test_dummy"
+
+    # Reuse existing successful payment that has not been refunded
+    existing = await payments_db.get_latest_payment_for_event_user(
+        event_id=data.event_id,
+        user_id=data.user_id,
+        statuses=(PaymentStatus.succeeded,),
+    )
+    if existing and existing.status == PaymentStatus.succeeded:
+        return CheckoutResponse(checkout_url=None, already_paid=True)
+
     # 1) Create an initial payment record in 'created' state
     pending = await payments_db.create_payment_db(
         PaymentCreate(
@@ -169,3 +188,7 @@ async def process_webhook_event(payload: bytes, sig_header: str | None) -> dict:
 
     # 4) Acknowledge event so Stripe doesn't retry
     return {"received": True}
+
+
+async def refund_payment_for_event_user():
+    raise HTTPException(status_code=410, detail="Refunds are not supported.")
