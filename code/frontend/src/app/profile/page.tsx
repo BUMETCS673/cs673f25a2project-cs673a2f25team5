@@ -18,7 +18,10 @@ import {
   getUpcomingEvents,
 } from "@/services/events";
 
-type AnyEvent = { event_id?: string; event_name?: string } & Record<string, any>;
+type AnyEvent = { event_id?: string; event_name?: string } & Record<
+  string,
+  unknown
+>;
 
 const TABS = ["Attending", "Created", "Upcoming"] as const;
 
@@ -30,7 +33,7 @@ export default function Profile() {
   const fetchForTab = async (tab: string) => {
     setLoading(true);
     try {
-      let res: any;
+      let res: unknown;
       if (tab === "Attending") {
         res = await getAttendingEvents({ offset: 0, limit: 5 });
       } else if (tab === "Created") {
@@ -39,7 +42,9 @@ export default function Profile() {
         res = await getUpcomingEvents({ offset: 0, limit: 5 });
       }
 
-      const items: AnyEvent[] = Array.isArray(res) ? res : res?.items ?? [];
+      const items: AnyEvent[] = Array.isArray(res)
+        ? (res as AnyEvent[])
+        : ((res as { items?: AnyEvent[] } | null)?.items ?? []);
       setEventsMap((prev) => ({ ...prev, [tab]: items }));
     } catch (err) {
       console.error("Failed to fetch events for tab", tab, err);
@@ -100,15 +105,21 @@ export default function Profile() {
                     <ul className="space-y-4">
                       {posts.map((post, idx) => (
                         <li
-                          key={post.event_id ?? post.id ?? idx}
+                          key={String(post.event_id ?? post.id ?? idx)}
                           className="rounded-md p-3 transition hover:bg-neutral-200 dark:hover:bg-neutral-800"
                         >
                           <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                            {post.event_name ?? post.title}
+                            {typeof post.event_name === "string"
+                              ? post.event_name
+                              : typeof post.title === "string"
+                                ? post.title
+                                : ""}
                           </h3>
                           {post.event_datetime || post.date ? (
                             <ul className="mt-1 flex space-x-1 text-xs text-neutral-500">
-                              <li>{post.event_datetime ?? post.date}</li>
+                              <li>
+                                {String(post.event_datetime ?? post.date)}
+                              </li>
                             </ul>
                           ) : null}
                         </li>
@@ -124,4 +135,3 @@ export default function Profile() {
     </main>
   );
 }
-
