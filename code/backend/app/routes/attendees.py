@@ -13,11 +13,11 @@ from fastapi import APIRouter, Query, status
 from app.models import attendees as models_attendees
 from app.models import patch as models_patch
 from app.routes.shared_responses import (
+    ERROR_400_EVENT_PASSED,
     RESPONSES_CREATE,
     RESPONSES_DELETE,
     RESPONSES_LIST,
     RESPONSES_PATCH,
-    ERROR_400_EVENT_PASSED,
 )
 from app.service import attendees as attendees_service
 
