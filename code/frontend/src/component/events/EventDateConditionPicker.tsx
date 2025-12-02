@@ -62,7 +62,7 @@ export function EventDateConditionPicker({ value, onChange }: Props) {
   );
 
   return (
-    <div className="space-y-4 w-[min(90vw,400px)] p-4 bg-white dark:bg-neutral-900 rounded-2xl shadow-lg">
+    <div className="absolute right-0 mt-3 z-10 p-6 bg-white dark:bg-neutral-900 rounded-2xl shadow-lg">
       <div className="flex justify-center gap-2 mb-2">
         {modes.map((m) => (
           <button
