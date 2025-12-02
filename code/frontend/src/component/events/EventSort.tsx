@@ -1,3 +1,13 @@
+/*
+
+ AI-generated code: 70% (functions: EventSort)
+
+ Human code: 30% (integration adjustments and styling refinements)
+
+ No framework-generated code.
+
+*/
+
 import {
   Popover,
   PopoverButton,
@@ -7,21 +17,14 @@ import {
 import { FaAngleDown } from "react-icons/fa6";
 import clsx from "clsx";
 
-const sortOptions = [
-  "Date",
-  "Distance",
-  "Price",
-  "Capacity",
-  "A to Z",
-  "Z to A",
-];
+const sortOptions = ["Date", "Price", "Capacity", "A to Z", "Z to A"];
 
-interface EventFilterProps {
+interface EventSortProps {
   value: string;
   onChange: (value: string) => void;
 }
 
-export function EventFilter({ value, onChange }: EventFilterProps) {
+export function EventSort({ value, onChange }: EventSortProps) {
   return (
     <div className="flex justify-end mr-6">
       <Popover className="relative inline-block text-left">

@@ -2,7 +2,7 @@
 
  AI-generated code: 0%
 
- Human code: 100% (tests: EventFilter option selection & highlighting)
+ Human code: 100% (tests: EventSort option selection & highlighting)
 
  Framework-generated code: 0%
 
@@ -10,25 +10,18 @@
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { EventFilter } from "@/component/events/EventFilter";
+import { EventSort } from "../component/events/EventSort";
 
-describe("EventFilter", () => {
+describe("EventSort", () => {
   it("renders all sort options and calls onChange when selecting one", async () => {
     const onChange = jest.fn();
 
-    render(<EventFilter value="Date" onChange={onChange} />);
+    render(<EventSort value="Date" onChange={onChange} />);
 
     // Open popover menu
     await userEvent.click(screen.getByRole("button", { name: /sort/i }));
 
-    const options = [
-      "Date",
-      "Distance",
-      "Price",
-      "Capacity",
-      "A to Z",
-      "Z to A",
-    ];
+    const options = ["Date", "Price", "Capacity", "A to Z", "Z to A"];
 
     // Ensure all options render
     for (const label of options) {
@@ -44,7 +37,7 @@ describe("EventFilter", () => {
   it("applies selected styling to the active option", async () => {
     const onChange = jest.fn();
 
-    render(<EventFilter value="Distance" onChange={onChange} />);
+    render(<EventSort value="Distance" onChange={onChange} />);
 
     // Open menu
     await userEvent.click(screen.getByRole("button", { name: /sort/i }));
