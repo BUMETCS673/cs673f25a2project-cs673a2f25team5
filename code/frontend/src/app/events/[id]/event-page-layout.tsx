@@ -12,6 +12,7 @@ import Link from "next/link";
 import { EventAboutSection } from "@/component/events/event-detail/EventAboutSection";
 import { EventDetailHeader } from "@/component/events/event-detail/EventDetailHeader";
 import { EventHostPanel } from "@/component/events/event-detail/EventHostPanel";
+import { EventInvitationPanel } from "@/component/events/event-detail/EventInvitationPanel";
 import { EventLocationMapCard } from "@/component/events/event-detail/EventLocationMapCard";
 import { EventRegisterCard } from "@/component/events/event-detail/EventRegisterCard";
 import type { EventViewModel } from "@/component/events/event-detail/viewModel";
@@ -19,14 +20,22 @@ import type {
   AttendeeStatus,
   RegisterAttendeeResult,
 } from "@/types/registerTypes";
+import type {
+  InviteActionHandler,
+  InviteeLookupHandler,
+} from "@/types/invitationTypes";
 import { FaArrowLeft } from "react-icons/fa6";
 
 type EventPageLayoutProps = {
   eventId: string;
+  eventName: string;
   eventLocation: string | null;
   initialStatus: AttendeeStatus | null;
   isAuthenticated: boolean;
   isHost: boolean;
+  inviteAction?: InviteActionHandler | null;
+  resolveInvitee?: InviteeLookupHandler | null;
+  registerNote?: string | null;
   onRegister: (
     eventId: string,
     status: AttendeeStatus,
@@ -36,10 +45,14 @@ type EventPageLayoutProps = {
 
 export function EventPageLayout({
   eventId,
+  eventName,
   eventLocation,
   initialStatus,
   isAuthenticated,
   isHost,
+  inviteAction,
+  resolveInvitee,
+  registerNote,
   onRegister,
   viewModel,
 }: EventPageLayoutProps) {
@@ -58,6 +71,15 @@ export function EventPageLayout({
           </Link>
         </nav>
 
+        {isHost && inviteAction ? (
+          <EventInvitationPanel
+            eventName={eventName}
+            hostName={viewModel.hostCard.hostName}
+            onInvite={inviteAction}
+            resolveInvitee={resolveInvitee}
+          />
+        ) : null}
+
         <article className="grid gap-12 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
           <section className="space-y-8">
             <EventDetailHeader {...viewModel.header} />
@@ -73,6 +95,7 @@ export function EventPageLayout({
               initialStatus={initialStatus}
               isAuthenticated={isAuthenticated}
               isHost={isHost}
+              note={registerNote ?? undefined}
             />
             <EventHostPanel
               host={viewModel.hostCard}

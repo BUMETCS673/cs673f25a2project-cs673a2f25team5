@@ -8,10 +8,7 @@ Framework-generated code: 0%
 
 from typing import Any
 
-from sqlalchemy import (
-    MetaData,
-    text,
-)
+from sqlalchemy import MetaData, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.config import settings

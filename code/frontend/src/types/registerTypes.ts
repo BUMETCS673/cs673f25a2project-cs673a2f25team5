@@ -1,13 +1,12 @@
 import { EventRegisterData } from "@/component/events/event-detail/viewModel";
-import type { AttendeeCreatePayload } from "./attendeeTypes";
-
-type AttendeeStatus = AttendeeCreatePayload["status"];
+import type { AttendeeStatus } from "./attendeeTypes";
 
 type RegisterAttendeeSuccess = {
   success: true;
   status: AttendeeStatus;
   message: string;
   toast?: "success" | "info";
+  redirectUrl?: string;
 };
 
 type RegisterAttendeeFailure = {
@@ -17,6 +16,7 @@ type RegisterAttendeeFailure = {
     | "alreadyRegistered"
     | "host"
     | "eventClosed"
+    | "paymentFailed"
     | "unknown";
   message: string;
   status?: AttendeeStatus | null;

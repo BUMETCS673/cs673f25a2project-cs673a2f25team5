@@ -79,6 +79,20 @@ async def create_attendee_service(att: AttendeeCreate) -> AttendeeRead:
         )
         raise HTTPException(status_code=409, detail="User already registered for this event")
 
+    event = existing_events[0]
+    if event.capacity is not None:
+        _, attendee_total = await attendees_db.get_attendees_db(
+            [FilterOperation("event_id", "eq", att.event_id)],
+            limit=1,
+        )
+        if attendee_total >= event.capacity:
+            logger.info(
+                "Capacity reached for event_id='%s' (capacity=%s, current=%s)",
+                att.event_id,
+                event.capacity,
+                attendee_total,
+            )
+            raise HTTPException(status_code=400, detail="Event is full")
     # DB will default status to NULL if not provided (meaning no response yet)
     sanitized = AttendeeCreate(
         event_id=att.event_id,

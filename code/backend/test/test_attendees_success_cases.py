@@ -508,3 +508,35 @@ async def test_patch_multiple_attendees(test_client: AsyncClient):
     assert attendee_id2 in data
     assert data[attendee_id1]["status"] == "RSVPed"
     assert data[attendee_id2]["status"] == "Maybe"
+
+
+@pytest.mark.asyncio
+async def test_post_attendee_respects_capacity_allows_until_full(test_client: AsyncClient):
+    """RSVP should succeed while total attendees < capacity."""
+    cat_id = await _seed_category()
+    owner_id = await _seed_user(test_client)
+    event_id = await _seed_event(test_client, owner_id, cat_id)
+
+    user_ids: list[str] = []
+    for email in ["cap-ok-1@example.com", "cap-ok-2@example.com"]:
+        r = await test_client.post(
+            "/users",
+            json={
+                "first_name": "Cap",
+                "last_name": "User",
+                "email": email,
+                "date_of_birth": "1990-01-01",
+            },
+        )
+        assert r.status_code in (200, 201)
+        user_ids.append(r.json()["user_id"])
+
+    for uid in user_ids:
+        resp = await test_client.post(
+            "/attendees",
+            json={"event_id": str(event_id), "user_id": uid, "status": "RSVPed"},
+        )
+        assert resp.status_code == 201
+        body = resp.json()
+        assert body["event_id"] == str(event_id)
+        assert body["user_id"] == uid

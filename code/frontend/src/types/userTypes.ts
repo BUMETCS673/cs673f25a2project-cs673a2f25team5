@@ -2,7 +2,7 @@
 
  AI-generated code: 40% (tool: Codex - GPT-5, UserSchema, UserResponse, UserListSchema, UserListResponse) 
 
- Human code: 60% (functions: UserSchema, UserResponse, UserListSchema, UserListResponse) 
+ Human code: 60% (functions: UserSchema, UserResponse, UserListSchema, UserListResponse, GetUsersParams) 
 
  No framework-generated code.
 
@@ -32,3 +32,10 @@ export const UserListSchema = z.object({
 });
 
 export type UserListResponse = z.infer<typeof UserListSchema>;
+
+export type GetUsersParams = {
+  filters?: string[];
+  offset?: number;
+  limit?: number;
+  signal?: AbortSignal;
+};

@@ -185,6 +185,7 @@ class EventRead(EventBase):
     event_id: UUID = Field(..., description="Unique identifier for the event")
     created_at: datetime = Field(..., description="Event creation timestamp")
     updated_at: datetime = Field(..., description="Event last update timestamp")
+    attendee_count: int | None = Field(None, description="Number of attendees for this event")
 
 
 class PaginatedEvents(BaseModel):
