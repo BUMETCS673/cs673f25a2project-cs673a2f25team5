@@ -10,16 +10,7 @@ import logging
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import (
-    Column,
-    MetaData,
-    String,
-    Table,
-    Text,
-    and_,
-    func,
-    select,
-)
+from sqlalchemy import Column, MetaData, String, Table, Text, and_, func, select
 from sqlalchemy.dialects.postgresql import UUID as SQLAlchemyUUID
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.sql.elements import ColumnElement

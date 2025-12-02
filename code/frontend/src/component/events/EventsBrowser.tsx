@@ -12,22 +12,24 @@ No framework-generated code.
 
 import { useState, useMemo } from "react";
 import type { EventListResponse } from "@/types/eventTypes";
-import { EventFilter } from "@/component/events/EventFilter";
+
+import type { CategoryResponse } from "@/types/categoryTypes";
 import { EventSearchField } from "./EventSearchField";
 import { EventsResults } from "./EventsResults";
 import { useEventsBrowserState } from "./hooks/useEventsBrowserState";
 import { MapDiscoveryModalTrigger } from "./MapDiscoveryModal";
-import { FaCalendarDays } from "react-icons/fa6";
-import {
-  EventDateConditionPicker,
-  DateConditionValue,
-} from "./EventDateConditionPicker";
+import { CategoryFilter } from "./CategoryFilter";
+import { PriceFilter } from "./PriceFilter";
 
 type EventsBrowserProps = {
   initialResult: EventListResponse;
+  categories: CategoryResponse[];
 };
 
-export function EventsBrowser({ initialResult }: EventsBrowserProps) {
+export function EventsBrowser({
+  initialResult,
+  categories,
+}: EventsBrowserProps) {
   const {
     query,
     setQuery,
@@ -45,6 +47,11 @@ export function EventsBrowser({ initialResult }: EventsBrowserProps) {
     handleNextPage,
     handleBaseRetry,
     handleRemoteRetry,
+    selectedCategoryId,
+    handleSelectCategory,
+    selectedMinPrice,
+    selectedMaxPrice,
+    handleSelectPriceRange,
   } = useEventsBrowserState(initialResult);
 
   const [sort, setSort] = useState("Date");
@@ -123,11 +130,27 @@ export function EventsBrowser({ initialResult }: EventsBrowserProps) {
       </div>
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div className="w-full lg:max-w-[540px]">
-          <EventSearchField query={query} onQueryChange={setQuery} />
+        <div className="grid w-full grid-cols-1 gap-4 lg:max-w-3xl lg:grid-cols-1 flex-col">
+          <div className="flex gap-4">
+            <EventSearchField
+              query={query}
+              onQueryChange={(value) => setQuery(value)}
+            />
+          </div>
+          <div className="flex gap-4 items-center justify-end">
+            <CategoryFilter
+              categories={categories}
+              selectedCategoryId={selectedCategoryId}
+              onSelectCategory={handleSelectCategory}
+            />
+            <PriceFilter
+              selectedMinPrice={selectedMinPrice}
+              selectedMaxPrice={selectedMaxPrice}
+              onSelectPriceRange={handleSelectPriceRange}
+            />
+            <MapDiscoveryModalTrigger initialEvents={initialResult.items} />
+          </div>
         </div>
-
-        <MapDiscoveryModalTrigger initialEvents={initialResult.items} />
       </div>
 
       <EventsResults

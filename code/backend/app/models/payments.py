@@ -46,4 +46,5 @@ class CheckoutRequest(BaseModel):
 
 
 class CheckoutResponse(BaseModel):
-    checkout_url: str
+    checkout_url: str | None = None
+    already_paid: bool = False
