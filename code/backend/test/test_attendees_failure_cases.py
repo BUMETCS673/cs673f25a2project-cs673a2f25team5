@@ -36,7 +36,10 @@ def test_db_file() -> Generator[str, None, None]:
     db_fd, db_path = tempfile.mkstemp(suffix=".db")
     yield f"sqlite+aiosqlite:///{db_path}"
     os.close(db_fd)
-    os.remove(db_path)
+    try:
+        os.remove(db_path)
+    except PermissionError:
+        pass
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -529,3 +532,48 @@ async def test_create_attendee_400_when_event_full(test_client: AsyncClient):
     assert second_attendee_resp.status_code == 400
     detail = second_attendee_resp.json().get("detail")
     assert detail == "Event is full"
+
+
+@pytest.mark.asyncio
+async def test_cannot_rsvp_to_past_event(test_client: AsyncClient):
+    """Attendee creation must return 400 when event_datetime is in the past."""
+
+    cat_id = await categories_db.create_category_db("General", "General")
+
+    user_resp = await test_client.post(
+        "/users",
+        json={
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "john.doe@example.com",
+            "date_of_birth": "1990-01-01",
+        },
+    )
+    assert user_resp.status_code == 201
+    user_id = user_resp.json()["user_id"]
+
+    start = datetime.now(UTC) - timedelta(hours=1)
+    end = start + timedelta(hours=2)
+    event_resp = await test_client.post(
+        "/events",
+        json={
+            "event_name": "Tech Talk",
+            "event_location": "Test Location",
+            "event_datetime": start.isoformat(),
+            "event_endtime": end.isoformat(),
+            "capacity": 10,
+            "price_field": 0,
+            "user_id": user_id,
+            "category_id": str(cat_id),
+        },
+    )
+    assert event_resp.status_code == 201
+    event_id = event_resp.json()["event_id"]
+
+    resp = await test_client.post(
+        "/attendees",
+        json={"event_id": event_id, "user_id": user_id, "status": "RSVPed"},
+    )
+    assert resp.status_code == 400
+    detail = resp.json().get("detail", "")
+    assert "time has already passed" in detail.lower()

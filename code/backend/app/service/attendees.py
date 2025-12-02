@@ -7,6 +7,7 @@ Framework-generated code: 0%
 """
 
 import logging
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -41,6 +42,21 @@ async def create_attendee_service(att: AttendeeCreate) -> AttendeeRead:
     if not existing_events:
         logger.warning(f"Event with event_id '{att.event_id}' does not exist.")
         raise HTTPException(status_code=404, detail="No such event exists")
+
+    event = existing_events[0]
+
+    event_dt = event.event_datetime
+    if event_dt.tzinfo is None:
+        event_dt = event_dt.replace(tzinfo=UTC)
+
+    now = datetime.now(UTC)
+
+    # Check full date + time
+    if event_dt < now:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot RSVP: The event date and time has already passed",
+        )
 
     existing_users, _ = await users_db.get_users_db(
         [FilterOperation("user_id", "eq", att.user_id)], limit=1
@@ -103,6 +119,34 @@ async def delete_attendee_service(attendee_id: UUID) -> AttendeeRead:
 @handle_service_exceptions
 async def patch_attendees_service(request: PatchRequest) -> dict[UUID, AttendeeRead]:
     updates = await AttendeeBase.validate_patch_operations(request.patch)
+
+    now = datetime.now(UTC)
+
+    for attendee_id in updates.keys():
+        attendees, _ = await attendees_db.get_attendees_db(
+            [FilterOperation("attendee_id", "eq", attendee_id)],
+            limit=1,
+        )
+
+        attendee = attendees[0]
+        event_id = attendee.event_id
+
+        events, _ = await events_db.get_events_db(
+            [FilterOperation("event_id", "eq", event_id)],
+            limit=1,
+        )
+
+        event = events[0]
+        event_dt = event.event_datetime
+
+        if event_dt.tzinfo is None:
+            event_dt = event_dt.replace(tzinfo=UTC)
+
+        if event_dt < now:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot modify attendee: The event date and time has already passed",
+            )
 
     result = await attendees_db.batch_update_attendees_db(updates)
 
