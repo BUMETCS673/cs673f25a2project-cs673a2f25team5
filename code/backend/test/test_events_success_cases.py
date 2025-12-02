@@ -223,6 +223,8 @@ async def test_list_events_with_data(
     assert len(data["items"]) == 1
     assert data["items"][0]["event_name"] == "Party Event"
     assert data["total"] == 1
+    assert "attendee_count" in data["items"][0]
+    assert data["items"][0]["attendee_count"] == 0
 
 
 @pytest.mark.asyncio
@@ -256,6 +258,63 @@ async def test_list_events_with_filter_eq(
     assert len(data["items"]) == 1
     assert data["items"][0]["event_name"] == "Party Event"
     assert data["total"] == 1
+
+
+@pytest.mark.asyncio
+async def test_list_events_attendee_count_reflects_attendees(
+    test_client: AsyncClient, test_user: UUID, test_category: UUID
+):
+    """attendee_count in the events list should match the number of RSVPs."""
+    now = datetime.now(UTC)
+
+    event = EventCreate(
+        event_name="Counted Event",
+        event_datetime=now + timedelta(days=1),
+        event_endtime=now + timedelta(days=1, hours=2),
+        event_location="Location 2",
+        description="Has attendees",
+        picture_url="https://example.com/pic-counted.jpg",
+        capacity=10,
+        price_field=0,
+        user_id=test_user,
+        category_id=test_category,
+    )
+    event_resp = await test_client.post("/events", json=event.model_dump(mode="json"))
+    assert event_resp.status_code == 201
+    event_id = event_resp.json()["event_id"]
+
+    attendee_ids: list[str] = []
+    for email in ["ev-att-1@example.com", "ev-att-2@example.com"]:
+        user_resp = await test_client.post(
+            "/users",
+            json={
+                "first_name": "Att",
+                "last_name": "User",
+                "email": email,
+                "date_of_birth": "1990-01-01",
+            },
+        )
+        assert user_resp.status_code in (200, 201)
+        uid = user_resp.json()["user_id"]
+        attendee_ids.append(uid)
+
+        rsvp_resp = await test_client.post(
+            "/attendees",
+            json={"event_id": event_id, "user_id": uid, "status": "RSVPed"},
+        )
+        assert rsvp_resp.status_code == 201
+
+    list_resp = await test_client.get("/events")
+    assert list_resp.status_code == 200
+    data = list_resp.json()
+    items = data["items"]
+
+    matched = [e for e in items if e["event_id"] == event_id]
+    assert len(matched) == 1
+    event_json = matched[0]
+
+    assert "attendee_count" in event_json
+    assert event_json["attendee_count"] == 2
 
 
 @pytest.mark.asyncio

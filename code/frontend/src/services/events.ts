@@ -18,8 +18,8 @@ import {
   EventResponse,
   EventListResponse,
   EventSchema,
+  EventListSchema,
 } from "../types/eventTypes";
-import { getAttendees } from "./attendees";
 
 export async function createEvent(
   payload: EventCreatePayload,
@@ -73,16 +73,15 @@ export async function getEvents(
     url.searchParams.append("filter_expression", filter);
   }
 
-  if (typeof offset === "number") {
-    url.searchParams.set("offset", offset.toString());
+  if (offset !== undefined) {
+    url.searchParams.append("offset", offset.toString());
   }
 
-  if (typeof limit === "number") {
-    url.searchParams.set("limit", limit.toString());
+  if (limit !== undefined) {
+    url.searchParams.append("limit", limit.toString());
   }
 
   const { getToken } = await auth();
-
   const token = await getToken();
 
   const response = await fetch(url.toString(), {
@@ -96,22 +95,5 @@ export async function getEvents(
     throw new Error(`Request failed with status ${response.status}`);
   }
   const data = await response.json();
-  const items = await Promise.all(
-    data.items.map(async (item: EventResponse) => {
-      EventSchema.parse(item);
-      const result = await getAttendees({
-        filters: [`event_id:eq:${item.event_id}`],
-      });
-      return {
-        ...item,
-        attendee_count: result.total,
-      };
-    }),
-  );
-  return {
-    items,
-    total: data.total,
-    offset: data.offset,
-    limit: data.limit,
-  };
+  return EventListSchema.parse(data);
 }
