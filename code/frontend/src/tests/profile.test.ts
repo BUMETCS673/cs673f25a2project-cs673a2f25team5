@@ -1,14 +1,16 @@
 /*** 
   AI-generated code: 30% (tool: Codex - GPT-5, modified and adapted, additions: jest import) 
+  
   Human code: 70% (tests, structure, logic) 
+  
   Framework-generated code: 0%
  **/
 
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import UserProfile1 from "../app/profile/page";
-import * as eventsSvc from "../services/events";
-import * as attendeesSvc from "../services/attendees";
+import * as eventsSvc from "@/services/events";
+import * as attendeesSvc from "@/services/attendees";
 
 // Mock Clerk user to ensure userId is defined
 jest.mock("@clerk/nextjs", () => ({
@@ -25,29 +27,18 @@ jest.mock("@clerk/nextjs", () => ({
   }),
 }));
 
-jest.mock("../services/events", () => {
-  const actual =
-    jest.requireActual<typeof import("../services/events")>(
-      "../services/events",
-    );
-  return {
-    ...actual,
-    getEvents: jest.fn(),
-  };
-});
+jest.mock("@/services/events", () => ({
+  ...jest.requireActual("@/services/events"),
+  getEvents: jest.fn(),
+}));
 
-jest.mock("../services/attendees", () => {
-  const actual = jest.requireActual<typeof import("../services/attendees")>(
-    "../services/attendees",
-  );
-  return {
-    ...actual,
-    getAttendees: jest.fn(),
-  };
-});
+jest.mock("@/services/attendees", () => ({
+  ...jest.requireActual("@/services/attendees"),
+  getAttendees: jest.fn(),
+}));
 
-const getEventsMock = eventsSvc.getEvents as jest.Mock;
-const getAttendeesMock = attendeesSvc.getAttendees as jest.Mock;
+const getEventsMock = jest.mocked(eventsSvc.getEvents);
+const getAttendeesMock = jest.mocked(attendeesSvc.getAttendees);
 
 describe("Profile dropdown event selector", () => {
   const createdItems = [{ event_id: "e1", event_name: "Created Event" }];
@@ -55,8 +46,10 @@ describe("Profile dropdown event selector", () => {
   const upcomingItems = [{ event_id: "u1", event_name: "Upcoming Event" }];
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
     jest.spyOn(console, "error").mockImplementation(() => {});
+    getEventsMock.mockReset();
+    getAttendeesMock.mockReset();
   });
 
   it("loads created events by default", async () => {
@@ -65,7 +58,7 @@ describe("Profile dropdown event selector", () => {
     render(React.createElement(UserProfile1));
 
     await waitFor(() => {
-      expect(getEventsMock).toHaveBeenCalledWith(
+      expect(eventsSvc.getEvents).toHaveBeenCalledWith(
         expect.objectContaining({
           filters: expect.arrayContaining([
             expect.stringContaining("user_id:eq:"),
@@ -90,14 +83,14 @@ describe("Profile dropdown event selector", () => {
     });
 
     await waitFor(() => {
-      expect(getAttendeesMock).toHaveBeenCalledWith(
+      expect(attendeesSvc.getAttendees).toHaveBeenCalledWith(
         expect.objectContaining({
           filters: expect.arrayContaining([
             expect.stringContaining("user_id:eq:"),
           ]),
         }),
       );
-      expect(getEventsMock).toHaveBeenLastCalledWith(
+      expect(eventsSvc.getEvents).toHaveBeenLastCalledWith(
         expect.objectContaining({
           filters: expect.arrayContaining([
             expect.stringContaining("event_id:in"),
@@ -119,7 +112,7 @@ describe("Profile dropdown event selector", () => {
     });
 
     await waitFor(() => {
-      expect(getEventsMock).toHaveBeenLastCalledWith(
+      expect(eventsSvc.getEvents).toHaveBeenLastCalledWith(
         expect.objectContaining({
           filters: expect.arrayContaining([
             expect.stringContaining("event_datetime:gt:"),

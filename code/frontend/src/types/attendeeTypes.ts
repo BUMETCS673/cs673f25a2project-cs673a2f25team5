@@ -14,7 +14,7 @@ export const AttendeeSchema = z.object({
   attendee_id: z.uuid(),
   event_id: z.uuid(),
   user_id: z.uuid(),
-  status: z.enum(["RSVPed", "Maybe", "Not Going"]),
+  status: z.enum(["RSVPed", "Maybe", "Not Going"]).nullable(),
   created_at: z.string(),
   updated_at: z.string(),
 });
