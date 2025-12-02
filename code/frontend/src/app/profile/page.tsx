@@ -200,7 +200,7 @@ function UserProfile1() {
       ? "View all your events created by you."
       : eventSource === "registered"
         ? "Browse the events you've registered to attend."
-        : "Check out upcoming events you might be interested in.";
+        : "Browse all upcoming events.";
   const createdEventsCount =
     createdEvents?.length ??
     (eventSource === "created" ? displayedEvents.length : 0);
