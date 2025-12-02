@@ -106,26 +106,21 @@ async def delete_attendee_service(attendee_id: UUID) -> AttendeeRead:
 async def patch_attendees_service(request: PatchRequest) -> dict[UUID, AttendeeRead]:
     updates = await AttendeeBase.validate_patch_operations(request.patch)
 
-    attendee_ids = list(updates.keys())
-    if not attendee_ids:
-        return {}
-
     now = datetime.now(UTC)
 
-    for attendee_id in attendee_ids:
+    for attendee_id in updates.keys():
         attendees, _ = await attendees_db.get_attendees_db(
-            [FilterOperation("attendee_id", "eq", attendee_id)], limit=1
+            [FilterOperation("attendee_id", "eq", attendee_id)],
+            limit=1,
         )
-        if not attendees:
-            raise HTTPException(status_code=404, detail="Attendee not found")
 
         attendee = attendees[0]
+        event_id = attendee.event_id
 
         events, _ = await events_db.get_events_db(
-            [FilterOperation("event_id", "eq", attendee.event_id)], limit=1
+            [FilterOperation("event_id", "eq", event_id)],
+            limit=1,
         )
-        if not events:
-            raise HTTPException(status_code=404, detail="Event not found")
 
         event = events[0]
         event_dt = event.event_datetime

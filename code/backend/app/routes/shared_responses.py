@@ -39,15 +39,6 @@ ERROR_400_INVALID_INPUT: dict[str, Any] = {
     "content": {"application/json": {"example": {"detail": "Invalid input data"}}},
 }
 
-ERROR_400_EVENT_PASSED: dict[str, Any] = {
-    "description": "Cannot RSVP for a past event",
-    "content": {
-        "application/json": {
-            "example": {"detail": "Cannot RSVP: The event date and time has already passed"}
-        }
-    },
-}
-
 ERROR_400_PATCH_OPERATION: dict[str, Any] = {
     "description": "Invalid patch operation or data",
     "content": {

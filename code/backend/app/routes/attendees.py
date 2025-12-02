@@ -13,7 +13,6 @@ from fastapi import APIRouter, Query, status
 from app.models import attendees as models_attendees
 from app.models import patch as models_patch
 from app.routes.shared_responses import (
-    ERROR_400_EVENT_PASSED,
     RESPONSES_CREATE,
     RESPONSES_DELETE,
     RESPONSES_LIST,
@@ -22,12 +21,6 @@ from app.routes.shared_responses import (
 from app.service import attendees as attendees_service
 
 router = APIRouter()
-
-ATTENDEE_CREATE_RESPONSES = RESPONSES_CREATE.copy()
-ATTENDEE_CREATE_RESPONSES[400] = ERROR_400_EVENT_PASSED
-
-ATTENDEE_PATCH_RESPONSES = RESPONSES_PATCH.copy()
-ATTENDEE_PATCH_RESPONSES[400] = ERROR_400_EVENT_PASSED
 
 
 FILTER_QUERY = Query(
@@ -73,7 +66,7 @@ async def list_attendees(
     description="Creates an attendee row for (event_id, user_id). Prevents duplicates.",
     tags=["Attendees"],
     status_code=status.HTTP_201_CREATED,
-    responses=ATTENDEE_CREATE_RESPONSES,
+    responses=RESPONSES_CREATE,
 )
 async def create_attendee(
     attendee: models_attendees.AttendeeCreate,
@@ -105,7 +98,7 @@ async def create_attendee(
         "```"
     ),
     tags=["Attendees"],
-    responses=ATTENDEE_PATCH_RESPONSES,
+    responses=RESPONSES_PATCH,
 )
 async def patch_attendees(
     request: models_patch.PatchRequest,
