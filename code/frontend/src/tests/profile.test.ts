@@ -6,13 +6,30 @@
 
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import Profile from "../app/profile/page";
+import UserProfile1 from "../app/profile/page";
 import * as eventsSvc from "../services/events";
 import * as attendeesSvc from "../services/attendees";
-import { jest } from "@jest/globals";
+
+// Mock Clerk user to ensure userId is defined
+jest.mock("@clerk/nextjs", () => ({
+  useUser: () => ({
+    isLoaded: true,
+    user: {
+      externalId: "user_123",
+      firstName: "Test",
+      lastName: "User",
+      createdAt: new Date("2025-01-01T00:00:00Z"),
+      emailAddresses: [{ emailAddress: "test@example.com" }],
+      imageUrl: "/img/avatar1.jpg",
+    },
+  }),
+}));
 
 jest.mock("../services/events", () => {
-  const actual = jest.requireActual<typeof import("../services/events")>("../services/events");
+  const actual =
+    jest.requireActual<typeof import("../services/events")>(
+      "../services/events",
+    );
   return {
     ...actual,
     getEvents: jest.fn(),
@@ -20,7 +37,9 @@ jest.mock("../services/events", () => {
 });
 
 jest.mock("../services/attendees", () => {
-  const actual = jest.requireActual<typeof import("../services/attendees")>("../services/attendees");
+  const actual = jest.requireActual<typeof import("../services/attendees")>(
+    "../services/attendees",
+  );
   return {
     ...actual,
     getAttendees: jest.fn(),
@@ -41,36 +60,48 @@ describe("Profile dropdown event selector", () => {
   });
 
   it("loads created events by default", async () => {
-    getEventsMock.mockResolvedValue({
-      items: createdItems,
-    });
+    getEventsMock.mockResolvedValueOnce({ items: createdItems });
 
-    render(<Profile />);
+    render(React.createElement(UserProfile1));
 
     await waitFor(() => {
-      expect(getEventsMock).toHaveBeenCalled();
+      expect(getEventsMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: expect.arrayContaining([
+            expect.stringContaining("user_id:eq:"),
+          ]),
+        }),
+      );
       expect(screen.getByText("Created Event")).toBeInTheDocument();
     });
   });
 
   it("loads registered events when user selects 'Events I registered for'", async () => {
-    getEventsMock.mockResolvedValue({ items: [] }); // initial
+    getEventsMock.mockResolvedValueOnce({ items: createdItems });
     getAttendeesMock.mockResolvedValue({
       items: [{ event_id: "r1" }],
     });
     getEventsMock.mockResolvedValueOnce({ items: registeredItems });
 
-    render(<Profile />);
+    render(React.createElement(UserProfile1));
 
     fireEvent.change(screen.getByLabelText(/Show/i), {
       target: { value: "registered" },
     });
 
     await waitFor(() => {
-      expect(getAttendeesMock).toHaveBeenCalled();
+      expect(getAttendeesMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filters: expect.arrayContaining([
+            expect.stringContaining("user_id:eq:"),
+          ]),
+        }),
+      );
       expect(getEventsMock).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          filters: expect.arrayContaining([expect.stringContaining("event_id:in")]),
+          filters: expect.arrayContaining([
+            expect.stringContaining("event_id:in"),
+          ]),
         }),
       );
       expect(screen.getByText("Registered Event")).toBeInTheDocument();
@@ -78,17 +109,23 @@ describe("Profile dropdown event selector", () => {
   });
 
   it("loads upcoming events when user selects 'Upcoming events'", async () => {
-    getEventsMock.mockResolvedValueOnce({ items: createdItems }); // initial load
-    getEventsMock.mockResolvedValueOnce({ items: upcomingItems }); // upcoming load
+    getEventsMock.mockResolvedValueOnce({ items: createdItems });
+    getEventsMock.mockResolvedValueOnce({ items: upcomingItems });
 
-    render(<Profile />);
+    render(React.createElement(UserProfile1));
 
     fireEvent.change(screen.getByLabelText(/Show/i), {
       target: { value: "upcoming" },
     });
 
     await waitFor(() => {
-      expect(getEventsMock).toHaveBeenCalled();
+      expect(getEventsMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          filters: expect.arrayContaining([
+            expect.stringContaining("event_datetime:gt:"),
+          ]),
+        }),
+      );
       expect(screen.getByText("Upcoming Event")).toBeInTheDocument();
       expect(screen.queryByText("Created Event")).not.toBeInTheDocument();
     });
