@@ -142,7 +142,9 @@ function UserProfile1() {
       try {
         const data = needsCreated
           ? await loadCreatedEvents()
-          : await loadRegisteredEvents();
+          : needsRegistered
+            ? await loadRegisteredEvents()
+            : await loadUpcomingEvents();
 
         if (cancelled) {
           return;

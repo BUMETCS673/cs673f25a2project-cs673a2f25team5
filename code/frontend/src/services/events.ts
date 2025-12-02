@@ -18,8 +18,8 @@ import {
   EventResponse,
   EventListResponse,
   EventSchema,
+  EventListSchema,
 } from "../types/eventTypes";
-import { getAttendees } from "./attendees";
 
 export async function createEvent(
   payload: EventCreatePayload,
@@ -73,16 +73,15 @@ export async function getEvents(
     url.searchParams.append("filter_expression", filter);
   }
 
-  if (typeof offset === "number") {
-    url.searchParams.set("offset", offset.toString());
+  if (offset !== undefined) {
+    url.searchParams.append("offset", offset.toString());
   }
 
-  if (typeof limit === "number") {
-    url.searchParams.set("limit", limit.toString());
+  if (limit !== undefined) {
+    url.searchParams.append("limit", limit.toString());
   }
 
   const { getToken } = await auth();
-
   const token = await getToken();
 
   const response = await fetch(url.toString(), {
@@ -96,53 +95,5 @@ export async function getEvents(
     throw new Error(`Request failed with status ${response.status}`);
   }
   const data = await response.json();
-  const items = await Promise.all(
-    data.items.map(async (item: EventResponse) => {
-      EventSchema.parse(item);
-      const result = await getAttendees({
-        filters: [`event_id:eq:${item.event_id}`],
-      });
-      return {
-        ...item,
-        attendee_count: result.total,
-      };
-    }),
-  );
-  return {
-    items,
-    total: data.total,
-    offset: data.offset,
-    limit: data.limit,
-  };
-}
-
-type SimpleGetParams = Omit<GetEventsParams, "filters"> & {
-  offset?: number;
-  limit?: number;
-  signal?: AbortSignal;
-};
-
-/** Convenience wrappers used by UI code/tests. These call `getEvents` with a
- * category-specific filter and return the raw EventListResponse. Tests may
- * mock these functions and return either an array of events or an EventListResponse.
- */
-export async function getAttendingEvents(
-  params?: SimpleGetParams,
-): Promise<EventListResponse | EventResponse[]> {
-  const { offset, limit } = params ?? {};
-  return getEvents({ filters: ["attending"], offset, limit });
-}
-
-export async function getCreatedEvents(
-  params?: SimpleGetParams,
-): Promise<EventListResponse | EventResponse[]> {
-  const { offset, limit } = params ?? {};
-  return getEvents({ filters: ["created_by_me"], offset, limit });
-}
-
-export async function getUpcomingEvents(
-  params?: SimpleGetParams,
-): Promise<EventListResponse | EventResponse[]> {
-  const { offset, limit } = params ?? {};
-  return getEvents({ filters: ["upcoming"], offset, limit });
+  return EventListSchema.parse(data);
 }

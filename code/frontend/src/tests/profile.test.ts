@@ -1,81 +1,96 @@
 /*** 
-  AI-generated code: 25% (tool: Codex - GPT-5, modified and adapted, functions: UserProfile1, useUser, useCallback, useEffect, useState) 
-  Human code: 75% (functions: UserProfile1, useUser, useCallback, useEffect, useState) 
+  AI-generated code: 30% (tool: Codex - GPT-5, modified and adapted, additions: jest import) 
+  Human code: 70% (tests, structure, logic) 
   Framework-generated code: 0%
  **/
 
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Profile from "../app/profile/page";
-import * as eventsSvc from "@/services/events";
+import * as eventsSvc from "../services/events";
+import * as attendeesSvc from "../services/attendees";
+import { jest } from "@jest/globals";
 
-jest.mock("@/services/events", () => ({
-  ...jest.requireActual("@/services/events"),
-  getAttendingEvents: jest.fn(),
-  getCreatedEvents: jest.fn(),
-  getUpcomingEvents: jest.fn(),
-}));
+jest.mock("../services/events", () => {
+  const actual = jest.requireActual<typeof import("../services/events")>("../services/events");
+  return {
+    ...actual,
+    getEvents: jest.fn(),
+  };
+});
 
-type EventsMock = jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+jest.mock("../services/attendees", () => {
+  const actual = jest.requireActual<typeof import("../services/attendees")>("../services/attendees");
+  return {
+    ...actual,
+    getAttendees: jest.fn(),
+  };
+});
 
-const attendingMock = eventsSvc.getAttendingEvents as EventsMock;
-const createdMock = eventsSvc.getCreatedEvents as EventsMock;
-const upcomingMock = eventsSvc.getUpcomingEvents as EventsMock;
+const getEventsMock = eventsSvc.getEvents as jest.Mock;
+const getAttendeesMock = attendeesSvc.getAttendees as jest.Mock;
 
-describe("Profile page tabs", () => {
-  const attendingResults = [{ event_id: "a1", event_name: "A-Attending" }];
-  const createdResults = [{ event_id: "b1", event_name: "B-Created" }];
-  const upcomingResults = [{ event_id: "c1", event_name: "C-Upcoming" }];
+describe("Profile dropdown event selector", () => {
+  const createdItems = [{ event_id: "e1", event_name: "Created Event" }];
+  const registeredItems = [{ event_id: "r1", event_name: "Registered Event" }];
+  const upcomingItems = [{ event_id: "u1", event_name: "Upcoming Event" }];
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
     jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  it("loads Attending on mount and displays events", async () => {
-    attendingMock.mockResolvedValue(attendingResults as unknown);
-    render(React.createElement(Profile));
+  it("loads created events by default", async () => {
+    getEventsMock.mockResolvedValue({
+      items: createdItems,
+    });
+
+    render(<Profile />);
 
     await waitFor(() => {
-      expect(eventsSvc.getAttendingEvents).toHaveBeenCalledWith(
-        expect.objectContaining({ offset: 0, limit: 5 }),
-      );
-      expect(screen.getByText("A-Attending")).toBeInTheDocument();
+      expect(getEventsMock).toHaveBeenCalled();
+      expect(screen.getByText("Created Event")).toBeInTheDocument();
     });
   });
 
-  it("fetches Created when Created tab is selected", async () => {
-    attendingMock.mockResolvedValue(attendingResults as unknown);
-    createdMock.mockResolvedValue(createdResults as unknown);
-    render(React.createElement(Profile));
+  it("loads registered events when user selects 'Events I registered for'", async () => {
+    getEventsMock.mockResolvedValue({ items: [] }); // initial
+    getAttendeesMock.mockResolvedValue({
+      items: [{ event_id: "r1" }],
+    });
+    getEventsMock.mockResolvedValueOnce({ items: registeredItems });
 
-    fireEvent.click(screen.getByRole("tab", { name: /Created/i }));
+    render(<Profile />);
+
+    fireEvent.change(screen.getByLabelText(/Show/i), {
+      target: { value: "registered" },
+    });
 
     await waitFor(() => {
-      expect(eventsSvc.getCreatedEvents).toHaveBeenCalledWith(
-        expect.objectContaining({ offset: 0, limit: 5 }),
+      expect(getAttendeesMock).toHaveBeenCalled();
+      expect(getEventsMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          filters: expect.arrayContaining([expect.stringContaining("event_id:in")]),
+        }),
       );
-      expect(screen.getByText("B-Created")).toBeInTheDocument();
+      expect(screen.getByText("Registered Event")).toBeInTheDocument();
     });
   });
 
-  it("fetches Upcoming when Upcoming tab is selected and hides Attending items", async () => {
-    attendingMock.mockResolvedValue(attendingResults as unknown);
-    upcomingMock.mockResolvedValue(upcomingResults as unknown);
-    render(React.createElement(Profile));
+  it("loads upcoming events when user selects 'Upcoming events'", async () => {
+    getEventsMock.mockResolvedValueOnce({ items: createdItems }); // initial load
+    getEventsMock.mockResolvedValueOnce({ items: upcomingItems }); // upcoming load
 
-    await waitFor(() =>
-      expect(screen.getByText("A-Attending")).toBeInTheDocument(),
-    );
+    render(<Profile />);
 
-    fireEvent.click(screen.getByRole("tab", { name: /Upcoming/i }));
+    fireEvent.change(screen.getByLabelText(/Show/i), {
+      target: { value: "upcoming" },
+    });
 
     await waitFor(() => {
-      expect(eventsSvc.getUpcomingEvents).toHaveBeenCalledWith(
-        expect.objectContaining({ offset: 0, limit: 5 }),
-      );
-      expect(screen.getByText("C-Upcoming")).toBeInTheDocument();
-      expect(screen.queryByText("A-Attending")).not.toBeInTheDocument();
+      expect(getEventsMock).toHaveBeenCalled();
+      expect(screen.getByText("Upcoming Event")).toBeInTheDocument();
+      expect(screen.queryByText("Created Event")).not.toBeInTheDocument();
     });
   });
 });
