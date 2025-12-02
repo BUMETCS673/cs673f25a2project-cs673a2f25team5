@@ -10,10 +10,10 @@ import Profile from "../app/profile/page";
 import * as eventsSvc from "@/services/events";
 
 jest.mock("@/services/events", () => ({
-	...jest.requireActual("@/services/events"),
-	getAttendingEvents: jest.fn(),
-	getCreatedEvents: jest.fn(),
-	getUpcomingEvents: jest.fn(),
+  ...jest.requireActual("@/services/events"),
+  getAttendingEvents: jest.fn(),
+  getCreatedEvents: jest.fn(),
+  getUpcomingEvents: jest.fn(),
 }));
 
 type EventsMock = jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
@@ -23,58 +23,59 @@ const createdMock = eventsSvc.getCreatedEvents as EventsMock;
 const upcomingMock = eventsSvc.getUpcomingEvents as EventsMock;
 
 describe("Profile page tabs", () => {
-	const attendingResults = [{ event_id: "a1", event_name: "A-Attending" }];
-	const createdResults = [{ event_id: "b1", event_name: "B-Created" }];
-	const upcomingResults = [{ event_id: "c1", event_name: "C-Upcoming" }];
+  const attendingResults = [{ event_id: "a1", event_name: "A-Attending" }];
+  const createdResults = [{ event_id: "b1", event_name: "B-Created" }];
+  const upcomingResults = [{ event_id: "c1", event_name: "C-Upcoming" }];
 
-	beforeEach(() => {
-		jest.resetAllMocks();
-		jest.spyOn(console, "error").mockImplementation(() => {});
-	});
+  beforeEach(() => {
+    jest.resetAllMocks();
+    jest.spyOn(console, "error").mockImplementation(() => {});
+  });
 
-	it("loads Attending on mount and displays events", async () => {
-		attendingMock.mockResolvedValue(attendingResults as unknown);
-		render(React.createElement(Profile));
+  it("loads Attending on mount and displays events", async () => {
+    attendingMock.mockResolvedValue(attendingResults as unknown);
+    render(React.createElement(Profile));
 
-		await waitFor(() => {
-			expect(eventsSvc.getAttendingEvents).toHaveBeenCalledWith(
-				expect.objectContaining({ offset: 0, limit: 5 })
-			);
-			expect(screen.getByText("A-Attending")).toBeInTheDocument();
-		});
-	});
+    await waitFor(() => {
+      expect(eventsSvc.getAttendingEvents).toHaveBeenCalledWith(
+        expect.objectContaining({ offset: 0, limit: 5 }),
+      );
+      expect(screen.getByText("A-Attending")).toBeInTheDocument();
+    });
+  });
 
-	it("fetches Created when Created tab is selected", async () => {
-		attendingMock.mockResolvedValue(attendingResults as unknown);
-		createdMock.mockResolvedValue(createdResults as unknown);
-		render(React.createElement(Profile));
+  it("fetches Created when Created tab is selected", async () => {
+    attendingMock.mockResolvedValue(attendingResults as unknown);
+    createdMock.mockResolvedValue(createdResults as unknown);
+    render(React.createElement(Profile));
 
-		fireEvent.click(screen.getByRole("tab", { name: /Created/i }));
+    fireEvent.click(screen.getByRole("tab", { name: /Created/i }));
 
-		await waitFor(() => {
-			expect(eventsSvc.getCreatedEvents).toHaveBeenCalledWith(
-				expect.objectContaining({ offset: 0, limit: 5 })
-			);
-			expect(screen.getByText("B-Created")).toBeInTheDocument();
-		});
-	});
+    await waitFor(() => {
+      expect(eventsSvc.getCreatedEvents).toHaveBeenCalledWith(
+        expect.objectContaining({ offset: 0, limit: 5 }),
+      );
+      expect(screen.getByText("B-Created")).toBeInTheDocument();
+    });
+  });
 
-	it("fetches Upcoming when Upcoming tab is selected and hides Attending items", async () => {
-		attendingMock.mockResolvedValue(attendingResults as unknown);
-		upcomingMock.mockResolvedValue(upcomingResults as unknown);
-		render(React.createElement(Profile));
+  it("fetches Upcoming when Upcoming tab is selected and hides Attending items", async () => {
+    attendingMock.mockResolvedValue(attendingResults as unknown);
+    upcomingMock.mockResolvedValue(upcomingResults as unknown);
+    render(React.createElement(Profile));
 
-		await waitFor(() => expect(screen.getByText("A-Attending")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("A-Attending")).toBeInTheDocument(),
+    );
 
-		fireEvent.click(screen.getByRole("tab", { name: /Upcoming/i }));
+    fireEvent.click(screen.getByRole("tab", { name: /Upcoming/i }));
 
-		await waitFor(() => {
-			expect(eventsSvc.getUpcomingEvents).toHaveBeenCalledWith(
-				expect.objectContaining({ offset: 0, limit: 5 })
-			);
-			expect(screen.getByText("C-Upcoming")).toBeInTheDocument();
-			expect(screen.queryByText("A-Attending")).not.toBeInTheDocument();
-		});
-	});
+    await waitFor(() => {
+      expect(eventsSvc.getUpcomingEvents).toHaveBeenCalledWith(
+        expect.objectContaining({ offset: 0, limit: 5 }),
+      );
+      expect(screen.getByText("C-Upcoming")).toBeInTheDocument();
+      expect(screen.queryByText("A-Attending")).not.toBeInTheDocument();
+    });
+  });
 });
-

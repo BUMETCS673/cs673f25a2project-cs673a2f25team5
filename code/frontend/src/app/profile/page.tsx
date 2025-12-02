@@ -27,9 +27,9 @@ function UserProfile1() {
   const userId = user?.externalId;
   const isProfileLoading = !isLoaded;
 
-  const [eventSource, setEventSource] = useState<"created" | "registered" | "upcoming">(
-  "created",
-);
+  const [eventSource, setEventSource] = useState<
+    "created" | "registered" | "upcoming"
+  >("created");
   const [createdEvents, setCreatedEvents] = useState<EventResponse[] | null>(
     null,
   );
@@ -37,7 +37,8 @@ function UserProfile1() {
     EventResponse[] | null
   >(null);
   const [upcomingEvents, setUpcomingEvents] = useState<EventResponse[] | null>(
-    null);
+    null,
+  );
   const [displayedEvents, setDisplayedEvents] = useState<EventResponse[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
   const [eventsError, setEventsError] = useState<string | null>(null);
@@ -94,12 +95,11 @@ function UserProfile1() {
       return [];
     }
     const response = await getEvents({
-    filters: [`event_datetime:gt:${new Date().toISOString()}`],
-    limit: 100,
+      filters: [`event_datetime:gt:${new Date().toISOString()}`],
+      limit: 100,
     });
     return response.items;
   }, [userId]);
-
 
   useEffect(() => {
     if (eventSource === "created" && createdEvents) {
@@ -114,7 +114,7 @@ function UserProfile1() {
     if (eventSource === "upcoming" && upcomingEvents) {
       setDisplayedEvents(upcomingEvents);
       return;
-}
+    }
 
     setDisplayedEvents([]);
   }, [eventSource, createdEvents, registeredEvents, upcomingEvents]);
@@ -150,11 +150,9 @@ function UserProfile1() {
 
         if (eventSource === "created") {
           setCreatedEvents(data);
-        } 
-        else if (eventSource === "registered") {
+        } else if (eventSource === "registered") {
           setRegisteredEvents(data);
-        }
-        else {
+        } else {
           setUpcomingEvents(data);
         }
       } catch (error) {
@@ -190,13 +188,17 @@ function UserProfile1() {
   ]);
 
   const headingText =
-    eventSource === "created" ? "Events created" : eventSource === "registered" ? "Registered events" : "Upcoming events";
+    eventSource === "created"
+      ? "Events created"
+      : eventSource === "registered"
+        ? "Registered events"
+        : "Upcoming events";
   const descriptionText =
     eventSource === "created"
       ? "View all your events created by you."
       : eventSource === "registered"
-      ? "Browse the events you've registered to attend."
-      : "Check out upcoming events you might be interested in.";
+        ? "Browse the events you've registered to attend."
+        : "Check out upcoming events you might be interested in.";
   const createdEventsCount =
     createdEvents?.length ??
     (eventSource === "created" ? displayedEvents.length : 0);
@@ -276,7 +278,9 @@ function UserProfile1() {
               <select
                 value={eventSource}
                 onChange={(event) =>
-                  setEventSource(event.target.value as "created" | "registered" | "upcoming")
+                  setEventSource(
+                    event.target.value as "created" | "registered" | "upcoming",
+                  )
                 }
                 className="mt-1 rounded-2xl border border-neutral-200 bg-white/90 dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-amber-400 dark:focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:border-white/10 dark:text-neutral-100"
               >
