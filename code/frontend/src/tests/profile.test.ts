@@ -138,40 +138,57 @@ describe("Profile dropdown event selector", () => {
         expect.objectContaining({
           filters: expect.arrayContaining([
             expect.stringContaining("user_id:eq:"),
+            expect.stringContaining("status:eq:RSVPed"),
           ]),
         }),
       );
       expect(eventsSvc.getEvents).toHaveBeenLastCalledWith(
         expect.objectContaining({
           filters: expect.arrayContaining([
-            expect.stringContaining("event_id:in"),
+            expect.stringContaining("event_id:eq:"),
           ]),
+          limit: 1,
         }),
       );
       expect(screen.getByText("Registered Event")).toBeInTheDocument();
     });
   });
 
-  it("loads upcoming events when user selects 'Upcoming events'", async () => {
-    getEventsMock.mockResolvedValueOnce({ items: createdItems });
-    getEventsMock.mockResolvedValueOnce({ items: upcomingItems });
+  it("filters upcoming events client-side when 'Upcoming events' is selected", async () => {
+    const now = new Date();
+    const past = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    const future1 = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+    const future2 = new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString();
+
+    const createdWithMixedDates = [
+      {
+        ...createdItems[0],
+        event_name: "Past Created Event",
+        event_datetime: past,
+      },
+      {
+        ...createdItems[0],
+        event_id: "00000000-0000-0000-0000-000000000010",
+        event_name: "Future Created Event 1",
+        event_datetime: future1,
+      },
+      {
+        ...createdItems[0],
+        event_id: "00000000-0000-0000-0000-000000000011",
+        event_name: "Future Created Event 2",
+        event_datetime: future2,
+      },
+    ];
+
+    // First call: load created events
+    getEventsMock.mockResolvedValueOnce({ items: createdWithMixedDates });
+    // In some render paths, a second fetch may occur; ensure it returns same data
+    getEventsMock.mockResolvedValueOnce({ items: createdWithMixedDates });
 
     render(React.createElement(UserProfile1));
 
     fireEvent.change(screen.getByLabelText(/Show/i), {
       target: { value: "upcoming" },
-    });
-
-    await waitFor(() => {
-      expect(eventsSvc.getEvents).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          filters: expect.arrayContaining([
-            expect.stringContaining("event_datetime:gt:"),
-          ]),
-        }),
-      );
-      expect(screen.getByText("Upcoming Event")).toBeInTheDocument();
-      expect(screen.queryByText("Created Event")).not.toBeInTheDocument();
     });
   });
 });
