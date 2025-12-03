@@ -9,7 +9,7 @@
 */
 
 import { render, screen, fireEvent } from "@testing-library/react";
-import { EventSort } from "./EventSort";
+import { EventSort } from "../component/events/EventSort";
 
 describe("EventSort component", () => {
   const sortOptions = ["Date", "Price", "Capacity", "A to Z", "Z to A"];
@@ -19,7 +19,7 @@ describe("EventSort component", () => {
     expect(screen.getByRole("button", { name: /sort/i })).toBeInTheDocument();
   });
 
-  test("renders all sort options when clicked", async () => {
+  test("renders all sort options when clicked", () => {
     render(<EventSort value="Date" onChange={() => {}} />);
 
     const button = screen.getByRole("button", { name: /sort/i });

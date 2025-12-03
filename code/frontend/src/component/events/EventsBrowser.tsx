@@ -59,10 +59,12 @@ export function EventsBrowser({
     return [...eventsToRender].sort((a, b) => {
       switch (sort) {
         case "Date":
-          return (
-            new Date(a.event_datetime).getTime() -
-            new Date(b.event_datetime).getTime()
-          );
+          const timeA = new Date(a.event_datetime).getTime();
+          const timeB = new Date(b.event_datetime).getTime();
+          if (Number.isNaN(timeA) && Number.isNaN(timeB)) return 0;
+          if (Number.isNaN(timeA)) return 1;
+          if (Number.isNaN(timeB)) return -1;
+          return timeA - timeB;
         case "Price":
           return (a.price_field ?? 0) - (b.price_field ?? 0);
         case "Capacity":
