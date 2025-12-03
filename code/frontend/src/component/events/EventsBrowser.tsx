@@ -1,11 +1,11 @@
 /*
 
 AI-generated code: 65% (functions: filteredEvents calculation, sortedEvents calculation, EventDateConditionPicker integration, responsive popover styling, state management for calendar and sort)
+ AI-generated code: 65% (tool: Codex - GPT-5, query, setQuery, trimmedQuery, hasQuery, shouldFetchRemoteSearch, eventsToRender, isRemoteLoading, isBaseLoading, baseError, remoteError, showEmptyState, pagination, handlePreviousPage, handleNextPage, handleBaseRetry, handleRemoteRetry)
 
 Human code: 35% (event browser logic: search field, map modal trigger, EventsResults rendering, pagination handling, Tailwind layout structure)
 
-No framework-generated code.
-
+ No framework-generated code.
 */
 
 "use client";
@@ -86,13 +86,14 @@ export function EventsBrowser({
   const sortedEvents = useMemo(() => {
     return [...filteredEvents].sort((a, b) => {
       switch (sort) {
-        case "Date":
-          return (
-            new Date(a.event_datetime).getTime() -
-            new Date(b.event_datetime).getTime()
-          );
-        case "Distance":
-          return a.distance - b.distance;
+        case "Date": {
+          const timeA = new Date(a.event_datetime).getTime();
+          const timeB = new Date(b.event_datetime).getTime();
+          if (Number.isNaN(timeA) && Number.isNaN(timeB)) return 0;
+          if (Number.isNaN(timeA)) return 1;
+          if (Number.isNaN(timeB)) return -1;
+          return timeA - timeB;
+        }
         case "Price":
           return (a.price_field ?? 0) - (b.price_field ?? 0);
         case "Capacity":
@@ -129,7 +130,7 @@ export function EventsBrowser({
           )}
         </div>
 
-        <EventFilter value={sort} onChange={setSort} />
+        <EventSort value={sort} onChange={setSort} />
       </div>
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
