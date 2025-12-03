@@ -1,0 +1,14 @@
+asyncpg
+email-validator
+fastapi
+greenlet
+jsonpatch
+prometheus_fastapi_instrumentator
+pydantic
+pydantic-settings
+pyjwt
+requests
+sqlalchemy
+stripe
+uv
+uvicorn
