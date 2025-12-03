@@ -6,6 +6,7 @@ type RegisterAttendeeSuccess = {
   status: AttendeeStatus;
   message: string;
   toast?: "success" | "info";
+  redirectUrl?: string;
 };
 
 type RegisterAttendeeFailure = {
@@ -15,6 +16,7 @@ type RegisterAttendeeFailure = {
     | "alreadyRegistered"
     | "host"
     | "eventClosed"
+    | "paymentFailed"
     | "unknown";
   message: string;
   status?: AttendeeStatus | null;

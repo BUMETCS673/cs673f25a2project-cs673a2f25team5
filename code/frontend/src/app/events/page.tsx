@@ -6,9 +6,19 @@
 
 export const dynamic = "force-dynamic";
 import { getEvents } from "@/services/events";
+import { getCategories } from "@/services/categories";
 import { ClientEvents } from "@/component/events/ClientEvents";
 
 export default async function EventsPage() {
-  const initialResult = await getEvents({ limit: 6 });
-  return <ClientEvents initialResult={initialResult} />;
+  const [initialResult, categoriesResult] = await Promise.all([
+    getEvents({ limit: 6 }),
+    getCategories({ limit: 100 }),
+  ]);
+
+  return (
+    <ClientEvents
+      initialResult={initialResult}
+      categories={categoriesResult.items}
+    />
+  );
 }

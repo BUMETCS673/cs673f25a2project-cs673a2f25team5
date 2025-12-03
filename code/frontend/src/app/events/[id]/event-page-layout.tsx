@@ -35,6 +35,7 @@ type EventPageLayoutProps = {
   isHost: boolean;
   inviteAction?: InviteActionHandler | null;
   resolveInvitee?: InviteeLookupHandler | null;
+  registerNote?: string | null;
   onRegister: (
     eventId: string,
     status: AttendeeStatus,
@@ -51,6 +52,7 @@ export function EventPageLayout({
   isHost,
   inviteAction,
   resolveInvitee,
+  registerNote,
   onRegister,
   viewModel,
 }: EventPageLayoutProps) {
@@ -93,6 +95,7 @@ export function EventPageLayout({
               initialStatus={initialStatus}
               isAuthenticated={isAuthenticated}
               isHost={isHost}
+              note={registerNote ?? undefined}
             />
             <EventHostPanel
               host={viewModel.hostCard}

@@ -8,13 +8,22 @@
 
 */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { EventListResponse, EventResponse } from "@/types/eventTypes";
 import { getEvents } from "@/services/events";
 import { decodeEventLocation } from "@/helpers/locationCodec";
 
 const REMOTE_SEARCH_PAGE_SIZE = 9;
+const ALL_CATEGORY_KEY = "__all__";
+
+function cacheKeyFor(categoryId: string | null, pageIndex: number): string {
+  return `${categoryId ?? ALL_CATEGORY_KEY}::${pageIndex}`;
+}
+
+function buildCategoryFilters(categoryId: string | null): string[] {
+  return categoryId ? [`category_id:eq:${categoryId}`] : [];
+}
 
 function sortEventsByDate(events: EventResponse[]): EventResponse[] {
   return [...events].sort((a, b) => {
@@ -63,6 +72,11 @@ export type EventsBrowserState = {
   handleNextPage: () => void;
   handleBaseRetry: () => void;
   handleRemoteRetry: () => void;
+  selectedCategoryId: string | null;
+  handleSelectCategory: (categoryId: string | null) => void;
+  selectedMinPrice: number | null;
+  selectedMaxPrice: number | null;
+  handleSelectPriceRange: (min: number | null, max: number | null) => void;
 };
 
 export function useEventsBrowserState(
@@ -81,20 +95,30 @@ export function useEventsBrowserState(
     sortedInitialResult.offset / Math.max(initialPageSize, 1),
   );
 
-  const baseCacheRef = useRef<Map<number, EventListResponse>>(
-    new Map([[initialPageIndex, sortedInitialResult]]),
+  const initialCacheKey = cacheKeyFor(null, initialPageIndex);
+  const baseCacheRef = useRef<Map<string, EventListResponse>>(
+    new Map([[initialCacheKey, sortedInitialResult]]),
   );
   const baseControllerRef = useRef<AbortController | null>(null);
 
   const [baseResult, setBaseResult] = useState(sortedInitialResult);
   const [pageIndex, setPageIndex] = useState(initialPageIndex);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null,
+  );
+  const [selectedMinPrice, setSelectedMinPrice] = useState<number | null>(null);
+  const [selectedMaxPrice, setSelectedMaxPrice] = useState<number | null>(null);
   const [isBaseLoading, setIsBaseLoading] = useState(false);
   const [baseError, setBaseError] = useState<string | null>(null);
   const [pendingBaseIndex, setPendingBaseIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    baseCacheRef.current = new Map([[initialPageIndex, sortedInitialResult]]);
+    const resetKey = cacheKeyFor(null, initialPageIndex);
+    baseCacheRef.current = new Map([[resetKey, sortedInitialResult]]);
     setBaseResult(sortedInitialResult);
+    setSelectedCategoryId(null);
+    setSelectedMinPrice(null);
+    setSelectedMaxPrice(null);
     setPageIndex(initialPageIndex);
     setBaseError(null);
     setIsBaseLoading(false);
@@ -118,7 +142,22 @@ export function useEventsBrowserState(
   const normalizedQuery = trimmedQuery.toLowerCase();
 
   const baseEvents = baseResult.items;
-  const filteredBaseEvents = useMemo(() => {
+
+  const matchesPriceRange = useCallback(
+    (priceCents: number | null | undefined) => {
+      const priceDollars = (priceCents ?? 0) / 100;
+      if (selectedMinPrice !== null && priceDollars < selectedMinPrice) {
+        return false;
+      }
+      if (selectedMaxPrice !== null && priceDollars > selectedMaxPrice) {
+        return false;
+      }
+      return true;
+    },
+    [selectedMaxPrice, selectedMinPrice],
+  );
+
+  const baseEventsMatchingQuery = useMemo(() => {
     if (!normalizedQuery) {
       return baseEvents;
     }
@@ -137,8 +176,17 @@ export function useEventsBrowserState(
     });
   }, [baseEvents, normalizedQuery]);
 
+  const filteredBaseEvents = useMemo(
+    () =>
+      baseEventsMatchingQuery.filter((event) =>
+        matchesPriceRange(event.price_field),
+      ),
+    [baseEventsMatchingQuery, matchesPriceRange],
+  );
+
   const hasQuery = Boolean(trimmedQuery);
-  const shouldFetchRemoteSearch = hasQuery && filteredBaseEvents.length === 0;
+  const shouldFetchRemoteSearch =
+    hasQuery && baseEventsMatchingQuery.length === 0;
 
   const [remoteResult, setRemoteResult] = useState<EventListResponse | null>(
     null,
@@ -152,6 +200,10 @@ export function useEventsBrowserState(
   useEffect(() => {
     setPageIndex(0);
   }, [normalizedQuery]);
+
+  useEffect(() => {
+    setPageIndex(0);
+  }, [selectedCategoryId]);
 
   useEffect(() => {
     if (!shouldFetchRemoteSearch) {
@@ -176,8 +228,12 @@ export function useEventsBrowserState(
           (char) => `\\${char}`,
         );
         const ilikeValue = `%${escapedFilterTerm}%`;
+        const filters = [
+          `event_name:ilike:${ilikeValue}`,
+          ...buildCategoryFilters(selectedCategoryId),
+        ];
         const result = await getEvents({
-          filters: [`event_name:ilike:${ilikeValue}`],
+          filters,
           offset: remoteOffset,
           limit: REMOTE_SEARCH_PAGE_SIZE,
         });
@@ -214,75 +270,112 @@ export function useEventsBrowserState(
       isMounted = false;
       didCancel = true;
     };
-  }, [remoteFetchNonce, remoteOffset, shouldFetchRemoteSearch, trimmedQuery]);
+  }, [
+    remoteFetchNonce,
+    remoteOffset,
+    selectedCategoryId,
+    shouldFetchRemoteSearch,
+    trimmedQuery,
+  ]);
 
-  const loadBasePage = async (nextIndex: number) => {
-    const pageSize = baseResult.limit ?? initialPageSize;
+  const loadBasePage = useCallback(
+    async (
+      nextIndex: number,
+      targetCategoryId: string | null = selectedCategoryId,
+    ) => {
+      if (basePageSize <= 0) {
+        return;
+      }
 
-    if (pageSize <= 0) {
-      return;
-    }
+      const cacheKey = cacheKeyFor(targetCategoryId, nextIndex);
+      if (baseCacheRef.current.has(cacheKey)) {
+        const cached = baseCacheRef.current.get(cacheKey)!;
+        setBaseResult(cached);
+        setPageIndex(nextIndex);
+        setBaseError(null);
+        setIsBaseLoading(false);
+        setPendingBaseIndex(null);
+        return;
+      }
 
-    if (baseCacheRef.current.has(nextIndex)) {
-      const cached = baseCacheRef.current.get(nextIndex)!;
-      setBaseResult(cached);
-      setPageIndex(nextIndex);
+      baseControllerRef.current?.abort();
+
+      const controller = new AbortController();
+      baseControllerRef.current = controller;
+
+      setIsBaseLoading(true);
       setBaseError(null);
+      setPendingBaseIndex(nextIndex);
+
+      try {
+        const result = await getEvents({
+          offset: nextIndex * basePageSize,
+          limit: basePageSize,
+          filters: buildCategoryFilters(targetCategoryId),
+        });
+
+        if (baseControllerRef.current !== controller) {
+          return;
+        }
+
+        const sortedResult = {
+          ...result,
+          items: sortEventsByDate(result.items),
+        };
+
+        baseCacheRef.current.set(cacheKey, sortedResult);
+        setBaseResult(sortedResult);
+        setPageIndex(nextIndex);
+        setPendingBaseIndex(null);
+      } catch (error) {
+        if (baseControllerRef.current !== controller) {
+          return;
+        }
+
+        const message =
+          error instanceof Error
+            ? error.message
+            : "We ran into an issue while loading events.";
+        setBaseError(message);
+      } finally {
+        if (baseControllerRef.current === controller) {
+          baseControllerRef.current = null;
+          setIsBaseLoading(false);
+        }
+      }
+    },
+    [basePageSize, selectedCategoryId],
+  );
+
+  useEffect(() => {
+    const firstPageKey = cacheKeyFor(selectedCategoryId, 0);
+    const cached = baseCacheRef.current.get(firstPageKey);
+
+    setBaseError(null);
+    setPendingBaseIndex(null);
+
+    if (cached) {
+      setBaseResult(cached);
       setIsBaseLoading(false);
-      setPendingBaseIndex(null);
       return;
     }
-
-    baseControllerRef.current?.abort();
-
-    const controller = new AbortController();
-    baseControllerRef.current = controller;
 
     setIsBaseLoading(true);
-    setBaseError(null);
-    setPendingBaseIndex(nextIndex);
+    setBaseResult((prev) => ({
+      ...prev,
+      items: [],
+      total: 0,
+      offset: 0,
+      limit: prev.limit ?? initialPageSize,
+    }));
 
-    try {
-      const result = await getEvents({
-        offset: nextIndex * pageSize,
-        limit: pageSize,
-      });
-
-      if (baseControllerRef.current !== controller) {
-        return;
-      }
-
-      const sortedResult = {
-        ...result,
-        items: sortEventsByDate(result.items),
-      };
-
-      baseCacheRef.current.set(nextIndex, sortedResult);
-      setBaseResult(sortedResult);
-      setPageIndex(nextIndex);
-      setPendingBaseIndex(null);
-    } catch (error) {
-      if (baseControllerRef.current !== controller) {
-        return;
-      }
-
-      const message =
-        error instanceof Error
-          ? error.message
-          : "We ran into an issue while loading events.";
-      setBaseError(message);
-    } finally {
-      if (baseControllerRef.current === controller) {
-        baseControllerRef.current = null;
-        setIsBaseLoading(false);
-      }
-    }
-  };
+    void loadBasePage(0, selectedCategoryId);
+  }, [initialPageSize, loadBasePage, selectedCategoryId]);
 
   const handleBaseRetry = () => {
     const targetIndex =
       pendingBaseIndex ?? Math.floor(baseResult.offset / basePageSize);
-    void loadBasePage(targetIndex);
+    void loadBasePage(targetIndex, selectedCategoryId);
   };
 
   const handlePreviousPage = () => {
@@ -296,7 +389,7 @@ export function useEventsBrowserState(
       return;
     }
 
-    void loadBasePage(previousIndex);
+    void loadBasePage(previousIndex, selectedCategoryId);
   };
 
   const handleNextPage = () => {
@@ -327,15 +420,36 @@ export function useEventsBrowserState(
       return;
     }
 
-    void loadBasePage(nextIndex);
+    void loadBasePage(nextIndex, selectedCategoryId);
   };
 
   const handleRemoteRetry = () => {
     setRemoteFetchNonce((prev) => prev + 1);
   };
 
+  const handleSelectCategory = (categoryId: string | null) => {
+    baseControllerRef.current?.abort();
+    setSelectedCategoryId(categoryId);
+    setBaseError(null);
+    setRemoteResult(null);
+    setRemoteError(null);
+    setIsRemoteLoading(false);
+  };
+
+  const handleSelectPriceRange = (
+    minPrice: number | null,
+    maxPrice: number | null,
+  ) => {
+    setSelectedMinPrice(minPrice);
+    setSelectedMaxPrice(maxPrice);
+  };
+
   const totalRemote = remoteResult?.total ?? 0;
-  const remoteEvents = remoteResult?.items ?? [];
+  const remoteEvents = useMemo(() => remoteResult?.items ?? [], [remoteResult]);
+  const priceFilteredRemoteEvents = useMemo(
+    () => remoteEvents.filter((event) => matchesPriceRange(event.price_field)),
+    [matchesPriceRange, remoteEvents],
+  );
   const totalRemotePages =
     totalRemote > 0 ? Math.ceil(totalRemote / REMOTE_SEARCH_PAGE_SIZE) : 0;
   const currentRemotePage = remoteResult
@@ -350,7 +464,7 @@ export function useEventsBrowserState(
   const baseEnd = baseResult.offset + baseEvents.length;
 
   const eventsToRender = shouldFetchRemoteSearch
-    ? remoteEvents
+    ? priceFilteredRemoteEvents
     : filteredBaseEvents;
 
   const showEmptyState =
@@ -413,5 +527,10 @@ export function useEventsBrowserState(
     handleNextPage,
     handleBaseRetry,
     handleRemoteRetry,
+    selectedCategoryId,
+    handleSelectCategory,
+    selectedMinPrice,
+    selectedMaxPrice,
+    handleSelectPriceRange,
   };
 }

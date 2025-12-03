@@ -60,12 +60,17 @@ export default async function EventPage({
     hostEvents,
     attendeeCount,
   });
+  const registerNote =
+    event.price_field && event.price_field > 0
+      ? 'Selecting "Going" will open a secure Stripe checkout to complete payment.'
+      : null;
 
   const onRegister = createRegisterAction({
     hostMessage: HOST_REGISTRATION_MESSAGE,
     hostUserId: event.user_id,
     eventStartTime: event.event_datetime,
     eventEndTime: event.event_endtime,
+    priceCents: event.price_field ?? null,
     successMessages: SUCCESS_MESSAGE_BY_STATUS,
   });
   const onInvite = isHostUser
@@ -90,6 +95,7 @@ export default async function EventPage({
       isHost={isHostUser}
       inviteAction={onInvite}
       resolveInvitee={onResolveInvitee}
+      registerNote={registerNote}
       onRegister={onRegister}
       viewModel={viewModel}
     />
