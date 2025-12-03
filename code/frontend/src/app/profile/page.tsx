@@ -1,8 +1,8 @@
 /** 
  * 
-  AI-generated code: 25% (tool: Codex - GPT-5, modified and adapted, functions: UserProfile1, useUser, useCallback, useEffect, useState) 
+  AI-generated code: 20% (tool: Codex - GPT-5, modified and adapted, functions: UserProfile1, useUser, useCallback, useEffect, useState) 
 
-  Human code: 75% (functions: UserProfile1, useUser, useCallback, useEffect, useState) 
+  Human code: 80% (functions: UserProfile1, useUser, useCallback, useEffect, useState) 
 
   Framework-generated code: 0%
 
@@ -27,9 +27,9 @@ function UserProfile1() {
   const userId = user?.externalId;
   const isProfileLoading = !isLoaded;
 
-  const [eventSource, setEventSource] = useState<"created" | "registered">(
-    "created",
-  );
+  const [eventSource, setEventSource] = useState<
+    "created" | "registered" | "upcoming"
+  >("created");
   const [createdEvents, setCreatedEvents] = useState<EventResponse[] | null>(
     null,
   );
@@ -63,7 +63,7 @@ function UserProfile1() {
     }
 
     const attendeeResult = await getAttendees({
-      filters: [`user_id:eq:${userId}`],
+      filters: [`user_id:eq:${userId}`, "status:eq:RSVPed"],
       limit: 100,
     });
 
@@ -78,13 +78,17 @@ function UserProfile1() {
     if (uniqueEventIds.length === 0) {
       return [];
     }
-    // Batch fetch all events in a single API call using the "in" filter
-    const eventsResult = await getEvents({
-      filters: [`event_id:in:${uniqueEventIds.join(",")}`],
-      limit: uniqueEventIds.length,
-    });
-    return eventsResult.items;
-  }, [userId]);
+    const eve: EventResponse[] = [];
+    for (const eventId of uniqueEventIds) {
+      const eventResult = await getEvents({
+        filters: [`event_id:eq:${eventId}`],
+        limit: 1,
+      });
+      eve?.push(eventResult.items[0]);
+    }
+    setRegisteredEvents(eve);
+    return eve;
+  }, [userId, setRegisteredEvents]);
 
   useEffect(() => {
     if (eventSource === "created" && createdEvents) {
@@ -94,6 +98,14 @@ function UserProfile1() {
 
     if (eventSource === "registered" && registeredEvents) {
       setDisplayedEvents(registeredEvents);
+      return;
+    }
+
+    if (eventSource === "upcoming" && createdEvents && registeredEvents) {
+      const upcoming = [...createdEvents, ...registeredEvents].filter(
+        (event) => event.event_datetime > new Date().toISOString(),
+      );
+      setDisplayedEvents(upcoming as EventResponse[]);
       return;
     }
 
@@ -107,8 +119,9 @@ function UserProfile1() {
 
     const needsCreated = eventSource === "created" && !createdEvents;
     const needsRegistered = eventSource === "registered" && !registeredEvents;
+    const needsUpcoming = eventSource === "upcoming" && !createdEvents;
 
-    if (!needsCreated && !needsRegistered) {
+    if (!needsCreated && !needsRegistered && !needsUpcoming) {
       setEventsError(null);
       setIsLoadingEvents(false);
       return;
@@ -120,17 +133,18 @@ function UserProfile1() {
 
     const fetchEvents = async () => {
       try {
-        const data = needsCreated
-          ? await loadCreatedEvents()
-          : await loadRegisteredEvents();
+        const data =
+          needsCreated || needsUpcoming
+            ? await loadCreatedEvents()
+            : await loadRegisteredEvents();
 
         if (cancelled) {
           return;
         }
 
-        if (eventSource === "created") {
+        if (eventSource === "created" || eventSource === "upcoming") {
           setCreatedEvents(data);
-        } else {
+        } else if (eventSource === "registered") {
           setRegisteredEvents(data);
         }
       } catch (error) {
@@ -164,11 +178,17 @@ function UserProfile1() {
   ]);
 
   const headingText =
-    eventSource === "created" ? "Events created" : "Registered events";
+    eventSource === "created"
+      ? "Events created"
+      : eventSource === "registered"
+        ? "Registered events"
+        : "Upcoming events";
   const descriptionText =
     eventSource === "created"
       ? "View all your events created by you."
-      : "Browse the events you've registered to attend.";
+      : eventSource === "registered"
+        ? "Browse the events you've registered to attend."
+        : "Browse all upcoming events.";
   const createdEventsCount =
     createdEvents?.length ??
     (eventSource === "created" ? displayedEvents.length : 0);
@@ -248,7 +268,9 @@ function UserProfile1() {
               <select
                 value={eventSource}
                 onChange={(event) =>
-                  setEventSource(event.target.value as "created" | "registered")
+                  setEventSource(
+                    event.target.value as "created" | "registered" | "upcoming",
+                  )
                 }
                 className="mt-1 rounded-2xl border border-neutral-200 bg-white/90 dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-800 shadow-sm focus:border-amber-400 dark:focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:border-white/10 dark:text-neutral-100"
               >
@@ -263,6 +285,12 @@ function UserProfile1() {
                   className="dark:text-neutral-100 bg-white/90 dark:bg-neutral-900"
                 >
                   Events I registered for
+                </option>
+                <option
+                  value="upcoming"
+                  className="dark:text-neutral-100 bg-white/90 dark:bg-neutral-900"
+                >
+                  Upcoming events
                 </option>
               </select>
             </label>
