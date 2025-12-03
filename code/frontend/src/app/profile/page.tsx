@@ -36,9 +36,6 @@ function UserProfile1() {
   const [registeredEvents, setRegisteredEvents] = useState<
     EventResponse[] | null
   >(null);
-  const [upcomingEvents, setUpcomingEvents] = useState<EventResponse[] | null>(
-    null,
-  );
   const [displayedEvents, setDisplayedEvents] = useState<EventResponse[]>([]);
   const [isLoadingEvents, setIsLoadingEvents] = useState(false);
   const [eventsError, setEventsError] = useState<string | null>(null);
@@ -46,7 +43,6 @@ function UserProfile1() {
   useEffect(() => {
     setCreatedEvents(null);
     setRegisteredEvents(null);
-    setUpcomingEvents(null);
     setDisplayedEvents([]);
     setEventSource("created");
   }, [userId]);
@@ -67,7 +63,7 @@ function UserProfile1() {
     }
 
     const attendeeResult = await getAttendees({
-      filters: [`user_id:eq:${userId}`],
+      filters: [`user_id:eq:${userId}`, "status:eq:RSVPed"],
       limit: 100,
     });
 
@@ -90,16 +86,7 @@ function UserProfile1() {
     return eventsResult.items;
   }, [userId]);
 
-  const loadUpcomingEvents = useCallback(async () => {
-    if (!userId) {
-      return [];
-    }
-    const response = await getEvents({
-      filters: [`event_datetime:gt:${new Date().toISOString()}`],
-      limit: 100,
-    });
-    return response.items;
-  }, [userId]);
+
 
   useEffect(() => {
     if (eventSource === "created" && createdEvents) {
@@ -111,13 +98,17 @@ function UserProfile1() {
       setDisplayedEvents(registeredEvents);
       return;
     }
-    if (eventSource === "upcoming" && upcomingEvents) {
-      setDisplayedEvents(upcomingEvents);
+
+    if (eventSource === "upcoming" && createdEvents) {
+      const upcoming = createdEvents.filter(
+        (event) => event.event_datetime > new Date().toISOString(),
+      );
+      setDisplayedEvents(upcoming);
       return;
     }
 
     setDisplayedEvents([]);
-  }, [eventSource, createdEvents, registeredEvents, upcomingEvents]);
+  }, [eventSource, createdEvents, registeredEvents]);
 
   useEffect(() => {
     if (!userId) {
@@ -126,7 +117,7 @@ function UserProfile1() {
 
     const needsCreated = eventSource === "created" && !createdEvents;
     const needsRegistered = eventSource === "registered" && !registeredEvents;
-    const needsUpcoming = eventSource === "upcoming" && !upcomingEvents;
+    const needsUpcoming = eventSource === "upcoming" && !createdEvents;
 
     if (!needsCreated && !needsRegistered && !needsUpcoming) {
       setEventsError(null);
@@ -140,22 +131,18 @@ function UserProfile1() {
 
     const fetchEvents = async () => {
       try {
-        const data = needsCreated
+        const data = needsCreated || needsUpcoming
           ? await loadCreatedEvents()
-          : needsRegistered
-            ? await loadRegisteredEvents()
-            : await loadUpcomingEvents();
+          : await loadRegisteredEvents();
 
         if (cancelled) {
           return;
         }
 
-        if (eventSource === "created") {
+        if (eventSource === "created" || eventSource === "upcoming") {
           setCreatedEvents(data);
         } else if (eventSource === "registered") {
           setRegisteredEvents(data);
-        } else {
-          setUpcomingEvents(data);
         }
       } catch (error) {
         if (cancelled) {
@@ -183,8 +170,6 @@ function UserProfile1() {
     eventSource,
     loadCreatedEvents,
     loadRegisteredEvents,
-    loadUpcomingEvents,
-    upcomingEvents,
     registeredEvents,
     userId,
   ]);
@@ -337,7 +322,6 @@ function UserProfile1() {
             onRetryBase={() => {
               setCreatedEvents(null);
               setRegisteredEvents(null);
-              setUpcomingEvents(null);
             }}
             onRetryRemote={() => {}}
           />
