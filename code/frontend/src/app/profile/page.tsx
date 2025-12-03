@@ -78,13 +78,20 @@ function UserProfile1() {
     if (uniqueEventIds.length === 0) {
       return [];
     }
-    // Batch fetch all events in a single API call using the "in" filter
-    const eventsResult = await getEvents({
-      filters: [`event_id:in:${uniqueEventIds.join(",")}`],
-      limit: uniqueEventIds.length,
-    });
-    return eventsResult.items;
-  }, [userId]);
+    console.log("uniqueEventIds", uniqueEventIds);
+    const eve: EventResponse[] = [];
+    for (const eventId of uniqueEventIds) {
+      const eventResult = await getEvents({
+        filters: [`event_id:eq:${eventId}`],
+        limit: 1,
+      });
+      console.log("eventResult", eventResult);
+      eve?.push(eventResult.items[0]);
+    }
+    console.log("registeredEvents", eve);
+    setRegisteredEvents(eve);
+    return eve;
+  }, [userId, setRegisteredEvents]);
 
   useEffect(() => {
     if (eventSource === "created" && createdEvents) {
@@ -97,11 +104,11 @@ function UserProfile1() {
       return;
     }
 
-    if (eventSource === "upcoming" && createdEvents) {
-      const upcoming = createdEvents.filter(
+    if (eventSource === "upcoming" && createdEvents && registeredEvents) {
+      const upcoming = [...createdEvents, ...registeredEvents].filter(
         (event) => event.event_datetime > new Date().toISOString(),
       );
-      setDisplayedEvents(upcoming);
+      setDisplayedEvents(upcoming as EventResponse[]);
       return;
     }
 
