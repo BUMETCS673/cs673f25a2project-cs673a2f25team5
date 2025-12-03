@@ -8,43 +8,50 @@
 
 */
 
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { EventSort } from "../component/events/EventSort";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { EventSort } from "./EventSort";
 
-describe("EventSort", () => {
-  it("renders all sort options and calls onChange when selecting one", async () => {
-    const onChange = jest.fn();
+describe("EventSort component", () => {
+  const sortOptions = ["Date", "Price", "Capacity", "A to Z", "Z to A"];
 
-    render(<EventSort value="Date" onChange={onChange} />);
-
-    // Open popover menu
-    await userEvent.click(screen.getByRole("button", { name: /sort/i }));
-
-    const options = ["Date", "Price", "Capacity", "A to Z", "Z to A"];
-
-    // Ensure all options render
-    for (const label of options) {
-      expect(screen.getByText(label)).toBeInTheDocument();
-    }
-
-    // Click a non-selected option (e.g., Price)
-    await userEvent.click(screen.getByText("Price"));
-
-    expect(onChange).toHaveBeenCalledWith("Price");
+  test("renders Sort button", () => {
+    render(<EventSort value="Date" onChange={() => {}} />);
+    expect(screen.getByRole("button", { name: /sort/i })).toBeInTheDocument();
   });
 
-  it("applies selected styling to the active option", async () => {
-    const onChange = jest.fn();
+  test("renders all sort options when clicked", async () => {
+    render(<EventSort value="Date" onChange={() => {}} />);
+    
+    const button = screen.getByRole("button", { name: /sort/i });
+    fireEvent.click(button);
 
-    render(<EventSort value="Distance" onChange={onChange} />);
+    sortOptions.forEach((option) => {
+      expect(screen.getByRole("button", { name: option })).toBeInTheDocument();
+    });
+  });
 
-    // Open menu
-    await userEvent.click(screen.getByRole("button", { name: /sort/i }));
+  test("calls onChange callback when option is clicked", () => {
+    const handleChange = jest.fn();
+    render(<EventSort value="Date" onChange={handleChange} />);
+    
+    const button = screen.getByRole("button", { name: /sort/i });
+    fireEvent.click(button);
 
-    const selected = screen.getByText("Distance");
+    const optionButton = screen.getByRole("button", { name: "Price" });
+    fireEvent.click(optionButton);
 
-    // The class we check is part of your highlight styles
-    expect(selected.className).toMatch(/bg-gradient-to-r/);
+    expect(handleChange).toHaveBeenCalledWith("Price");
+  });
+
+  test("highlights the selected value", () => {
+    render(<EventSort value="Capacity" onChange={() => {}} />);
+    
+    const button = screen.getByRole("button", { name: /sort/i });
+    fireEvent.click(button);
+
+    const selectedButton = screen.getByRole("button", { name: "Capacity" });
+    expect(selectedButton).toHaveClass(
+      "bg-gradient-to-r from-[#5c1354] to-[#b34fa8] text-white shadow-md"
+    );
   });
 });
