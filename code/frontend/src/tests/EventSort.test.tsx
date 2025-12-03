@@ -21,7 +21,7 @@ describe("EventSort component", () => {
 
   test("renders all sort options when clicked", async () => {
     render(<EventSort value="Date" onChange={() => {}} />);
-    
+
     const button = screen.getByRole("button", { name: /sort/i });
     fireEvent.click(button);
 
@@ -33,7 +33,7 @@ describe("EventSort component", () => {
   test("calls onChange callback when option is clicked", () => {
     const handleChange = jest.fn();
     render(<EventSort value="Date" onChange={handleChange} />);
-    
+
     const button = screen.getByRole("button", { name: /sort/i });
     fireEvent.click(button);
 
@@ -45,13 +45,13 @@ describe("EventSort component", () => {
 
   test("highlights the selected value", () => {
     render(<EventSort value="Capacity" onChange={() => {}} />);
-    
+
     const button = screen.getByRole("button", { name: /sort/i });
     fireEvent.click(button);
 
     const selectedButton = screen.getByRole("button", { name: "Capacity" });
     expect(selectedButton).toHaveClass(
-      "bg-gradient-to-r from-[#5c1354] to-[#b34fa8] text-white shadow-md"
+      "bg-gradient-to-r from-[#5c1354] to-[#b34fa8] text-white shadow-md",
     );
   });
 });
