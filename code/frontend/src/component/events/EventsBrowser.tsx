@@ -14,7 +14,6 @@ import { useState, useMemo } from "react";
 import type { EventListResponse } from "@/types/eventTypes";
 import { FaCalendarDays } from "react-icons/fa6";
 import { EventDateConditionPicker } from "./EventDateConditionPicker";
-import { EventFilter } from "./EventFilter";
 import type { DateConditionValue } from "./EventDateConditionPicker";
 import type { CategoryResponse } from "@/types/categoryTypes";
 import { EventSearchField } from "./EventSearchField";
@@ -23,6 +22,7 @@ import { useEventsBrowserState } from "./hooks/useEventsBrowserState";
 import { MapDiscoveryModalTrigger } from "./MapDiscoveryModal";
 import { CategoryFilter } from "./CategoryFilter";
 import { PriceFilter } from "./PriceFilter";
+import { EventSort } from "./EventSort";
 
 type EventsBrowserProps = {
   initialResult: EventListResponse;
