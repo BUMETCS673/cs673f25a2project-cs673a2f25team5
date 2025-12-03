@@ -1,17 +1,20 @@
 /*
 
+AI-generated code: 65% (functions: filteredEvents calculation, sortedEvents calculation, EventDateConditionPicker integration, responsive popover styling, state management for calendar and sort)
  AI-generated code: 65% (tool: Codex - GPT-5, query, setQuery, trimmedQuery, hasQuery, shouldFetchRemoteSearch, eventsToRender, isRemoteLoading, isBaseLoading, baseError, remoteError, showEmptyState, pagination, handlePreviousPage, handleNextPage, handleBaseRetry, handleRemoteRetry)
 
- Human code: 35% (functions: EventsBrowser)
+Human code: 35% (event browser logic: search field, map modal trigger, EventsResults rendering, pagination handling, Tailwind layout structure)
 
  No framework-generated code.
-
 */
 
 "use client";
+
 import { useState, useMemo } from "react";
 import type { EventListResponse } from "@/types/eventTypes";
-import { EventSort } from "./EventSort";
+import { FaCalendarDays } from "react-icons/fa6";
+import { EventDateConditionPicker } from "./EventDateConditionPicker";
+import type { DateConditionValue } from "./EventDateConditionPicker";
 import type { CategoryResponse } from "@/types/categoryTypes";
 import { EventSearchField } from "./EventSearchField";
 import { EventsResults } from "./EventsResults";
@@ -19,6 +22,7 @@ import { useEventsBrowserState } from "./hooks/useEventsBrowserState";
 import { MapDiscoveryModalTrigger } from "./MapDiscoveryModal";
 import { CategoryFilter } from "./CategoryFilter";
 import { PriceFilter } from "./PriceFilter";
+import { EventSort } from "./EventSort";
 
 type EventsBrowserProps = {
   initialResult: EventListResponse;
@@ -54,9 +58,33 @@ export function EventsBrowser({
   } = useEventsBrowserState(initialResult);
 
   const [sort, setSort] = useState("Date");
+  const [calendarValue, setCalendarValue] = useState<DateConditionValue | null>(
+    null,
+  );
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const filteredEvents = useMemo(() => {
+    if (!calendarValue) return eventsToRender;
+
+    return eventsToRender.filter((event) => {
+      const eventDate = new Date(event.event_datetime).getTime();
+      switch (calendarValue.type) {
+        case "before":
+          return eventDate <= new Date(calendarValue.date).getTime();
+        case "after":
+          return eventDate >= new Date(calendarValue.date).getTime();
+        case "between":
+          const start = new Date(calendarValue.start).getTime();
+          const end = new Date(calendarValue.end).getTime();
+          return eventDate >= start && eventDate <= end;
+        default:
+          return true;
+      }
+    });
+  }, [eventsToRender, calendarValue]);
 
   const sortedEvents = useMemo(() => {
-    return [...eventsToRender].sort((a, b) => {
+    return [...filteredEvents].sort((a, b) => {
       switch (sort) {
         case "Date": {
           const timeA = new Date(a.event_datetime).getTime();
@@ -78,13 +106,33 @@ export function EventsBrowser({
           return 0;
       }
     });
-  }, [eventsToRender, sort]);
+  }, [filteredEvents, sort]);
 
   return (
-    <div className="space-y-8">
-      <div>
+    <div className="space-y-8 relative">
+      <div className="flex justify-end items-center gap-2">
+        <div className="relative">
+          <button
+            type="button"
+            className="p-2 rounded-xl text-amber-300 cursor-pointer"
+            onClick={() => setIsCalendarOpen((prev) => !prev)}
+          >
+            <FaCalendarDays className="h-6 w-6" />
+          </button>
+
+          {isCalendarOpen && (
+            <div className="absolute right-0 top-full z-50 mt-2 w-[min(90vw,400px)] lg:w-[min(90vw,800px)]">
+              <EventDateConditionPicker
+                value={calendarValue}
+                onChange={setCalendarValue}
+              />
+            </div>
+          )}
+        </div>
+
         <EventSort value={sort} onChange={setSort} />
       </div>
+
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="grid w-full grid-cols-1 gap-4 lg:max-w-3xl lg:grid-cols-1 flex-col">
           <div className="flex gap-4">

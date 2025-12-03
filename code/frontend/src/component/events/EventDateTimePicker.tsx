@@ -300,7 +300,7 @@ export function EventDateTimePicker({
             id={`${id}-panel`}
             role="dialog"
             aria-label={`${label} picker`}
-            className="absolute left-0 right-0 z-20 mt-2 rounded-3xl border border-neutral-200/70 bg-white/95 p-6 shadow-2xl shadow-amber-500/10 backdrop-blur dark:border-white/10 dark:bg-neutral-900/95"
+            className="z-20 mt-2 w-auto rounded-3xl border border-neutral-200/70 bg-white/95 p-6 shadow-2xl shadow-amber-500/10 backdrop-blur dark:border-white/10 dark:bg-neutral-900/95"
           >
             <div className="flex flex-col gap-6 lg:flex-row">
               <div className="flex-1">
@@ -373,6 +373,11 @@ export function EventDateTimePicker({
                       const timeProps = timeButton(entry, {
                         onClick: () => {
                           selectingTimeRef.current = true;
+                          const updated = entry.$date;
+                          onChange(
+                            formatDateForInput(updated),
+                            formatTimeForInput(updated),
+                          );
                         },
                       });
                       const isSelected = timeSelectionExists
