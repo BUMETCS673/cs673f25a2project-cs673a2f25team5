@@ -11,7 +11,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import type { EventListResponse } from "@/types/eventTypes";
-
+import { EventSort } from "./EventSort";
 import type { CategoryResponse } from "@/types/categoryTypes";
 import { EventSearchField } from "./EventSearchField";
 import { EventsResults } from "./EventsResults";
