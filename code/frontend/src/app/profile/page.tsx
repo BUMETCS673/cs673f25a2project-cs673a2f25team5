@@ -86,8 +86,6 @@ function UserProfile1() {
     return eventsResult.items;
   }, [userId]);
 
-
-
   useEffect(() => {
     if (eventSource === "created" && createdEvents) {
       setDisplayedEvents(createdEvents);
@@ -131,9 +129,10 @@ function UserProfile1() {
 
     const fetchEvents = async () => {
       try {
-        const data = needsCreated || needsUpcoming
-          ? await loadCreatedEvents()
-          : await loadRegisteredEvents();
+        const data =
+          needsCreated || needsUpcoming
+            ? await loadCreatedEvents()
+            : await loadRegisteredEvents();
 
         if (cancelled) {
           return;
