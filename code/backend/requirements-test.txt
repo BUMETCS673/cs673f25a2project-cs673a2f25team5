@@ -1,0 +1,6 @@
+aiosqlite
+httpx
+pytest
+pytest-asyncio
+pytest-cov
+requests
