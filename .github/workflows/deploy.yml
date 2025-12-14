@@ -1,0 +1,105 @@
+name: Deploy Kickaas App
+run-name: Deploy - ${{ github.event.head_commit.message }}
+
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Pull images and deploy to EC2
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    env:
+      # Deployment Configuration
+      DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
+
+      # Docker Configuration
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+      BACKEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/event-manager-backend
+      FRONTEND_IMAGE: ${{ secrets.DOCKER_USERNAME }}/event-manager-frontend
+      IMAGE_TAG: ${{ secrets.IMAGE_TAG || 'latest' }}
+
+      # Database Configuration
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_PORT: ${{ secrets.POSTGRES_PORT || 5432 }}
+      POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+
+      # Clerck Configuration
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      CLERK_JWKS_URL: ${{ secrets.CLERK_JWKS_URL }}
+      NEXT_PUBLIC_MAP_BOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAP_BOX_TOKEN }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      # Clerk Auth Configuration
+      CLERK_AUTH_ENABLED: ${{ secrets.CLERK_AUTH_ENABLED || true}}
+
+      # Miscellaneous 
+      BACKEND_URL: ${{ secrets.BACKEND_URL }}
+
+    steps:
+      - name: Check required secrets
+        run: |
+          if [ -z "${{ secrets.EC2_HOST }}" ]; then echo "Missing EC2_HOST secret"; exit 1; fi
+          if [ -z "${{ secrets.EC2_USER }}" ]; then echo "Missing EC2_USER secret"; exit 1; fi
+          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then echo "Missing SSH_PRIVATE_KEY secret"; exit 1; fi
+          if [ -z "${{ secrets.DEPLOY_DIR }}" ]; then echo "Missing DEPLOY_DIR secret"; exit 1; fi
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then echo "Missing DOCKER_USERNAME secret"; exit 1; fi
+          if [ -z "${{ secrets.DOCKER_ACCESS_TOKEN }}" ]; then echo "Missing DOCKER_ACCESS_TOKEN secret"; exit 1; fi
+        shell: bash
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup deployment environment on EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT || '22' }}
+          source: "cd/"
+          target: ${{ secrets.DEPLOY_DIR }}
+          strip_components: 1
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT || '22' }}
+          envs:
+            DEPLOY_DIR
+            DOCKER_USERNAME
+            DOCKER_ACCESS_TOKEN
+            BACKEND_IMAGE
+            FRONTEND_IMAGE
+            IMAGE_TAG
+            POSTGRES_USER
+            POSTGRES_PASSWORD
+            POSTGRES_PORT
+            POSTGRES_HOST
+            POSTGRES_DB
+            CLERK_SECRET_KEY
+            CLERK_WEBHOOK_SIGNING_SECRET
+            CLERK_JWKS_URL
+            NEXT_PUBLIC_MAP_BOX_TOKEN
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+            CLERK_AUTH_ENABLED
+            BACKEND_URL
+          script: |
+            set -euo pipefail
+            chmod +x "${{ secrets.DEPLOY_DIR }}/deploy-kickaas.sh"
+            # Execute the script in the deploy dir so relative paths in the script behave consistently
+            cd "${{ secrets.DEPLOY_DIR }}"
+            ./deploy-kickaas.sh
